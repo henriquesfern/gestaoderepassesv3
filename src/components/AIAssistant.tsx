@@ -135,7 +135,13 @@ export function AIAssistant() {
       // Preparing context with compact representation
       const contextData = {
         fomento2025: appData.fomentoHistorico.map(d => ({ Entidade: d.ENTIDADE, UF: d.ESTADO, Repasse: d.VALOR_REPASSE, Objetivo: d.OBJETIVO })),
-        fomento2026: appData.fomento2026.map(d => ({ Entidade: d.ENTIDADE, UF: d.ESTADO, Repasse: d.VALOR_REPASSE, Objetivo: d.OBJETIVO })),
+        fomento2026: appData.fomento2026.map(d => ({ 
+          Entidade: d.ENTIDADE, 
+          UF: d.ESTADO, 
+          Repasse: d.VALOR_REPASSE, 
+          Objetivo: d.OBJETIVO,
+          RankingInfraBR: d.RANKING_ADERENCIA_INFRABR 
+        })),
         patrocinio2025: appData.patrocinioHistorico.map(d => ({ Entidade: d.ENTIDADE, UF: d.ESTADO, Repasse: d.VALOR_REPASSE, Projeto: d.OBJETIVO })),
         infraBR_detalhamento: infraData.detalhamento.map(d => ({
           Dimensao: d.DIMENSAO,

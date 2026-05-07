@@ -14,6 +14,17 @@ interface DirectoryProps {
   data?: EntidadeSelecionada[];
 }
 
+const getDimensionColor = (dimension: string) => {
+  const dim = dimension.trim().toUpperCase();
+  if (dim.includes('ENERGIA') || dim.includes('CONECTIVIDADE')) return "bg-amber-50 text-amber-700 border-amber-200";
+  if (dim.includes('BEM-ESTAR') || dim.includes('CIDADANIA')) return "bg-cyan-50 text-cyan-700 border-cyan-200";
+  if (dim.includes('MEIO AMBIENTE') || dim.includes('RESILIÊNCIA')) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (dim.includes('SANEAMENTO')) return "bg-teal-50 text-teal-700 border-teal-200";
+  if (dim.includes('ÁGUA')) return "bg-sky-50 text-sky-700 border-sky-200";
+  if (dim.includes('MOBILIDADE')) return "bg-rose-50 text-rose-700 border-rose-200";
+  return "bg-slate-100 text-slate-600 border-slate-200";
+};
+
 export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
   const selecionados = data;
   const [searchTerm, setSearchTerm] = useState('');
@@ -286,7 +297,7 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
               filteredData.map((item, idx) => {
                 const uniqueKey = item.CNPJ + idx;
                 const isExpanded = expandedRows.has(uniqueKey);
-                const hasAnexoInfo = Boolean(item.OBJETIVO_COMPLETO || item.AREA_ABRANGENCIA || item.OBJETIVO_ESPECIFICO_COMPLETO || item.PUBLICO_ALVO);
+                const hasAnexoInfo = Boolean(item.OBJETIVO_COMPLETO || item.AREA_ABRANGENCIA || item.OBJETIVO_ESPECIFICO_COMPLETO || item.PUBLICO_ALVO || item.RANKING_ADERENCIA_INFRABR);
 
                 return (
                  <React.Fragment key={uniqueKey}>
@@ -299,6 +310,19 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                         <div>
                           <div className="font-medium text-slate-800 text-sm align-middle flex items-center">
                             {item.ENTIDADE}
+                            {item.RANKING_ADERENCIA_INFRABR && (
+                              <span 
+                                className={cn(
+                                  "ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-tighter",
+                                  item.RANKING_ADERENCIA_INFRABR.split('|').length >= 3 ? "bg-emerald-500 text-white border-emerald-600" :
+                                  item.RANKING_ADERENCIA_INFRABR.split('|').length === 2 ? "bg-amber-400 text-amber-950 border-amber-500" :
+                                  "bg-rose-500 text-white border-rose-600"
+                                )} 
+                                title={`${item.RANKING_ADERENCIA_INFRABR.split('|').length} dimensões Infra-BR identificadas`}
+                              >
+                                iBR
+                              </span>
+                            )}
                           </div>
                           <div className="mt-2 flex flex-wrap items-start gap-1">
                       <span className={cn(
@@ -346,6 +370,23 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                         {item.tipoRepasse}
                       </span>
                     </div>
+                    {item.RANKING_ADERENCIA_INFRABR && (
+                      <div className="mt-1.5 flex flex-wrap items-start gap-1 w-full">
+                        {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
+                          const parts = dim.trim().split('-');
+                          const rank = parts[0];
+                          const name = parts.slice(1).join('-');
+                          return (
+                            <span key={dIdx} className={cn(
+                              "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap",
+                              getDimensionColor(name)
+                            )}>
+                              <span className="opacity-50 mr-1">{rank}</span> {name}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                    </div>
                   </div>
                   </td>
@@ -381,7 +422,33 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                 {isExpanded && (
                   <tr className="bg-slate-50 border-b border-slate-200">
                     <td colSpan={6} className="py-4 px-10">
-                      <div className="space-y-4 text-sm max-w-4xl">
+                      <div className="space-y-4 text-sm w-full">
+                        {item.RANKING_ADERENCIA_INFRABR ? (
+                          <div className="bg-[#003865]/5 p-4 rounded-lg border border-[#003865]/10">
+                            <h4 className="font-semibold text-[#003865] mb-2 text-xs uppercase tracking-wide flex items-center">
+                              <span className="w-2 h-2 bg-[#003865] rounded-full mr-2"></span>
+                              Aderência Setorial Infra-BR (Ranking M3)
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
+                                const parts = dim.trim().split('-');
+                                const rank = parts[0];
+                                const name = parts.slice(1).join('-');
+                                return (
+                                  <div key={dIdx} className={cn("flex flex-col items-center px-4 py-2 border rounded shadow-sm", getDimensionColor(name))}>
+                                    <span className="text-[10px] font-bold opacity-60 uppercase tracking-tighter">{rank}</span>
+                                    <span className="text-xs font-semibold">{name}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            {item.DIMENSAO_PRINCIPAL && (
+                              <div className="mt-3 text-[11px] text-slate-500 italic">
+                                <strong>Foco identificado:</strong> {item.DIMENSAO_PRINCIPAL}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
                         {item.OBJETIVO_COMPLETO ? (
                           <div>
                             <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Objetivo Completo</h4>
