@@ -5,6 +5,7 @@ import { fomento2025CSV } from './fomento2025';
 import { fomento2026CSV } from './fomento2026';
 import { patrocinioCSV } from './patrocinio2025';
 import { getRegionByState, getStateFullName } from './regions';
+import { infraData } from './infraBR_parser';
 
 export interface EntidadeCDEN {
   Entidade: string;
@@ -223,7 +224,8 @@ export const parseData = () => {
     precursoras: precursorasParsed,
     fomento2026: fomento2026Parsed,
     fomentoHistorico: fomentoHistoricoParsed,
-    patrocinioHistorico: patrocinioParsed
+    patrocinioHistorico: patrocinioParsed,
+    infraBR: infraData
   };
 };
 
