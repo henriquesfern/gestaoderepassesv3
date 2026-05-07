@@ -75,6 +75,136 @@ const parseNumberBR = (val: string) => {
   return parseFloat(val.replace(',', '.')) || 0;
 };
 
+// --- ADAPTADORES (Mapeamento Seguro por Versão) ---
+
+/**
+ * Adapter para Fomento 2025 (Histórico)
+ */
+const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
+  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
+  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
+  
+  const getField = (prefix: string) => {
+    const key = Object.keys(row).find(k => k.trim().startsWith(prefix));
+    return key ? row[key] : '';
+  };
+
+  let linhaSolicitada = getField('Linha');
+  if (linhaSolicitada === '1') linhaSolicitada = 'Atividade principal do Sistema Confea/Crea';
+  else if (linhaSolicitada === '2') linhaSolicitada = 'Transparência, Legalidade e Legitimidade do Sistema Confea/Crea';
+  else if (linhaSolicitada === '3') linhaSolicitada = 'Papel do Sistema Confea/Crea';
+  else linhaSolicitada = 'Outros';
+
+  const razaoSocial = getField('Razão Social') || row.Sigla || '';
+
+  return {
+    ENTIDADE: razaoSocial,
+    CNPJ: row.CNPJ || '',
+    OBJETIVO: linhaSolicitada,
+    CATEGORIA: linhaSolicitada,
+    ESTADO: getStateFullName(row.Estado || row.ESTADO || ''),
+    NOTA: parseNumberBR(row['Classificação']) || 0,
+    VOTOS: 0,
+    VALOR_REPASSE: parseCurrency(row.Valor),
+    CONTROLE_ORCAMENTO: 0,
+    VALOR_PROJETO: parseCurrency(row.Valor),
+    CONTROLE_PROJETO: 0,
+    AJUSTE_VALOR_CONCEDENTE: '',
+    TIPOENTIDADE: '',
+    REGIÃO: getRegionByState(row.Estado || row.ESTADO || ''),
+    FISCAL: row.FISCAL || '',
+    FISCAL_SUPLENTE: '',
+    SEI: getField('Processo SEI') || getField('ProcessoSEI') || '',
+    IsCDEN: isCDEN,
+    IsPrecursora: isPrecursora,
+    tipoRepasse: 'Fomento' as const,
+    DATA_INICIO: getField('DATA INÍCIO') || '',
+    DATA_FIM: getField('DATA FIM') || '',
+    MES: ''
+  };
+};
+
+/**
+ * Adapter para Fomento 2026 (Corrente)
+ */
+const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
+  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
+  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
+  
+  return {
+    ENTIDADE: row.ENTIDADE || '',
+    CNPJ: row.CNPJ || '',
+    OBJETIVO: row.OBJETIVO_ESTRATEGICO || row.OBJETIVO || '',
+    CATEGORIA: row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO || '',
+    ESTADO: getStateFullName(row.ESTADO || row.SIGLA_UF || ''),
+    NOTA: parseNumberBR(row['MÉDIA']) || 0,
+    VOTOS: parseInt(row['VOTOS'], 10) || 0,
+    VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),
+    CONTROLE_ORCAMENTO: parseCurrency(row['CONTROLEORÇAMENTO']),
+    VALOR_PROJETO: parseCurrency(row['VALORPROJETO']),
+    CONTROLE_PROJETO: parseCurrency(row['CONTROLEPROJETO']),
+    AJUSTE_VALOR_CONCEDENTE: row['AJUSTEVALORCONCEDENTE'] || '',
+    TIPOENTIDADE: row.TIPOENTIDADE === '#ERROR!' ? 'Desconhecido' : row.TIPOENTIDADE,
+    REGIÃO: row['REGIÃO'] || getRegionByState(row.ESTADO || row.SIGLA_UF || ''),
+    FISCAL: row.FISCAL || '',
+    FISCAL_SUPLENTE: '',
+    SEI: row.SEI || '',
+    IsCDEN: isCDEN,
+    IsPrecursora: isPrecursora,
+    tipoRepasse: 'Fomento' as const,
+    OBJETIVO_COMPLETO: row.OBJETIVO_COMPLETO || '',
+    AREA_ABRANGENCIA: row.AREA_ABRANGENCIA || '',
+    OBJETIVO_ESPECIFICO_COMPLETO: row.OBJETIVO_ESPECIFICO || '',
+    PUBLICO_ALVO: row.PUBLICO_ALVO || '',
+    OBJETIVO_ESTRATEGICO: row.OBJETIVO_ESTRATEGICO || '',
+    TEXTO_NORM: row.TEXTO_NORM || '',
+    RANKING_ADERENCIA_INFRABR: row.RANKING_ADERENCIA_INFRABR || '',
+    SCORES: row.SCORES || '',
+    DIMENSAO_PRINCIPAL: row.DIMENSAO_PRINCIPAL || '',
+    TERMOS_DETECTADOS: row.TERMOS_DETECTADOS || '',
+    DIMENSAO_1: row.DIMENSAO_1 || '',
+    DIMENSAO_2: row.DIMENSAO_2 || '',
+    DIMENSAO_3: row.DIMENSAO_3 || '',
+    DIMENSAO_4: row.DIMENSAO_4 || '',
+    DIMENSAO_5: row.DIMENSAO_5 || ''
+  };
+};
+
+/**
+ * Adapter para Patrocínio 2025
+ */
+const adaptPatrocinio2025 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
+  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
+  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
+  
+  const tipo = row['Tipo'] || '';
+  const tipoPub = row['TipoPublicacao'] || '';
+  const categoria = tipo === 'PUBLICAÇÃO' && tipoPub ? (tipoPub.charAt(0).toUpperCase() + tipoPub.slice(1).toLowerCase()) : (tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase());
+  const projetoFull = row['Projeto'] || '';
+  const objetivoTruncated = projetoFull.length > 35 ? projetoFull.substring(0, 35) + '...' : projetoFull;
+
+  return {
+    ENTIDADE: row.Entidade,
+    CNPJ: row.CNPJ,
+    OBJETIVO: objetivoTruncated || categoria,
+    CATEGORIA: categoria,
+    ESTADO: getStateFullName(row.Estado || ''),
+    NOTA: parseNumberBR(row['Pontuação']),
+    VOTOS: 0,
+    VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),
+    REGIÃO: getRegionByState(row.Estado),
+    FISCAL: row.Fiscal || '',
+    FISCAL_SUPLENTE: row['Fiscal Suplente'] || '',
+    SEI: row.SEI || '',
+    IsCDEN: isCDEN,
+    IsPrecursora: isPrecursora,
+    tipoRepasse: 'Patrocínio' as const,
+    DATA_INICIO: row['Data Início'] || '',
+    DATA_FIM: row['Data Fim'] || '',
+    MES: row['Mês'] || ''
+  };
+};
+
 export const parseData = () => {
   const cdenParsed = Papa.parse<EntidadeCDEN>(cdenCSV.trim(), { header: true, skipEmptyLines: true }).data;
   const precursorasParsed = Papa.parse<EntidadePrecursora>(precursorasCSV.trim(), { header: true, skipEmptyLines: true }).data;
@@ -82,128 +212,12 @@ export const parseData = () => {
   const fomento2026Raw = Papa.parse<any>(fomento2026CSV.trim(), { header: true, skipEmptyLines: true }).data;
   const patrocinioRaw = Papa.parse<any>(patrocinioCSV.trim(), { header: true, skipEmptyLines: true }).data;
 
-  const fomentoHistoricoParsed: EntidadeSelecionada[] = fomentoRaw.map((row: any) => {
-    const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-    const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-    
-    
-    // Some headers contain newlines or trailing spaces in the Fomento2025 CSV
-    const getField = (prefix: string) => {
-      const key = Object.keys(row).find(k => k.startsWith(prefix));
-      return key ? row[key] : '';
-    };
+  // 2. Processamento via Adapters (Camada de Tradução)
+  const fomentoHistoricoParsed = fomentoRaw.map(row => adaptFomento2025(row, cdenParsed, precursorasParsed));
+  const fomento2026Parsed = fomento2026Raw.map(row => adaptFomento2026(row, cdenParsed, precursorasParsed));
+  const patrocinioParsed = patrocinioRaw.map(row => adaptPatrocinio2025(row, cdenParsed, precursorasParsed));
 
-    let linhaSolicitada = getField('Linha');
-    // Mapeamento das linhas do Fomento
-    if (linhaSolicitada === '1') linhaSolicitada = 'Atividade principal do Sistema Confea/Crea';
-    else if (linhaSolicitada === '2') linhaSolicitada = 'Transparência, Legalidade e Legitimidade do Sistema Confea/Crea';
-    else if (linhaSolicitada === '3') linhaSolicitada = 'Papel do Sistema Confea/Crea';
-    else linhaSolicitada = 'erro';
-
-    const razaoSocial = getField('Razão Social') || row.Sigla || '';
-
-    return {
-      ENTIDADE: razaoSocial,
-      CNPJ: row.CNPJ || '',
-      OBJETIVO: linhaSolicitada,
-      CATEGORIA: linhaSolicitada,
-      ESTADO: getStateFullName(row.Estado || row.ESTADO || ''),
-      NOTA: parseNumberBR(row['Classificação']) || 0, // Using Classificação as a sort of number
-      VOTOS: 0,
-      VALOR_REPASSE: parseCurrency(row.Valor),
-      CONTROLE_ORCAMENTO: 0,
-      VALOR_PROJETO: parseCurrency(row.Valor),
-      CONTROLE_PROJETO: 0,
-      AJUSTE_VALOR_CONCEDENTE: '',
-      TIPOENTIDADE: '',
-      REGIÃO: getRegionByState(row.Estado || row.ESTADO || ''),
-      FISCAL: row.FISCAL || '',
-      FISCAL_SUPLENTE: '',
-      SEI: getField('Processo SEI') || getField('ProcessoSEI') || '',
-      IsCDEN: isCDEN,
-      IsPrecursora: isPrecursora,
-      tipoRepasse: 'Fomento' as const,
-      DATA_INICIO: getField('DATA INÍCIO') || '',
-      DATA_FIM: getField('DATA FIM') || '',
-      MES: ''
-    };
-  });
-
-  const fomento2026Parsed: EntidadeSelecionada[] = fomento2026Raw.map((row: any) => {
-    const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-    const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-    
-    return {
-      ENTIDADE: row.ENTIDADE || '',
-      CNPJ: row.CNPJ || '',
-      OBJETIVO: row.OBJETIVO_ESTRATEGICO || row.OBJETIVO || '',
-      CATEGORIA: row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO || '',
-      ESTADO: getStateFullName(row.ESTADO || row.SIGLA_UF || ''),
-      NOTA: parseNumberBR(row['MÉDIA']) || 0,
-      VOTOS: parseInt(row['VOTOS'], 10) || 0,
-      VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),
-      CONTROLE_ORCAMENTO: parseCurrency(row['CONTROLEORÇAMENTO']),
-      VALOR_PROJETO: parseCurrency(row['VALORPROJETO']),
-      CONTROLE_PROJETO: parseCurrency(row['CONTROLEPROJETO']),
-      AJUSTE_VALOR_CONCEDENTE: row['AJUSTEVALORCONCEDENTE'] || '',
-      TIPOENTIDADE: row.TIPOENTIDADE === '#ERROR!' ? 'Desconhecido' : row.TIPOENTIDADE,
-      REGIÃO: row['REGIÃO'] || getRegionByState(row.ESTADO || row.SIGLA_UF || ''),
-      FISCAL: row.FISCAL || '',
-      FISCAL_SUPLENTE: '',
-      SEI: row.SEI || '',
-      IsCDEN: isCDEN,
-      IsPrecursora: isPrecursora,
-      tipoRepasse: 'Fomento' as const,
-      OBJETIVO_COMPLETO: row.OBJETIVO_COMPLETO || '',
-      AREA_ABRANGENCIA: row.AREA_ABRANGENCIA || '',
-      OBJETIVO_ESPECIFICO_COMPLETO: row.OBJETIVO_ESPECIFICO || '',
-      PUBLICO_ALVO: row.PUBLICO_ALVO || '',
-      OBJETIVO_ESTRATEGICO: row.OBJETIVO_ESTRATEGICO || '',
-      TEXTO_NORM: row.TEXTO_NORM || '',
-      RANKING_ADERENCIA_INFRABR: row.RANKING_ADERENCIA_INFRABR || '',
-      SCORES: row.SCORES || '',
-      DIMENSAO_PRINCIPAL: row.DIMENSAO_PRINCIPAL || '',
-      TERMOS_DETECTADOS: row.TERMOS_DETECTADOS || '',
-      DIMENSAO_1: row.DIMENSAO_1 || '',
-      DIMENSAO_2: row.DIMENSAO_2 || '',
-      DIMENSAO_3: row.DIMENSAO_3 || '',
-      DIMENSAO_4: row.DIMENSAO_4 || '',
-      DIMENSAO_5: row.DIMENSAO_5 || ''
-    };
-  });
-
-  const patrocinioParsed: EntidadeSelecionada[] = patrocinioRaw.map((row: any) => {
-    const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-    const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-    
-    const tipo = row['Tipo'] || '';
-    const tipoPub = row['TipoPublicacao'] || '';
-    const categoria = tipo === 'PUBLICAÇÃO' && tipoPub ? (tipoPub.charAt(0).toUpperCase() + tipoPub.slice(1).toLowerCase()) : (tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase());
-    const projetoFull = row['Projeto'] || '';
-    const objetivoTruncated = projetoFull.length > 35 ? projetoFull.substring(0, 35) + '...' : projetoFull;
-
-    return {
-      ENTIDADE: row.Entidade,
-      CNPJ: row.CNPJ,
-      OBJETIVO: objetivoTruncated || categoria,
-      CATEGORIA: categoria,
-      ESTADO: getStateFullName(row.Estado || ''),
-      NOTA: parseNumberBR(row['Pontuação']),
-      VOTOS: 0,
-      VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),
-      REGIÃO: getRegionByState(row.Estado),
-      FISCAL: row.Fiscal || '',
-      FISCAL_SUPLENTE: row['Fiscal Suplente'] || '',
-      SEI: row.SEI || '',
-      IsCDEN: isCDEN,
-      IsPrecursora: isPrecursora,
-      tipoRepasse: 'Patrocínio' as const,
-      DATA_INICIO: row['Data Início'] || '',
-      DATA_FIM: row['Data Fim'] || '',
-      MES: row['Mês'] || ''
-    };
-  });
-
+  // 3. Retorno da Fonte da Verdade Consolidada
   return {
     cden: cdenParsed,
     precursoras: precursorasParsed,

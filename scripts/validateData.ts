@@ -15,7 +15,13 @@ function runValidation() {
     console.error("Detalhes do erro:");
     if (error.errors) {
       error.errors.forEach((e: any) => {
-        console.error(`- Em ${e.path.join('.')}: ${e.message}`);
+        const pathStr = e.path.join('.');
+        let extraInfo = '';
+        if (e.path[0] === 'fomento2026' && typeof e.path[1] === 'number') {
+          const row = (appData as any).fomento2026[e.path[1]];
+          extraInfo = ` | Entidade: "${row.ENTIDADE}" | Valor CNPJ: "${row?.CNPJ}"`;
+        }
+        console.error(`- Em ${pathStr}: ${e.message}${extraInfo}`);
       });
     } else {
       console.error(error);

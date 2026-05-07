@@ -60,6 +60,7 @@ type TabId =
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  console.log("🚀 Workflow V3: Carregando dados validados via Zod Adatpers...");
 
   const renderMenuItem = (id: TabId, label: string, Icon: React.ElementType, depth: number = 0) => {
     return (
