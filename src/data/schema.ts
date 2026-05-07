@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 export const entidadeSelecionadaSchema = z.object({
-  ENTIDADE: z.string(),
+  ENTIDADE: z.string().min(2, "Nome da entidade muito curto"),
   CNPJ: z.string().optional(),
   OBJETIVO: z.string(),
   CATEGORIA: z.string(),
   ESTADO: z.string(),
-  NOTA: z.number(),
-  VOTOS: z.number(),
-  VALOR_REPASSE: z.number(),
+  NOTA: z.number().min(0).max(100),
+  VOTOS: z.number().min(0),
+  VALOR_REPASSE: z.number().min(0),
   CONTROLE_ORCAMENTO: z.number().optional(),
   VALOR_PROJETO: z.number().optional(),
   CONTROLE_PROJETO: z.number().optional(),
@@ -20,8 +20,7 @@ export const entidadeSelecionadaSchema = z.object({
   SEI: z.string(),
   IsCDEN: z.boolean(),
   IsPrecursora: z.boolean(),
-  tipoRepasse: z.union([z.literal('Fomento'), z.literal('Patrocínio')]),
-// Allow additional fields seamlessly
+  tipoRepasse: z.enum(['Fomento', 'Patrocínio']),
 }).passthrough();
 
 export const fomento2026ListSchema = z.array(entidadeSelecionadaSchema);
