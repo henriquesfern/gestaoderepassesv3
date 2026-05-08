@@ -3,8 +3,10 @@
 Este arquivo registra todas as modificações realizadas no projeto desde o último sincronismo. Ele deve ser utilizado pela plataforma para gerar a mensagem de Pull Request / Commit de forma completa e em Português do Brasil (pt-BR). Ao receber a confirmação de que o sincronismo foi realizado, este arquivo deve ser "zerado" pelo agente.
 
 ## Atualizações recentes:
-- Integração do novo arquivo CSV validado (`GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv`) contendo novas informações granulares do Infra-BR (Dimensões, Componentes, Indicadores e seus scores).
-- Criação de script conversor automatizado para transformar o referido CSV bruto em um módulo TypeScript com exportação estática (`newFomentoData.ts`), garantindo melhor compatibilidade com o pipeline de validação (`validateData.ts`) usando Vite e tsx.
-- Expansão da interface TypeScript `EntidadeSelecionada` para acomodar mais de 20 novas propriedades referentes a avaliações, rankings, escores de componentes e indicadores.
-- Atualização do componente `Directory.tsx` para apresentar em uma grade visual responsiva os campos de Rankings de Dimensões, Ranking de Componentes e Ranking de Indicadores na linha expandida de cada entidade, proporcionando uma visão muito mais rica da aderência setorial.
-- Implementação de coloração dinâmica baseada na taxonomia e cores predefinidas do modelo Infra-BR no painel de expansão de `Directory.tsx`. Componentes e indicadores agora resgatam e herdam de forma hierárquica e visual a cor correspondente da sua respectiva dimensão-mãe.
+- Reestruturação visual da seção de Aderência Infra-BR no componente `Directory.tsx`.
+- Substituição da grade paralela de 3 colunas (Dimensões, Componentes, Indicadores) por uma visualização hierárquica em formato de árvore (Dimensão ┬─> Componente └─> Indicador).
+- Implementação da função `buildTree` para classificar, relacionar e aninhar hierarquicamente Componentes e Indicadores dentro de suas respectivas Dimensões usando a taxonomia `infraData.detalhamento`.
+- Preservação do esquema de classificação e herança visual de cores pré-definidas em todos os níveis da hierarquia.
+- Ocultação dos indicadores de ranking (1º, 2º, etc.) nos níveis secundários (Componentes e Indicadores), focando a visualização de classificação exclusivamente na raiz da respectiva Dimensão.
+- Exclusão do elemento visual que exibia o "Foco primário do algoritmo", uma vez que o ranking de dimensões já supre a mesma função informacional redundante.
+- Remoção do termo "(Ranking M3)" da interface do usuário em todas as áreas onde o conceito de aderência ao Infra-BR é explicitado, evitando ambiguidades.
