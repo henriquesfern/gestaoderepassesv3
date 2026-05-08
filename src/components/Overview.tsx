@@ -105,7 +105,7 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [selectedInfraDimension, setSelectedInfraDimension] = useState<string | null>(null);
   const [selectedInfraComponent, setSelectedInfraComponent] = useState<string | null>(null);
-  const [mapTooltip, setMapTooltip] = useState<{content: string, rankRepasse?: string, rankInfraBR?: string, sub: string, sub2?: string, sub3?: string, fom?: string, pat?: string, stateProp?: string, regionProp?: string, isCityMarker?: boolean, x: number, y: number} | null>(null);
+  const [mapTooltip, setMapTooltip] = useState<{content: string, rankRepasse?: string, rankInfraBR?: string, sub: string, sub2?: string, sub3?: string, fom?: string, pat?: string, stateProp?: string, regionProp?: string, isCityMarker?: boolean, x: number, y: number, adherenceInfo?: { avgPercentage: number, avgDimensions: number, totalDimensions: number, totalEntities: number }} | null>(null);
   const [geoData, setGeoData] = useState<any>(null);
 
   React.useEffect(() => {
@@ -224,6 +224,22 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
     const counts = new Map<string, number>();
     map.forEach((set, state) => counts.set(state, set.size));
     return counts;
+  }, [selecionados, selectedCategoria]);
+
+  const stateAdherenceData = useMemo(() => {
+    const dataToUse = selectedCategoria 
+      ? selecionados.filter(item => item.CATEGORIA === selectedCategoria)
+      : selecionados;
+
+    const map = new Map<string, { totalDimensions: number, totalEntities: number }>();
+    dataToUse.forEach(item => {
+      const state = item.ESTADO || 'Indefinido';
+      const current = map.get(state) || { totalDimensions: 0, totalEntities: 0 };
+      current.totalEntities += 1;
+      current.totalDimensions += (item.RANKING_ADERENCIA_INFRABR ? item.RANKING_ADERENCIA_INFRABR.split('|').length : 0);
+      map.set(state, current);
+    });
+    return map;
   }, [selecionados, selectedCategoria]);
 
   const sortedStateData = useMemo(() => {
@@ -440,52 +456,6 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
               <p className="text-sm font-semibold text-slate-500 mb-2 uppercase tracking-wider">Entidades Selecionadas</p>
               <div className="flex items-end justify-between">
                 <p className={`text-6xl font-black tracking-tight ${textSecondaryClass}`}>{kpis.total}</p>
-                <div className="flex flex-col items-end mb-2">
-                  <RadixTooltip.Provider delayDuration={100}>
-                    <RadixTooltip.Root>
-                      <RadixTooltip.Trigger asChild>
-                        <div className="flex flex-col items-end cursor-help group">
-                          <span className="text-[10px] font-bold text-slate-400 mb-1 uppercase group-hover:text-slate-600 transition-colors">Média Aderência Infra-BR</span>
-                          <AdherenceProgressBar percentage={kpis.avgPercentage} className="w-24 h-2" />
-                        </div>
-                      </RadixTooltip.Trigger>
-                      <RadixTooltip.Portal>
-                        <RadixTooltip.Content 
-                          className="z-50 bg-white p-4 rounded-xl shadow-2xl border border-slate-200 max-w-[320px] animate-in fade-in zoom-in duration-200" 
-                          sideOffset={5}
-                        >
-                          <div className="space-y-3">
-                            <div className="pb-2 border-b border-slate-100">
-                              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Cálculo de Média de Aderência</h4>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-[11px]">
-                                <span className="text-slate-500 italic">Total de dimensões atingidas:</span>
-                                <span className="font-bold text-slate-700">{kpis.totalDimensions}</span>
-                              </div>
-                              <div className="flex justify-between text-[11px]">
-                                <span className="text-slate-500 italic">Total de entidades:</span>
-                                <span className="font-bold text-slate-700">{kpis.total}</span>
-                              </div>
-                              <div className="flex justify-between text-[11px] pt-1 border-t border-slate-50">
-                                <span className="text-slate-600 font-medium italic">Média de dimensões por entidade:</span>
-                                <span className="font-bold text-slate-800">{kpis.avgDimensions.toFixed(2)} / 6.00</span>
-                              </div>
-                              <div className="flex justify-between text-[11px]">
-                                <span className="text-slate-600 font-medium italic">Percentual médio de aderência:</span>
-                                <span className="font-bold text-indigo-600">{kpis.avgPercentage.toFixed(1)}%</span>
-                              </div>
-                            </div>
-                            <div className="p-2 bg-slate-50 rounded-lg text-[9px] text-slate-400 text-center leading-relaxed">
-                              O cálculo representa a distribuição média de dimensões em que as entidades selecionadas possuem aderência técnica perante os critérios da metodologia Infra-BR.
-                            </div>
-                          </div>
-                          <RadixTooltip.Arrow className="fill-white" />
-                        </RadixTooltip.Content>
-                      </RadixTooltip.Portal>
-                    </RadixTooltip.Root>
-                  </RadixTooltip.Provider>
-                </div>
               </div>
             </div>
           </div>
@@ -556,11 +526,61 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="col-span-1 lg:col-span-3 p-6 bg-white border border-slate-200 shadow-sm relative flex flex-col">
-          <div className="mb-6 border-b pb-2 shrink-0">
-            <h3 className="text-lg font-semibold text-slate-800 flex items-center cursor-default">
-              <span>Investimento por Estado</span>
-            </h3>
-            {selectedState && <div className="text-xs font-normal text-slate-500 mt-0.5 cursor-default">Filtrado: {selectedState}</div>}
+          <div className="mb-6 border-b pb-2 shrink-0 flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800 flex items-center cursor-default">
+                <span>Investimento por Estado</span>
+              </h3>
+              <div className="text-xs font-normal text-slate-500 mt-0.5 cursor-default min-h-[16px]">
+                {selectedState ? `Filtrado: ${selectedState}` : '\u00A0'}
+              </div>
+            </div>
+            <div className="flex flex-col items-end">
+              <RadixTooltip.Provider delayDuration={100}>
+                <RadixTooltip.Root>
+                  <RadixTooltip.Trigger asChild>
+                    <div className="flex flex-col items-end cursor-help group">
+                      <span className="text-[10px] font-bold text-slate-400 mb-1 uppercase group-hover:text-slate-600 transition-colors">Média Aderência Infra-BR</span>
+                      <AdherenceProgressBar percentage={kpis.avgPercentage} className="w-24 h-2" />
+                    </div>
+                  </RadixTooltip.Trigger>
+                  <RadixTooltip.Portal>
+                    <RadixTooltip.Content 
+                      className="z-50 bg-white p-4 rounded-xl shadow-2xl border border-slate-200 max-w-[320px] animate-in fade-in zoom-in duration-200" 
+                      sideOffset={5}
+                    >
+                      <div className="space-y-3">
+                        <div className="pb-2 border-b border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Cálculo de Média de Aderência</h4>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-500 italic">Total de dimensões atingidas:</span>
+                            <span className="font-bold text-slate-700">{kpis.totalDimensions}</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-500 italic">Total de entidades:</span>
+                            <span className="font-bold text-slate-700">{kpis.total}</span>
+                          </div>
+                          <div className="flex justify-between text-[11px] pt-1 border-t border-slate-50">
+                            <span className="text-slate-600 font-medium italic">Média de dimensões por entidade:</span>
+                            <span className="font-bold text-slate-800">{kpis.avgDimensions.toFixed(2)} / 6.00</span>
+                          </div>
+                          <div className="flex justify-between text-[11px]">
+                            <span className="text-slate-600 font-medium italic">Percentual médio de aderência:</span>
+                            <span className="font-bold text-indigo-600">{kpis.avgPercentage.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                        <div className="p-2 bg-slate-50 rounded-lg text-[9px] text-slate-400 text-center leading-relaxed">
+                          O cálculo representa a distribuição média de dimensões em que as entidades selecionadas possuem aderência técnica perante os critérios da metodologia Infra-BR.
+                        </div>
+                      </div>
+                      <RadixTooltip.Arrow className="fill-white" />
+                    </RadixTooltip.Content>
+                  </RadixTooltip.Portal>
+                </RadixTooltip.Root>
+              </RadixTooltip.Provider>
+            </div>
           </div>
           <div className="flex-1 w-full relative min-h-[500px]">
             <ComposableMap
@@ -643,6 +663,17 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
                             }
                           }}
                           onMouseEnter={(e) => {
+                            const adherence = stateAdherenceData.get(stateName);
+                            let adherenceInfo = undefined;
+                            if (adherence && adherence.totalEntities > 0) {
+                              adherenceInfo = {
+                                avgDimensions: adherence.totalDimensions / adherence.totalEntities,
+                                avgPercentage: ((adherence.totalDimensions / adherence.totalEntities) / 6) * 100,
+                                totalDimensions: adherence.totalDimensions,
+                                totalEntities: adherence.totalEntities
+                              };
+                            }
+
                             setMapTooltip({
                               content: `${stateName} (${ufSigla})`, 
                               rankRepasse: rankIndex > 0 ? `${rankIndex}º` : undefined,
@@ -655,7 +686,8 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
                               stateProp,
                               regionProp,
                               x: e.clientX, 
-                              y: e.clientY
+                              y: e.clientY,
+                              adherenceInfo
                             });
                           }}
                           onMouseMove={(e) => {
@@ -841,6 +873,28 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
                         <span className="font-medium text-amber-400">{mapTooltip.pat}</span>
                       </div>
                     )}
+                  </div>
+                )}
+                {mapTooltip.adherenceInfo && (
+                  <div className="flex flex-col gap-1 mt-3 pt-3 border-t border-slate-700/50">
+                    <div className="flex justify-between gap-4 items-center mb-1">
+                      <span className="text-slate-400 font-medium text-xs">Aderência Infra-BR (Média):</span>
+                      <span className="font-bold text-xs bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded shadow-sm">
+                        {mapTooltip.adherenceInfo.avgPercentage.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4 items-center">
+                      <span className="text-slate-500 text-[10px] leading-tight">Média de Dimensões / Entidade:</span>
+                      <span className="text-slate-300 text-[10px] whitespace-nowrap font-medium">
+                        {mapTooltip.adherenceInfo.avgDimensions.toFixed(2)} / 6.00
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-4 items-center mt-0.5">
+                      <span className="text-slate-500 text-[10px] leading-tight">Total Dimensões Atingidas:</span>
+                      <span className="text-slate-300 text-[10px] whitespace-nowrap font-medium">
+                        {mapTooltip.adherenceInfo.totalDimensions}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
