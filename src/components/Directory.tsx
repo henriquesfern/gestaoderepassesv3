@@ -4,6 +4,7 @@ import { Search, Filter, Check, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown,
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { infraData } from '../data/infraBR_parser';
 import type { EntidadeSelecionada } from '../data/parser';
 
 function cn(...inputs: ClassValue[]) {
@@ -23,6 +24,18 @@ const getDimensionColor = (dimension: string) => {
   if (dim.includes('ÁGUA')) return "bg-sky-50 text-sky-700 border-sky-200";
   if (dim.includes('MOBILIDADE')) return "bg-rose-50 text-rose-700 border-rose-200";
   return "bg-slate-100 text-slate-600 border-slate-200";
+};
+
+const getColorForChild = (childName: string) => {
+  const normalized = childName.trim().toUpperCase();
+  const found = infraData.detalhamento.find(d => 
+    d.COMPONENTE.trim().toUpperCase() === normalized || 
+    d.INDICADOR.trim().toUpperCase() === normalized
+  );
+  if (found) {
+    return getDimensionColor(found.DIMENSAO);
+  }
+  return "bg-slate-50 text-slate-700 border-slate-200";
 };
 
 const getSegmentColor = (index: number) => {
@@ -61,6 +74,66 @@ const InfraBRProgressBar = ({ count, className }: { count: number, className?: s
       </div>
     </div>
   );
+};
+
+interface TreeNode {
+  rank: string;
+  name: string;
+  components: {
+    rank: string;
+    name: string;
+    indicators: { rank: string; name: string }[];
+  }[];
+}
+
+const buildTree = (dimStr: string, compStr: string, indStr: string) => {
+  const dims = dimStr ? dimStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim(), components: [] } }) : [];
+  const comps = compStr ? compStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim(), indicators: [] } }) : [];
+  const inds = indStr ? indStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim() } }) : [];
+  
+  const dimMap = new Map(dims.map(d => [d.name.toUpperCase(), d]));
+  const compMap = new Map(comps.map(c => [c.name.toUpperCase(), c]));
+  
+  for (const ind of inds) {
+    if(!ind.name) continue;
+    const detail = infraData.detalhamento.find(d => d.INDICADOR.toUpperCase().trim() === ind.name.toUpperCase());
+    if (detail) {
+      let comp = compMap.get(detail.COMPONENTE.toUpperCase().trim());
+      if (!comp) {
+        comp = { rank: '', name: detail.COMPONENTE.trim(), indicators: [] };
+        compMap.set(detail.COMPONENTE.toUpperCase().trim(), comp);
+        comps.push(comp);
+      }
+      if (!comp.indicators.find(i => i.name === ind.name)) {
+        comp.indicators.push(ind);
+      }
+      
+      let dim = dimMap.get(detail.DIMENSAO.toUpperCase().trim());
+      if (!dim) {
+        dim = { rank: '', name: detail.DIMENSAO.trim(), components: [] };
+        dimMap.set(detail.DIMENSAO.toUpperCase().trim(), dim);
+        dims.push(dim);
+      }
+    }
+  }
+
+  for (const comp of comps) {
+    if(!comp.name) continue;
+    const detail = infraData.detalhamento.find(d => d.COMPONENTE.toUpperCase().trim() === comp.name.toUpperCase());
+    if(detail) {
+        let dim = dimMap.get(detail.DIMENSAO.toUpperCase().trim());
+        if(!dim) {
+            dim = { rank: '', name: detail.DIMENSAO.trim(), components: [] };
+            dimMap.set(detail.DIMENSAO.toUpperCase().trim(), dim);
+            dims.push(dim);
+        }
+        if (!dim.components.find(c => c.name === comp.name)) {
+          dim.components.push(comp);
+        }
+    }
+  }
+  
+  return dims as TreeNode[];
 };
 
 export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
@@ -476,30 +549,58 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                           <div className="bg-[#003865]/5 p-4 rounded-lg border border-[#003865]/10">
                             <h4 className="font-semibold text-[#003865] mb-2 text-xs uppercase tracking-wide flex items-center">
                               <span className="w-2 h-2 bg-[#003865] rounded-full mr-2"></span>
-                              Aderência Setorial Infra-BR (Ranking M3)
+                              Aderência Setorial Infra-BR
                             </h4>
                             <InfraBRProgressBar 
                               count={item.RANKING_ADERENCIA_INFRABR.split('|').length} 
                               className="mb-4"
                             />
-                            <div className="flex flex-wrap gap-2">
-                              {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
-                                const parts = dim.trim().split('-');
-                                const rank = parts[0];
-                                const name = parts.slice(1).join('-');
-                                return (
-                                  <div key={dIdx} className={cn("flex flex-col items-center px-4 py-2 border rounded shadow-sm", getDimensionColor(name))}>
-                                    <span className="text-[10px] font-bold opacity-60 uppercase tracking-tighter">{rank}</span>
-                                    <span className="text-xs font-semibold">{name}</span>
+                            
+                            <div className="flex flex-col gap-4">
+                              {buildTree(
+                                item.RANKING_ADERENCIA_INFRABR || '',
+                                item.RANKING_COMPONENTES || '',
+                                item.RANKING_INDICADORES || ''
+                              ).map((dim, dIdx) => (
+                                <div key={dIdx} className="flex flex-col gap-2">
+                                  {/* Dimensão */}
+                                  <div className={cn("inline-flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-fit", getDimensionColor(dim.name))}>
+                                      <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{dim.rank}</span>
+                                      <span className="text-xs font-semibold leading-tight">{dim.name}</span>
                                   </div>
-                                );
-                              })}
+                                  
+                                  {/* Componentes da Dimensão */}
+                                  {dim.components.length > 0 && (
+                                    <div className="pl-4 border-l-2 border-slate-200/60 ml-2 mt-1 flex flex-col gap-3">
+                                      {dim.components.map((comp, cIdx) => (
+                                        <div key={cIdx} className="flex flex-col gap-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-slate-300 text-xs">└─&gt;</span>
+                                            <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm", getColorForChild(comp.name))}>
+                                              <span className="text-[11px] font-semibold leading-tight">{comp.name}</span>
+                                            </div>
+                                          </div>
+
+                                          {/* Indicadores do Componente */}
+                                          {comp.indicators.length > 0 && (
+                                            <div className="pl-6 flex flex-col gap-1.5">
+                                              {comp.indicators.map((ind, iIdx) => (
+                                                <div key={iIdx} className="flex items-center gap-2">
+                                                  <span className="text-slate-300 text-xs">└─&gt;</span>
+                                                  <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm bg-white/60", getColorForChild(ind.name))}>
+                                                    <span className="text-[10px] font-medium leading-tight">{ind.name}</span>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                            {item.DIMENSAO_PRINCIPAL && (
-                              <div className="mt-3 text-[11px] text-slate-500 italic">
-                                <strong>Foco identificado:</strong> {item.DIMENSAO_PRINCIPAL}
-                              </div>
-                            )}
                           </div>
                         ) : null}
                         {item.OBJETIVO_COMPLETO ? (

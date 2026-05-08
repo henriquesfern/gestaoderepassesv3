@@ -3,10 +3,10 @@
 Este arquivo registra todas as modificações realizadas no projeto desde o último sincronismo. Ele deve ser utilizado pela plataforma para gerar a mensagem de Pull Request / Commit de forma completa e em Português do Brasil (pt-BR). Ao receber a confirmação de que o sincronismo foi realizado, este arquivo deve ser "zerado" pelo agente.
 
 ## Atualizações recentes:
-- **Configuração de Agente**: Criação do arquivo `AGENTS.md` para reforçar a obrigatoriedade do uso do idioma Português do Brasil (pt-BR) nas comunicações, comentários e resumos de PR/Commit.
-- **Nova regra em `AGENTS.md`**: Implementado padrão de registro contínuo de alterações através do arquivo `CHANGELOG_PENDING.md` para acúmulo de entregas entre sincronismos.
-- **Componente Visual - Aderência**: Criação do componente `AdherenceProgressBar` para representar visualmente e em blocos de cores o preenchimento da Aderência Infra-BR (6 dimensões possíveis).
-- **Lógica e Cálculo de Aderência**: Refatoração no bloco de KPIs (Total, Aderência e Porcentagem Média) refletindo dados precisos das dimensões cadastradas no conjunto de entidades renderizadas.
-- **Inclusão de Tooltip Informativo**: Inserção de uma caixa de informação detalhada (tooltip de ajuda) na visualização de "Entidades Selecionadas" e no cabeçalho do Gráfico de "Investimento por Estado", exibindo os cálculos exatos base para as métricas da Média de Aderência Infra-BR. 
-- **Tooltips no Mapa de Estados (`Overview.tsx`)**: Inclusão dos dados de Média de Dimensões e Percentual de Aderência em cada Unidade da Federação, injetados nativamente nos tooltips exibidos pelo "hover" no componente do mapa.
-- **UX/UI**: Ajuste para garantir que a barra lateral e os cabeçalhos das áreas de análise de estado preservem a mesma formatação de altura/espaçamento e local de visualização da Aderência Infra-BR independentemente de haver filtro ativo ou não.
+- Reestruturação visual da seção de Aderência Infra-BR no componente `Directory.tsx`.
+- Substituição da grade paralela de 3 colunas (Dimensões, Componentes, Indicadores) por uma visualização hierárquica em formato de árvore (Dimensão ┬─> Componente └─> Indicador).
+- Implementação da função `buildTree` para classificar, relacionar e aninhar hierarquicamente Componentes e Indicadores dentro de suas respectivas Dimensões usando a taxonomia `infraData.detalhamento`.
+- Preservação do esquema de classificação e herança visual de cores pré-definidas em todos os níveis da hierarquia.
+- Ocultação dos indicadores de ranking (1º, 2º, etc.) nos níveis secundários (Componentes e Indicadores), focando a visualização de classificação exclusivamente na raiz da respectiva Dimensão.
+- Exclusão do elemento visual que exibia o "Foco primário do algoritmo", uma vez que o ranking de dimensões já supre a mesma função informacional redundante.
+- Remoção do termo "(Ranking M3)" da interface do usuário em todas as áreas onde o conceito de aderência ao Infra-BR é explicitado, evitando ambiguidades.
