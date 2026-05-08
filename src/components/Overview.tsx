@@ -42,21 +42,60 @@ interface OverviewProps {
 }
 
 const DIMENSION_COLORS: Record<string, string> = {
-  'Mobilidade': '#9937A8',
-  'Energia e Conectividade': '#C5741D',
-  'Bem-Estar Social': '#A73756',
-  'Cidadania': '#A73756',
-  'Água': '#1F7F70',
-  'Saneamento Básico': '#090076',
-  'Meio Ambiente': '#4B7A0F',
-  'Resiliência': '#4B7A0F'
+  'MOBILIDADE': '#9937A8',
+  'ENERGIA E CONECTIVIDADE': '#C5741D',
+  'BEM-ESTAR SOCIAL E CIDADANIA': '#A73756',
+  'ÁGUA': '#1F7F70',
+  'SANEAMENTO BÁSICO': '#090076',
+  'MEIO AMBIENTE E RESILIÊNCIA': '#4B7A0F'
 };
 
 const getDimensionColor = (name: string, fallback: string) => {
+  const normName = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
   for (const [key, color] of Object.entries(DIMENSION_COLORS)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) return color;
+    const normKey = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    if (normName.includes(normKey) || normKey.includes(normName)) return color;
   }
   return fallback;
+};
+
+const getAdherenceColorClass = (percentage: number) => {
+  if (percentage === 0) return "text-slate-400 bg-slate-50 border-slate-100";
+  if (percentage <= 16) return "text-rose-600 bg-rose-50 border-rose-100";
+  if (percentage <= 33) return "text-orange-600 bg-orange-50 border-orange-100";
+  if (percentage <= 50) return "text-amber-600 bg-amber-50 border-amber-100";
+  if (percentage <= 66) return "text-lime-600 bg-lime-50 border-lime-100";
+  if (percentage <= 83) return "text-emerald-600 bg-emerald-50 border-emerald-100";
+  return "text-green-600 bg-green-50 border-green-100";
+};
+
+const getSegmentColor = (index: number) => {
+  const colors = [
+    "bg-rose-500",    // 1ª dimensão
+    "bg-orange-500",  // 2ª dimensão
+    "bg-amber-500",   // 3ª dimensão
+    "bg-lime-500",    // 4ª dimensão
+    "bg-emerald-500", // 5ª dimensão
+    "bg-green-600"    // 6ª dimensão
+  ];
+  return colors[index] || "bg-slate-200";
+};
+
+const AdherenceProgressBar = ({ percentage, className }: { percentage: number, className?: string }) => {
+  const litCount = Math.round((percentage / 100) * 6);
+  return (
+    <div className={cn("flex gap-0.5 h-1.5 w-full max-w-[100px]", className)}>
+      {[...Array(6)].map((_, i) => (
+        <div 
+          key={i} 
+          className={cn(
+            "flex-1 rounded-full transition-all duration-500",
+            i < litCount ? getSegmentColor(i) : "bg-slate-200"
+          )} 
+        />
+      ))}
+    </div>
+  );
 };
 
 export function Overview({ data = appData.fomento2026, theme = 'overview', showEntityCount = false }: OverviewProps) {
@@ -95,10 +134,22 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
 
   const kpis = useMemo(() => {
     const totalRepasse = filteredData.reduce((sum, item) => sum + item.VALOR_REPASSE, 0);
+    
+    // Average dimensions count for summary cards
+    const totalDimensions = filteredData.reduce((sum, item) => {
+      return sum + (item.RANKING_ADERENCIA_INFRABR ? item.RANKING_ADERENCIA_INFRABR.split('|').length : 0);
+    }, 0);
+    const totalPossibleDimensions = filteredData.length * 6;
+    const avgDimensions = filteredData.length > 0 ? (totalDimensions / filteredData.length) : 0;
+    const avgPercentage = (avgDimensions / 6) * 100;
 
     return {
       total: filteredData.length,
       totalFomentado: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalRepasse),
+      avgPercentage,
+      totalDimensions,
+      totalPossibleDimensions,
+      avgDimensions
     };
   }, [filteredData]);
 
@@ -275,6 +326,35 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
     ].filter(d => d.value > 0);
   }, [selecionados, selectedState]);
 
+  const infraBRAdherenceTotals = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+    
+    const cardDimensions = infraData.mediasBR.map(d => d.dimensao);
+
+    // Processamos todos os projetos para contar a aderência
+    filteredData.forEach(item => {
+      if (item.RANKING_ADERENCIA_INFRABR) {
+        const parts = item.RANKING_ADERENCIA_INFRABR.split('|').map(p => p.trim());
+        parts.forEach(p => {
+          const dashIndex = p.indexOf('-');
+          const namePartRaw = dashIndex !== -1 ? p.substring(dashIndex + 1).trim() : p.trim();
+          const namePartNorm = normalize(namePartRaw);
+          
+          if (namePartNorm) {
+            cardDimensions.forEach(cardDimName => {
+              const cardDimNorm = normalize(cardDimName);
+              if (cardDimNorm.includes(namePartNorm) || namePartNorm.includes(cardDimNorm)) {
+                counts[cardDimName] = (counts[cardDimName] || 0) + 1;
+              }
+            });
+          }
+        });
+      }
+    });
+    return counts;
+  }, [filteredData]);
+
   const clearFilters = () => {
     setSelectedState(null);
     setSelectedCategoria(null);
@@ -356,9 +436,57 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="p-8 bg-white shadow-sm flex items-center justify-start gap-6 border-l-8" style={{ borderLeftColor: tColorPrimaryHex }}>
             <Building2 className={`opacity-80 shrink-0 ${textPrimaryClass}`} size={64} />
-            <div>
+            <div className="flex-1">
               <p className="text-sm font-semibold text-slate-500 mb-2 uppercase tracking-wider">Entidades Selecionadas</p>
-              <p className={`text-6xl font-black tracking-tight ${textSecondaryClass}`}>{kpis.total}</p>
+              <div className="flex items-end justify-between">
+                <p className={`text-6xl font-black tracking-tight ${textSecondaryClass}`}>{kpis.total}</p>
+                <div className="flex flex-col items-end mb-2">
+                  <RadixTooltip.Provider delayDuration={100}>
+                    <RadixTooltip.Root>
+                      <RadixTooltip.Trigger asChild>
+                        <div className="flex flex-col items-end cursor-help group">
+                          <span className="text-[10px] font-bold text-slate-400 mb-1 uppercase group-hover:text-slate-600 transition-colors">Média Aderência Infra-BR</span>
+                          <AdherenceProgressBar percentage={kpis.avgPercentage} className="w-24 h-2" />
+                        </div>
+                      </RadixTooltip.Trigger>
+                      <RadixTooltip.Portal>
+                        <RadixTooltip.Content 
+                          className="z-50 bg-white p-4 rounded-xl shadow-2xl border border-slate-200 max-w-[320px] animate-in fade-in zoom-in duration-200" 
+                          sideOffset={5}
+                        >
+                          <div className="space-y-3">
+                            <div className="pb-2 border-b border-slate-100">
+                              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Cálculo de Média de Aderência</h4>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between text-[11px]">
+                                <span className="text-slate-500 italic">Total de dimensões atingidas:</span>
+                                <span className="font-bold text-slate-700">{kpis.totalDimensions}</span>
+                              </div>
+                              <div className="flex justify-between text-[11px]">
+                                <span className="text-slate-500 italic">Total de entidades:</span>
+                                <span className="font-bold text-slate-700">{kpis.total}</span>
+                              </div>
+                              <div className="flex justify-between text-[11px] pt-1 border-t border-slate-50">
+                                <span className="text-slate-600 font-medium italic">Média de dimensões por entidade:</span>
+                                <span className="font-bold text-slate-800">{kpis.avgDimensions.toFixed(2)} / 6.00</span>
+                              </div>
+                              <div className="flex justify-between text-[11px]">
+                                <span className="text-slate-600 font-medium italic">Percentual médio de aderência:</span>
+                                <span className="font-bold text-indigo-600">{kpis.avgPercentage.toFixed(1)}%</span>
+                              </div>
+                            </div>
+                            <div className="p-2 bg-slate-50 rounded-lg text-[9px] text-slate-400 text-center leading-relaxed">
+                              O cálculo representa a distribuição média de dimensões em que as entidades selecionadas possuem aderência técnica perante os critérios da metodologia Infra-BR.
+                            </div>
+                          </div>
+                          <RadixTooltip.Arrow className="fill-white" />
+                        </RadixTooltip.Content>
+                      </RadixTooltip.Portal>
+                    </RadixTooltip.Root>
+                  </RadixTooltip.Provider>
+                </div>
+              </div>
             </div>
           </div>
           <div className={`p-8 text-white shadow-sm flex items-center justify-start gap-6 relative overflow-hidden ${bgSecondaryClass}`}>
@@ -835,8 +963,25 @@ export function Overview({ data = appData.fomento2026, theme = 'overview', showE
                             }}
                           >
                             <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2 w-full text-left leading-tight break-words whitespace-normal">{d.name}</h4>
-                            <div className="flex w-full justify-center mt-1">
+                            <div className="flex w-full justify-between items-end mt-1">
                               <span className="text-3xl font-black tracking-tight text-slate-700">{d.value.toFixed(1)}</span>
+                              {isDimension && (
+                                <div className="flex flex-col items-end gap-1.5">
+                                  <div 
+                                    className={cn(
+                                      "text-[10px] font-bold px-1.5 py-0.5 rounded border shadow-sm transition-colors duration-300",
+                                      getAdherenceColorClass(filteredData.length > 0 ? ((infraBRAdherenceTotals[d.name] || 0) / filteredData.length) * 100 : 0)
+                                    )} 
+                                    title={`Projetos aderentes a ${d.name}`}
+                                  >
+                                    {infraBRAdherenceTotals[d.name] || 0}/{filteredData.length} ({filteredData.length > 0 ? (((infraBRAdherenceTotals[d.name] || 0) / filteredData.length) * 100).toFixed(0) : 0}%)
+                                  </div>
+                                  <AdherenceProgressBar 
+                                    percentage={filteredData.length > 0 ? ((infraBRAdherenceTotals[d.name] || 0) / filteredData.length) * 100 : 0} 
+                                    className="w-16 h-1" 
+                                  />
+                                </div>
+                              )}
                             </div>
                           </div>
                         </RadixTooltip.Trigger>
