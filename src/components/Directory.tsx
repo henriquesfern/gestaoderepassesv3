@@ -4,6 +4,7 @@ import { Search, Filter, Check, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown,
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
+import { infraData } from '../data/infraBR_parser';
 import type { EntidadeSelecionada } from '../data/parser';
 
 function cn(...inputs: ClassValue[]) {
@@ -23,6 +24,18 @@ const getDimensionColor = (dimension: string) => {
   if (dim.includes('ÁGUA')) return "bg-sky-50 text-sky-700 border-sky-200";
   if (dim.includes('MOBILIDADE')) return "bg-rose-50 text-rose-700 border-rose-200";
   return "bg-slate-100 text-slate-600 border-slate-200";
+};
+
+const getColorForChild = (childName: string) => {
+  const normalized = childName.trim().toUpperCase();
+  const found = infraData.detalhamento.find(d => 
+    d.COMPONENTE.trim().toUpperCase() === normalized || 
+    d.INDICADOR.trim().toUpperCase() === normalized
+  );
+  if (found) {
+    return getDimensionColor(found.DIMENSAO);
+  }
+  return "bg-slate-50 text-slate-700 border-slate-200";
 };
 
 const getSegmentColor = (index: number) => {
@@ -482,22 +495,70 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                               count={item.RANKING_ADERENCIA_INFRABR.split('|').length} 
                               className="mb-4"
                             />
-                            <div className="flex flex-wrap gap-2">
-                              {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
-                                const parts = dim.trim().split('-');
-                                const rank = parts[0];
-                                const name = parts.slice(1).join('-');
-                                return (
-                                  <div key={dIdx} className={cn("flex flex-col items-center px-4 py-2 border rounded shadow-sm", getDimensionColor(name))}>
-                                    <span className="text-[10px] font-bold opacity-60 uppercase tracking-tighter">{rank}</span>
-                                    <span className="text-xs font-semibold">{name}</span>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {/* Dimensões */}
+                              <div>
+                                <h5 className="text-[10px] uppercase font-bold text-slate-500 mb-2 border-b border-slate-200 pb-1">Dimensões Atingidas</h5>
+                                <div className="flex flex-col gap-1.5">
+                                  {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
+                                    const parts = dim.trim().split('-');
+                                    const rank = parts[0];
+                                    const name = parts.slice(1).join('-');
+                                    return (
+                                      <div key={dIdx} className={cn("flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-full", getDimensionColor(name))}>
+                                        <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{rank}</span>
+                                        <span className="text-xs font-semibold leading-tight">{name}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Componentes */}
+                              {item.RANKING_COMPONENTES && (
+                                <div>
+                                  <h5 className="text-[10px] uppercase font-bold text-slate-500 mb-2 border-b border-slate-200 pb-1">Principais Componentes</h5>
+                                  <div className="flex flex-col gap-1.5">
+                                    {item.RANKING_COMPONENTES.split('|').map((comp, cIdx) => {
+                                      const parts = comp.trim().split('-');
+                                      const rank = parts[0];
+                                      const name = parts.slice(1).join('-');
+                                      return (
+                                        <div key={cIdx} className={cn("flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-full", getColorForChild(name))}>
+                                          <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{rank}</span>
+                                          <span className="text-xs font-semibold leading-tight">{name}</span>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                );
-                              })}
+                                </div>
+                              )}
+
+                              {/* Indicadores */}
+                              {item.RANKING_INDICADORES && (
+                                <div>
+                                  <h5 className="text-[10px] uppercase font-bold text-slate-500 mb-2 border-b border-slate-200 pb-1">Principais Indicadores</h5>
+                                  <div className="flex flex-col gap-1.5">
+                                    {item.RANKING_INDICADORES.split('|').map((ind, iIdx) => {
+                                      const parts = ind.trim().split('-');
+                                      const rank = parts[0];
+                                      const name = parts.slice(1).join('-');
+                                      return (
+                                        <div key={iIdx} className={cn("flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-full", getColorForChild(name))}>
+                                          <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{rank}</span>
+                                          <span className="text-xs font-semibold leading-tight">{name}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
                             </div>
+
                             {item.DIMENSAO_PRINCIPAL && (
-                              <div className="mt-3 text-[11px] text-slate-500 italic">
-                                <strong>Foco identificado:</strong> {item.DIMENSAO_PRINCIPAL}
+                              <div className="mt-4 text-[11px] text-slate-500 italic bg-white p-2 rounded border border-slate-100">
+                                <strong>Foco primário do algoritmo:</strong> {item.DIMENSAO_PRINCIPAL}
                               </div>
                             )}
                           </div>
