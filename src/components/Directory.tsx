@@ -25,6 +25,44 @@ const getDimensionColor = (dimension: string) => {
   return "bg-slate-100 text-slate-600 border-slate-200";
 };
 
+const getSegmentColor = (index: number) => {
+  const colors = [
+    "bg-rose-500",    // 1ª dimensão
+    "bg-orange-500",  // 2ª dimensão
+    "bg-amber-500",   // 3ª dimensão
+    "bg-lime-500",    // 4ª dimensão
+    "bg-emerald-500", // 5ª dimensão
+    "bg-green-600"    // 6ª dimensão
+  ];
+  return colors[index] || "bg-slate-200";
+};
+
+const InfraBRProgressBar = ({ count, className }: { count: number, className?: string }) => {
+  const safeCount = Math.min(Math.max(0, count), 6);
+  
+  return (
+    <div className={cn("flex flex-col gap-1", className)}>
+      <div className="flex gap-1 h-2 w-full">
+        {[...Array(6)].map((_, i) => (
+          <div 
+            key={i} 
+            className={cn(
+              "flex-1 h-full rounded-sm transition-all duration-300",
+              i < safeCount ? getSegmentColor(i) : "bg-slate-200"
+            )} 
+          />
+        ))}
+      </div>
+      <div className="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+        <span>Aderência Infra-BR</span>
+        <span className={cn("px-1 rounded", safeCount < 3 ? "text-rose-600" : "text-emerald-600")}>
+          {safeCount}/6 Dimensões
+        </span>
+      </div>
+    </div>
+  );
+};
+
 export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
   const selecionados = data;
   const [searchTerm, setSearchTerm] = useState('');
@@ -311,17 +349,22 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                           <div className="font-medium text-slate-800 text-sm align-middle flex items-center">
                             {item.ENTIDADE}
                             {item.RANKING_ADERENCIA_INFRABR && (
-                              <span 
-                                className={cn(
-                                  "ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-black border uppercase tracking-tighter",
-                                  item.RANKING_ADERENCIA_INFRABR.split('|').length >= 3 ? "bg-emerald-500 text-white border-emerald-600" :
-                                  item.RANKING_ADERENCIA_INFRABR.split('|').length === 2 ? "bg-amber-400 text-amber-950 border-amber-500" :
-                                  "bg-rose-500 text-white border-rose-600"
-                                )} 
-                                title={`${item.RANKING_ADERENCIA_INFRABR.split('|').length} dimensões Infra-BR identificadas`}
-                              >
-                                iBR
-                              </span>
+                              <div className="ml-3 mt-0.5" title={`${item.RANKING_ADERENCIA_INFRABR.split('|').length}/6 Dimensões Infra-BR`}>
+                                <div className="flex gap-0.5 h-1.5 w-12">
+                                  {[...Array(6)].map((_, i) => {
+                                    const count = item.RANKING_ADERENCIA_INFRABR!.split('|').length;
+                                    return (
+                                      <div 
+                                        key={i} 
+                                        className={cn(
+                                          "flex-1 rounded-full",
+                                          i < count ? getSegmentColor(i) : "bg-slate-200"
+                                        )} 
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             )}
                           </div>
                           <div className="mt-2 flex flex-wrap items-start gap-1">
@@ -371,20 +414,26 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                       </span>
                     </div>
                     {item.RANKING_ADERENCIA_INFRABR && (
-                      <div className="mt-1.5 flex flex-wrap items-start gap-1 w-full">
-                        {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
-                          const parts = dim.trim().split('-');
-                          const rank = parts[0];
-                          const name = parts.slice(1).join('-');
-                          return (
-                            <span key={dIdx} className={cn(
-                              "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap",
-                              getDimensionColor(name)
-                            )}>
-                              <span className="opacity-50 mr-1">{rank}</span> {name}
-                            </span>
-                          );
-                        })}
+                      <div className="mt-2 w-full max-w-2xl bg-white/50 p-2 rounded border border-slate-100 shadow-sm">
+                        <InfraBRProgressBar 
+                          count={item.RANKING_ADERENCIA_INFRABR.split('|').length} 
+                          className="mb-2"
+                        />
+                        <div className="flex flex-wrap items-start gap-1">
+                          {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
+                            const parts = dim.trim().split('-');
+                            const rank = parts[0];
+                            const name = parts.slice(1).join('-');
+                            return (
+                              <span key={dIdx} className={cn(
+                                "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap",
+                                getDimensionColor(name)
+                              )}>
+                                <span className="opacity-50 mr-1">{rank}</span> {name}
+                              </span>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                    </div>
@@ -429,6 +478,10 @@ export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
                               <span className="w-2 h-2 bg-[#003865] rounded-full mr-2"></span>
                               Aderência Setorial Infra-BR (Ranking M3)
                             </h4>
+                            <InfraBRProgressBar 
+                              count={item.RANKING_ADERENCIA_INFRABR.split('|').length} 
+                              className="mb-4"
+                            />
                             <div className="flex flex-wrap gap-2">
                               {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
                                 const parts = dim.trim().split('-');
