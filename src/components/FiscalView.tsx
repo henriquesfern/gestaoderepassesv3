@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Toolti
 import { Users, FileText, Map as MapIcon, CircleDollarSign } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { EntidadeSelecionada } from '../data/parser';
+import type { EntidadeSelecionada } from '../types';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

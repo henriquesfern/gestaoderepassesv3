@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { appData } from '../data/parser';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Line, Area } from 'recharts';
 import { ClipboardList, CheckCircle, TrendingDown } from 'lucide-react';
-import type { EntidadeSelecionada } from '../data/parser';
+import type { EntidadeSelecionada } from '../types';
 
 interface FinancialPanelProps {
   data?: EntidadeSelecionada[];

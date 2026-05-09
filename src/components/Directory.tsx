@@ -5,7 +5,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { infraData } from '../data/infraBR_parser';
-import type { EntidadeSelecionada } from '../data/parser';
+import type { EntidadeSelecionada } from '../types';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

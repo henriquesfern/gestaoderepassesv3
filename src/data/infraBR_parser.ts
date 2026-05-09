@@ -5,7 +5,7 @@ import {
   InfraComponente,
   InfraDimensao,
   InfraDetalhamento
-} from './infraBR_types';
+} from '../types/infra';
 
 import { infraBRData } from './infra-br';
 import { mediasBRData } from './medias_BR';

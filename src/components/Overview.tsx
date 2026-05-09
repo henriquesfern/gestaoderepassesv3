@@ -12,7 +12,7 @@ import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import type { EntidadeSelecionada } from '../data/parser';
+import type { EntidadeSelecionada } from '../types';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
