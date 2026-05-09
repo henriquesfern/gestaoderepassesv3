@@ -1,0 +1,653 @@
+import React, { useState, useMemo } from 'react';
+import { appData } from '../data/parser';
+import { Search, Filter, Check, X, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+import { infraData } from '../data/infraBR_parser';
+import type { EntidadeSelecionada } from '../data/parser';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+interface DirectoryProps {
+  data?: EntidadeSelecionada[];
+}
+
+const getDimensionColor = (dimension: string) => {
+  const dim = dimension.trim().toUpperCase();
+  if (dim.includes('ENERGIA') || dim.includes('CONECTIVIDADE')) return "bg-amber-50 text-amber-700 border-amber-200";
+  if (dim.includes('BEM-ESTAR') || dim.includes('CIDADANIA')) return "bg-cyan-50 text-cyan-700 border-cyan-200";
+  if (dim.includes('MEIO AMBIENTE') || dim.includes('RESILIÊNCIA')) return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (dim.includes('SANEAMENTO')) return "bg-teal-50 text-teal-700 border-teal-200";
+  if (dim.includes('ÁGUA')) return "bg-sky-50 text-sky-700 border-sky-200";
+  if (dim.includes('MOBILIDADE')) return "bg-rose-50 text-rose-700 border-rose-200";
+  return "bg-slate-100 text-slate-600 border-slate-200";
+};
+
+const getColorForChild = (childName: string) => {
+  const normalized = childName.trim().toUpperCase();
+  const found = infraData.detalhamento.find(d => 
+    d.COMPONENTE.trim().toUpperCase() === normalized || 
+    d.INDICADOR.trim().toUpperCase() === normalized
+  );
+  if (found) {
+    return getDimensionColor(found.DIMENSAO);
+  }
+  return "bg-slate-50 text-slate-700 border-slate-200";
+};
+
+const getSegmentColor = (index: number) => {
+  const colors = [
+    "bg-rose-500",    // 1ª dimensão
+    "bg-orange-500",  // 2ª dimensão
+    "bg-amber-500",   // 3ª dimensão
+    "bg-lime-500",    // 4ª dimensão
+    "bg-emerald-500", // 5ª dimensão
+    "bg-green-600"    // 6ª dimensão
+  ];
+  return colors[index] || "bg-slate-200";
+};
+
+const InfraBRProgressBar = ({ count, className }: { count: number, className?: string }) => {
+  const safeCount = Math.min(Math.max(0, count), 6);
+  
+  return (
+    <div className={cn("flex flex-col gap-1", className)}>
+      <div className="flex gap-1 h-2 w-full">
+        {[...Array(6)].map((_, i) => (
+          <div 
+            key={i} 
+            className={cn(
+              "flex-1 h-full rounded-sm transition-all duration-300",
+              i < safeCount ? getSegmentColor(i) : "bg-slate-200"
+            )} 
+          />
+        ))}
+      </div>
+      <div className="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+        <span>Aderência Infra-BR</span>
+        <span className={cn("px-1 rounded", safeCount < 3 ? "text-rose-600" : "text-emerald-600")}>
+          {safeCount}/6 Dimensões
+        </span>
+      </div>
+    </div>
+  );
+};
+
+interface TreeNode {
+  rank: string;
+  name: string;
+  components: {
+    rank: string;
+    name: string;
+    indicators: { rank: string; name: string }[];
+  }[];
+}
+
+const buildTree = (dimStr: string, compStr: string, indStr: string) => {
+  const dims = dimStr ? dimStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim(), components: [] } }) : [];
+  const comps = compStr ? compStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim(), indicators: [] } }) : [];
+  const inds = indStr ? indStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim() } }) : [];
+  
+  const dimMap = new Map(dims.map(d => [d.name.toUpperCase(), d]));
+  const compMap = new Map(comps.map(c => [c.name.toUpperCase(), c]));
+  
+  for (const ind of inds) {
+    if(!ind.name) continue;
+    const detail = infraData.detalhamento.find(d => d.INDICADOR.toUpperCase().trim() === ind.name.toUpperCase());
+    if (detail) {
+      let comp = compMap.get(detail.COMPONENTE.toUpperCase().trim());
+      if (!comp) {
+        comp = { rank: '', name: detail.COMPONENTE.trim(), indicators: [] };
+        compMap.set(detail.COMPONENTE.toUpperCase().trim(), comp);
+        comps.push(comp);
+      }
+      if (!comp.indicators.find(i => i.name === ind.name)) {
+        comp.indicators.push(ind);
+      }
+      
+      let dim = dimMap.get(detail.DIMENSAO.toUpperCase().trim());
+      if (!dim) {
+        dim = { rank: '', name: detail.DIMENSAO.trim(), components: [] };
+        dimMap.set(detail.DIMENSAO.toUpperCase().trim(), dim);
+        dims.push(dim);
+      }
+    }
+  }
+
+  for (const comp of comps) {
+    if(!comp.name) continue;
+    const detail = infraData.detalhamento.find(d => d.COMPONENTE.toUpperCase().trim() === comp.name.toUpperCase());
+    if(detail) {
+        let dim = dimMap.get(detail.DIMENSAO.toUpperCase().trim());
+        if(!dim) {
+            dim = { rank: '', name: detail.DIMENSAO.trim(), components: [] };
+            dimMap.set(detail.DIMENSAO.toUpperCase().trim(), dim);
+            dims.push(dim);
+        }
+        if (!dim.components.find(c => c.name === comp.name)) {
+          dim.components.push(comp);
+        }
+    }
+  }
+  
+  return dims as TreeNode[];
+};
+
+export function Directory({ data = appData.fomento2026 }: DirectoryProps) {
+  const selecionados = data;
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterGrupo, setFilterGrupo] = useState<string>('all');
+  const [filterEstado, setFilterEstado] = useState<string>('all');
+  const [filterRegiao, setFilterRegiao] = useState<string>('all');
+  const [filterCategoria, setFilterCategoria] = useState<string>('all');
+  const [filterFiscal, setFilterFiscal] = useState<string>('all');
+  const [filterRepasse, setFilterRepasse] = useState<string>('all');
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (cnpj: string) => {
+    const next = new Set(expandedRows);
+    if (next.has(cnpj)) {
+      next.delete(cnpj);
+    } else {
+      next.add(cnpj);
+    }
+    setExpandedRows(next);
+  };
+
+  type SortKey = 'ENTIDADE' | 'CNPJ' | 'ESTADO' | 'IsCDEN' | 'VALOR_REPASSE' | 'NOTA' | 'tipoRepasse';
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey | null, direction: 'asc' | 'desc' }>({ 
+    key: null, 
+    direction: 'asc' 
+  });
+
+  const handleSort = (key: SortKey) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const dataWithGlobalRank = useMemo(() => {
+    const sorted = [...selecionados].sort((a, b) => b.NOTA - a.NOTA);
+    const total = sorted.length;
+    return sorted.map((item, index) => {
+      // Como os dados atuais são todos do processo seletivo de fomento 2026:
+      const tipoRepasse: 'Fomento' | 'Patrocínio' = (item as any).tipoRepasse || 'Fomento';
+
+      return {
+        ...item,
+        globalRank: index + 1,
+        totalEntities: total,
+        tipoRepasse
+      };
+    });
+  }, [selecionados]);
+
+  const estados = useMemo(() => Array.from(new Set(dataWithGlobalRank.map(item => item.ESTADO).filter(Boolean))).sort(), [dataWithGlobalRank]);
+  const regioes = useMemo(() => Array.from(new Set(dataWithGlobalRank.map(item => item.REGIÃO).filter(Boolean))).sort(), [dataWithGlobalRank]);
+  const categorias = useMemo(() => Array.from(new Set(dataWithGlobalRank.map(item => item.CATEGORIA).filter(Boolean))).sort(), [dataWithGlobalRank]);
+  const fiscais = useMemo(() => Array.from(new Set(dataWithGlobalRank.map(item => item.FISCAL).filter(Boolean))).sort(), [dataWithGlobalRank]);
+
+  const filteredData = useMemo(() => {
+    let result = dataWithGlobalRank.filter(item => {
+      const matchSearch = item.ENTIDADE.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          item.CNPJ.includes(searchTerm);
+      
+      let matchGrupo = true;
+      if (filterGrupo === 'CDEN') {
+        matchGrupo = item.IsCDEN;
+      } else if (filterGrupo === 'PREC') {
+        matchGrupo = item.IsPrecursora;
+      } else if (filterGrupo === 'REG') {
+        matchGrupo = !item.IsCDEN && !item.IsPrecursora;
+      }
+      
+      const matchEstado = filterEstado === 'all' || item.ESTADO === filterEstado;
+      const matchRegiao = filterRegiao === 'all' || item.REGIÃO === filterRegiao;
+      
+      let matchCategoria = true;
+      if (filterCategoria === 'undefined_category') {
+        matchCategoria = !item.CATEGORIA || item.CATEGORIA.trim() === '';
+      } else if (filterCategoria !== 'all') {
+        matchCategoria = item.CATEGORIA === filterCategoria;
+      }
+
+      let matchFiscal = true;
+      if (filterFiscal === 'undefined_fiscal') {
+        matchFiscal = !item.FISCAL || item.FISCAL.trim() === '';
+      } else if (filterFiscal !== 'all') {
+        matchFiscal = item.FISCAL === filterFiscal;
+      }
+      
+      const matchRepasse = filterRepasse === 'all' || item.tipoRepasse === filterRepasse;
+      
+      return matchSearch && matchGrupo && matchEstado && matchRegiao && matchCategoria && matchFiscal && matchRepasse;
+    });
+
+    if (sortConfig.key) {
+      result = result.sort((a, b) => {
+        let aVal: any = a[sortConfig.key!];
+        let bVal: any = b[sortConfig.key!];
+
+        if (sortConfig.key === 'IsCDEN') {
+          // Compare groups logic (CDEN, Precursora, Regular)
+          const getGroupValue = (item: any) => {
+            if (item.IsCDEN) return 3;
+            if (item.IsPrecursora) return 2;
+            return 1;
+          };
+          aVal = getGroupValue(a);
+          bVal = getGroupValue(b);
+        } else if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
+        }
+
+        if (aVal < bVal) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aVal > bVal) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+
+    return result;
+  }, [dataWithGlobalRank, searchTerm, filterGrupo, filterEstado, filterRegiao, filterCategoria, filterFiscal, filterRepasse, sortConfig]);
+
+  const renderSortIndicator = (key: SortKey) => {
+    if (sortConfig.key !== key) {
+      return <ArrowUpDown size={14} className="ml-1 inline-block text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />;
+    }
+    return sortConfig.direction === 'asc' ? <ArrowUp size={14} className="ml-1 inline-block text-[#003865]" /> : <ArrowDown size={14} className="ml-1 inline-block text-[#003865]" />;
+  };
+
+  return (
+    <div className="bg-white border border-[#003865]/20 shadow-sm flex flex-col h-full rounded-none">
+      <div className="p-6 border-b border-[#003865]/10">
+        <h3 className="text-xl font-semibold text-slate-800 mb-6">Diretório de Entidades Selecionadas</h3>
+        
+        <div className="flex flex-col gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar por nome ou CNPJ..."
+              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#003865] focus:border-transparent text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-600 flex items-center"><Filter size={16} className="mr-1"/> Repasse:</span>
+              <select 
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003865] bg-white"
+                value={filterRepasse}
+                onChange={(e) => setFilterRepasse(e.target.value)}
+              >
+                <option value="all">Todos</option>
+                <option value="Fomento">Fomento</option>
+                <option value="Patrocínio">Patrocínio</option>
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-600 flex items-center"><Filter size={16} className="mr-1"/> Grupo:</span>
+              <select 
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003865] bg-white"
+                value={filterGrupo}
+                onChange={(e) => setFilterGrupo(e.target.value)}
+              >
+                <option value="all">Todos</option>
+                <option value="CDEN">CDEN</option>
+                <option value="PREC">Precursoras</option>
+                <option value="REG">Outras</option>
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-600 flex items-center"><Filter size={16} className="mr-1"/> Região:</span>
+              <select 
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003865] bg-white"
+                value={filterRegiao}
+                onChange={(e) => setFilterRegiao(e.target.value)}
+              >
+                <option value="all">Todas</option>
+                {regioes.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-600 flex items-center"><Filter size={16} className="mr-1"/> Estado:</span>
+              <select 
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003865] bg-white"
+                value={filterEstado}
+                onChange={(e) => setFilterEstado(e.target.value)}
+              >
+                <option value="all">Todos</option>
+                {estados.map(e => (
+                  <option key={e} value={e}>{e}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-600 flex items-center"><Filter size={16} className="mr-1"/> Categoria:</span>
+              <select 
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003865] bg-white max-w-[200px] truncate"
+                value={filterCategoria}
+                onChange={(e) => setFilterCategoria(e.target.value)}
+                title={filterCategoria === 'all' ? 'Todas' : filterCategoria === 'undefined_category' ? 'Categoria não definida' : filterCategoria}
+              >
+                <option value="all">Todas</option>
+                <option value="undefined_category">Sem categoria</option>
+                {categorias.map(o => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-slate-600 flex items-center"><Filter size={16} className="mr-1"/> Fiscal:</span>
+              <select 
+                className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#003865] bg-white max-w-[200px] truncate"
+                value={filterFiscal}
+                onChange={(e) => setFilterFiscal(e.target.value)}
+                title={filterFiscal === 'all' ? 'Todos' : filterFiscal === 'undefined_fiscal' ? 'Fiscal não definido' : filterFiscal}
+              >
+                <option value="all">Todos</option>
+                <option value="undefined_fiscal">Fiscal não definido</option>
+                {fiscais.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto">
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-slate-50 sticky top-0 z-10">
+            <tr>
+              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => handleSort('ENTIDADE')}>
+                <div className="flex items-center">Entidade {renderSortIndicator('ENTIDADE')}</div>
+              </th>
+              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => handleSort('CNPJ')}>
+                <div className="flex items-center">CNPJ {renderSortIndicator('CNPJ')}</div>
+              </th>
+              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => handleSort('ESTADO')}>
+                <div className="flex items-center">Estado {renderSortIndicator('ESTADO')}</div>
+              </th>
+              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-center cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => handleSort('IsCDEN')}>
+                <div className="flex items-center justify-center">Grupo {renderSortIndicator('IsCDEN')}</div>
+              </th>
+              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-right cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => handleSort('VALOR_REPASSE')}>
+                <div className="flex items-center justify-end">Valor do Repasse {renderSortIndicator('VALOR_REPASSE')}</div>
+              </th>
+              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-right cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => handleSort('NOTA')}>
+                <div className="flex items-center justify-end">Nota Final {renderSortIndicator('NOTA')}</div>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {filteredData.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-slate-500">Nenhuma entidade encontrada.</td>
+              </tr>
+            ) : (
+              filteredData.map((item, idx) => {
+                const uniqueKey = item.CNPJ + idx;
+                const isExpanded = expandedRows.has(uniqueKey);
+                const hasAnexoInfo = Boolean(item.OBJETIVO_COMPLETO || item.AREA_ABRANGENCIA || item.OBJETIVO_ESPECIFICO_COMPLETO || item.PUBLICO_ALVO || item.RANKING_ADERENCIA_INFRABR);
+
+                return (
+                 <React.Fragment key={uniqueKey}>
+                  <tr className={cn("hover:bg-slate-50 transition-colors cursor-pointer", isExpanded && "bg-slate-50")} onClick={() => toggleRow(uniqueKey)}>
+                    <td className="py-3 px-6">
+                      <div className="flex items-start">
+                        <button className="mr-3 mt-0.5 text-slate-400 hover:text-[#003865] flex-shrink-0 transition-colors">
+                          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+                        <div>
+                          <div className="font-medium text-slate-800 text-sm align-middle flex items-center">
+                            {item.ENTIDADE}
+                            {item.RANKING_ADERENCIA_INFRABR && (
+                              <div className="ml-3 mt-0.5" title={`${item.RANKING_ADERENCIA_INFRABR.split('|').length}/6 Dimensões Infra-BR`}>
+                                <div className="flex gap-0.5 h-1.5 w-12">
+                                  {[...Array(6)].map((_, i) => {
+                                    const count = item.RANKING_ADERENCIA_INFRABR!.split('|').length;
+                                    return (
+                                      <div 
+                                        key={i} 
+                                        className={cn(
+                                          "flex-1 rounded-full",
+                                          i < count ? getSegmentColor(i) : "bg-slate-200"
+                                        )} 
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-start gap-1">
+                      <span className={cn(
+                        "inline-block px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap",
+                        item.CATEGORIA?.toLowerCase() === "direcionamento estratégico local" ? "bg-blue-50 text-blue-700 border-blue-200" :
+                        item.CATEGORIA?.toLowerCase() === "identificação e proposição de soluções" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                        item.CATEGORIA?.toLowerCase() === "mapeamento de recursos" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                        item.CATEGORIA?.toLowerCase() === "evento" ? "bg-purple-50 text-purple-700 border-purple-200" :
+                        item.CATEGORIA?.toLowerCase() === "revista" ? "bg-pink-50 text-pink-700 border-pink-200" :
+                        item.CATEGORIA?.toLowerCase() === "livro" ? "bg-cyan-50 text-cyan-700 border-cyan-200" :
+                        item.CATEGORIA?.toLowerCase() === "atividade principal do sistema confea/crea" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
+                        item.CATEGORIA?.toLowerCase() === "transparência, legalidade e legitimidade do sistema confea/crea" ? "bg-teal-50 text-teal-700 border-teal-200" :
+                        item.CATEGORIA?.toLowerCase() === "papel do sistema confea/crea" ? "bg-rose-50 text-rose-700 border-rose-200" :
+                        item.CATEGORIA?.toLowerCase() === "erro" ? "bg-red-50 text-red-700 border-red-200" :
+                        "bg-slate-100 text-slate-600 border-slate-200"
+                      )} title={item.CATEGORIA || "Não definido"}>
+                        {item.OBJETIVO || "Não definido"}
+                      </span>
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap" title="Fiscal do Processo">
+                        Fiscal: {item.FISCAL || "Não definido"}
+                      </span>
+                      {item.FISCAL_SUPLENTE && (
+                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap" title="Fiscal Suplente">
+                          Suplente: {item.FISCAL_SUPLENTE}
+                        </span>
+                      )}
+                      {item.DATA_INICIO && (
+                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap" title="Período">
+                          {item.DATA_INICIO} {item.DATA_FIM && ` a ${item.DATA_FIM}`}
+                        </span>
+                      )}
+                      {item.MES && (
+                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap" title="Mês">
+                          {item.MES}
+                        </span>
+                      )}
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 whitespace-nowrap" title="Número SEI">
+                        SEI: {item.SEI || "Não informado"}
+                      </span>
+                      <span className={cn(
+                        "inline-block px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap",
+                        item.tipoRepasse === 'Fomento' ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
+                        "bg-orange-500/10 text-orange-700 border-orange-500/20"
+                      )} title="Tipo de Repasse">
+                        {item.tipoRepasse}
+                      </span>
+                    </div>
+                    {item.RANKING_ADERENCIA_INFRABR && (
+                      <div className="mt-2 w-full max-w-2xl bg-white/50 p-2 rounded border border-slate-100 shadow-sm">
+                        <InfraBRProgressBar 
+                          count={item.RANKING_ADERENCIA_INFRABR.split('|').length} 
+                          className="mb-2"
+                        />
+                        <div className="flex flex-wrap items-start gap-1">
+                          {item.RANKING_ADERENCIA_INFRABR.split('|').map((dim, dIdx) => {
+                            const parts = dim.trim().split('-');
+                            const rank = parts[0];
+                            const name = parts.slice(1).join('-');
+                            return (
+                              <span key={dIdx} className={cn(
+                                "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border whitespace-nowrap",
+                                getDimensionColor(name)
+                              )}>
+                                <span className="opacity-50 mr-1">{rank}</span> {name}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                   </div>
+                  </div>
+                  </td>
+                  <td className="py-3 px-6 text-[10px] text-slate-600 font-mono whitespace-nowrap align-top">{item.CNPJ}</td>
+                  <td className="py-3 px-6 align-top">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800">
+                      {item.ESTADO}
+                    </span>
+                  </td>
+                  <td className="py-3 px-6 text-center align-top">
+                    {item.IsCDEN && item.IsPrecursora ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] leading-tight font-bold bg-indigo-100 text-indigo-800 border border-indigo-200" title="CDEN e Precursora">CDEN/PREC</span>
+                    ) : item.IsCDEN ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200" title="CDEN">CDEN</span>
+                    ) : item.IsPrecursora ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200" title="Precursora">PREC</span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200" title="Regular">REG</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-6 text-sm font-semibold text-slate-800 text-right whitespace-nowrap">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.VALOR_REPASSE)}
+                  </td>
+                  <td className="py-3 px-6 text-right">
+                    <div className="text-sm font-semibold text-slate-800">
+                      {item.NOTA.toFixed(2).replace('.', ',')}
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1 whitespace-nowrap">
+                      {item.globalRank}º/{item.totalEntities}
+                    </div>
+                  </td>
+                </tr>
+                {isExpanded && (
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <td colSpan={6} className="py-4 px-10">
+                      <div className="space-y-4 text-sm w-full">
+                        {item.RANKING_ADERENCIA_INFRABR ? (
+                          <div className="bg-[#003865]/5 p-4 rounded-lg border border-[#003865]/10">
+                            <h4 className="font-semibold text-[#003865] mb-2 text-xs uppercase tracking-wide flex items-center">
+                              <span className="w-2 h-2 bg-[#003865] rounded-full mr-2"></span>
+                              Aderência Setorial Infra-BR
+                            </h4>
+                            <InfraBRProgressBar 
+                              count={item.RANKING_ADERENCIA_INFRABR.split('|').length} 
+                              className="mb-4"
+                            />
+                            
+                            <div className="flex flex-col gap-4">
+                              {buildTree(
+                                item.RANKING_ADERENCIA_INFRABR || '',
+                                item.RANKING_COMPONENTES || '',
+                                item.RANKING_INDICADORES || ''
+                              ).map((dim, dIdx) => (
+                                <div key={dIdx} className="flex flex-col gap-2">
+                                  {/* Dimensão */}
+                                  <div className={cn("inline-flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-fit", getDimensionColor(dim.name))}>
+                                      <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{dim.rank}</span>
+                                      <span className="text-xs font-semibold leading-tight">{dim.name}</span>
+                                  </div>
+                                  
+                                  {/* Componentes da Dimensão */}
+                                  {dim.components.length > 0 && (
+                                    <div className="pl-4 border-l-2 border-slate-200/60 ml-2 mt-1 flex flex-col gap-3">
+                                      {dim.components.map((comp, cIdx) => (
+                                        <div key={cIdx} className="flex flex-col gap-1.5">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-slate-300 text-xs">└─&gt;</span>
+                                            <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm", getColorForChild(comp.name))}>
+                                              <span className="text-[11px] font-semibold leading-tight">{comp.name}</span>
+                                            </div>
+                                          </div>
+
+                                          {/* Indicadores do Componente */}
+                                          {comp.indicators.length > 0 && (
+                                            <div className="pl-6 flex flex-col gap-1.5">
+                                              {comp.indicators.map((ind, iIdx) => (
+                                                <div key={iIdx} className="flex items-center gap-2">
+                                                  <span className="text-slate-300 text-xs">└─&gt;</span>
+                                                  <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm bg-white/60", getColorForChild(ind.name))}>
+                                                    <span className="text-[10px] font-medium leading-tight">{ind.name}</span>
+                                                  </div>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                        {item.OBJETIVO_COMPLETO ? (
+                          <div>
+                            <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Objetivo Completo</h4>
+                            <p className="text-slate-600 leading-relaxed">{item.OBJETIVO_COMPLETO}</p>
+                          </div>
+                        ) : null}
+                        {item.OBJETIVO_ESPECIFICO_COMPLETO ? (
+                          <div>
+                            <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Objetivo Específico</h4>
+                            <p className="text-slate-600 leading-relaxed">{item.OBJETIVO_ESPECIFICO_COMPLETO}</p>
+                          </div>
+                        ) : null}
+                        <div className="grid grid-cols-2 gap-6">
+                          {item.PUBLICO_ALVO ? (
+                            <div>
+                              <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Público Alvo</h4>
+                              <p className="text-slate-600">{item.PUBLICO_ALVO}</p>
+                            </div>
+                          ) : null}
+                          {item.AREA_ABRANGENCIA ? (
+                            <div>
+                              <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Área de Abrangência</h4>
+                              <p className="text-slate-600">{item.AREA_ABRANGENCIA}</p>
+                            </div>
+                          ) : null}
+                        </div>
+                        {!hasAnexoInfo && (
+                          <div className="p-4 bg-white border border-slate-200 rounded-md text-slate-500 italic">
+                            Detalhes do anexo não disponíveis para esta entidade.
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
+              );
+            })
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="p-4 border-t border-slate-200 bg-slate-50 text-sm text-slate-600 text-right font-medium">
+        Total exibido: {filteredData.length}
+      </div>
+    </div>
+  );
+}
