@@ -10,3 +10,6 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - Ocultação dos indicadores de ranking (1º, 2º, etc.) nos níveis secundários (Componentes e Indicadores), focando a visualização de classificação exclusivamente na raiz da respectiva Dimensão.
 - Exclusão do elemento visual que exibia o "Foco primário do algoritmo", uma vez que o ranking de dimensões já supre a mesma função informacional redundante.
 - Remoção do termo "(Ranking M3)" da interface do usuário em todas as áreas onde o conceito de aderência ao Infra-BR é explicitado, evitando ambiguidades.
+- Criação e inclusão do **Protocolo de Criticidade de Ações e Prevenção de Falhas (Níveis 1 a 4)** no arquivo `AGENTS.md` para mitigar riscos de quebra do sistema e perdas estruturais.
+- Criação do utilitário `scripts/backup.ts` para ser acionado antes de manobras de nível Crítico (Nível 4), automatizando o clone/backup preventivo do diretório raiz `src`.
+- Evolução do utilitário `scripts/backup.ts` para executar o backup de 100% da estrutura do projeto a partir da raiz, ignorando automaticamente pastas irrelevantes ou redundantes como `node_modules`, `dist`, `backups` e `.git`.
