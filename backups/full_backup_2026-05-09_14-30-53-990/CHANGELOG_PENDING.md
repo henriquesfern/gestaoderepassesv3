@@ -3,8 +3,6 @@
 Este arquivo registra todas as modificações realizadas no projeto desde o último sincronismo. Ele deve ser utilizado pela plataforma para gerar a mensagem de Pull Request / Commit de forma completa e em Português do Brasil (pt-BR). Ao receber a confirmação de que o sincronismo foi realizado, este arquivo deve ser "zerado" pelo agente.
 
 ## Atualizações recentes:
-- **Correção da Sanitização de CSV em tempo construcional (Tipagem + Syntax)**: Refatatorado o script `scripts/clean-base.ts` para usar `JSON.stringify` na injeção do string CSV em constantes do Typescript (`src/data/*.ts`), evitando a quebra do parser da linguagem (TS1005) por caracteres especiais isolados. Restauração concluída e teste do linter e builds efetuados com total sucesso (`npm run lint` / `compile_applet`).
-- **Remoção de Código Obsoleto**: Limpeza do utilitário temporário de pós-sanitização da inicialização em `parser.ts` para dar vez exclusiva à pré-limpeza executada pelo `clean-base.ts`, tornando a carga da UI e filtros no aplicativo mais leves.
 - Sincronização prévia concluída e log de alterações reiniciado.
 - **Normalização Defensiva e Consistência de Dados (Protocolo Nível 3)**:
   - Implementação efetiva da "Inserção Defensiva na Carga de Dados Iniciais" (Entrega D).

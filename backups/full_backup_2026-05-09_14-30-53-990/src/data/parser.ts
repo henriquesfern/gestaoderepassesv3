@@ -5,6 +5,7 @@ import { fomento2025CSV } from './fomento2025';
 import { fomento2026CSV } from './fomento2026';
 import { patrocinioCSV } from './patrocinio2025';
 import { getRegionByState } from './regions';
+import { normalizeCNPJ, normalizeString, getStateFullName } from '../utils/sanitizers';
 import { infraData } from './infraBR_parser';
 import { newFomentoCSV } from './newFomentoData';
 
@@ -105,8 +106,9 @@ const parseNumberBR = (val: string) => {
  * Adapter para Fomento 2025 (Histórico)
  */
 const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
-  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
+  const cnpjClean = normalizeCNPJ(row.CNPJ);
+  const isCDEN = cdenParsed.some(cden => cden.CNPJ === cnpjClean);
+  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === cnpjClean);
   
   const getField = (prefix: string) => {
     const key = Object.keys(row).find(k => k.trim().startsWith(prefix));
@@ -122,11 +124,11 @@ const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed: any[])
   const razaoSocial = getField('Razão Social') || row.Sigla || '';
 
   return {
-    ENTIDADE: razaoSocial,
-    CNPJ: row.CNPJ,
-    OBJETIVO: linhaSolicitada,
-    CATEGORIA: linhaSolicitada,
-    ESTADO: row.Estado || row.ESTADO || '',
+    ENTIDADE: normalizeString(razaoSocial),
+    CNPJ: cnpjClean,
+    OBJETIVO: normalizeString(linhaSolicitada),
+    CATEGORIA: normalizeString(linhaSolicitada),
+    ESTADO: getStateFullName(row.Estado || row.ESTADO || ''),
     NOTA: parseNumberBR(row['Classificação']) || 0,
     VOTOS: 0,
     VALOR_REPASSE: parseCurrency(row.Valor),
@@ -152,17 +154,18 @@ const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed: any[])
  * Adapter para Fomento 2026 (Corrente)
  */
 const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed: any[], newFomentoMap?: Map<string, any>): EntidadeSelecionada => {
-  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-  const newRow = newFomentoMap ? newFomentoMap.get(row.CNPJ) : null;
+  const cnpjClean = normalizeCNPJ(row.CNPJ);
+  const isCDEN = cdenParsed.some(cden => cden.CNPJ === cnpjClean);
+  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === cnpjClean);
+  const newRow = newFomentoMap ? newFomentoMap.get(cnpjClean) : null;
   const targetRow = newRow || row;
   
   return {
-    ENTIDADE: row.ENTIDADE || '',
-    CNPJ: row.CNPJ || '',
-    OBJETIVO: row.OBJETIVO_ESTRATEGICO || row.OBJETIVO || '',
-    CATEGORIA: row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO || '',
-    ESTADO: row.ESTADO || row.SIGLA_UF || '',
+    ENTIDADE: normalizeString(row.ENTIDADE),
+    CNPJ: cnpjClean,
+    OBJETIVO: normalizeString(row.OBJETIVO_ESTRATEGICO || row.OBJETIVO),
+    CATEGORIA: normalizeString(row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO),
+    ESTADO: getStateFullName(row.ESTADO || row.SIGLA_UF || ''),
     NOTA: parseNumberBR(row['MÉDIA']) || 0,
     VOTOS: parseInt(row['VOTOS'], 10) || 0,
     VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),
@@ -222,21 +225,22 @@ const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed: any[],
  * Adapter para Patrocínio 2025
  */
 const adaptPatrocinio2025 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
-  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
+  const cnpjClean = normalizeCNPJ(row.CNPJ);
+  const isCDEN = cdenParsed.some(cden => cden.CNPJ === cnpjClean);
+  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === cnpjClean);
   
-  const tipo = row['Tipo'] || '';
-  const tipoPub = row['TipoPublicacao'] || '';
+  const tipo = normalizeString(row['Tipo']);
+  const tipoPub = normalizeString(row['TipoPublicacao']);
   const categoria = tipo === 'PUBLICAÇÃO' && tipoPub ? (tipoPub.charAt(0).toUpperCase() + tipoPub.slice(1).toLowerCase()) : (tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase());
-  const projetoFull = row['Projeto'] || '';
+  const projetoFull = normalizeString(row['Projeto']);
   const objetivoTruncated = projetoFull.length > 35 ? projetoFull.substring(0, 35) + '...' : projetoFull;
 
   return {
-    ENTIDADE: row.Entidade || '',
-    CNPJ: row.CNPJ || '',
+    ENTIDADE: normalizeString(row.Entidade),
+    CNPJ: cnpjClean,
     OBJETIVO: objetivoTruncated || categoria,
     CATEGORIA: categoria,
-    ESTADO: row.Estado || '',
+    ESTADO: getStateFullName(row.Estado || ''),
     NOTA: parseNumberBR(row['Pontuação']),
     VOTOS: 0,
     VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),
@@ -254,14 +258,16 @@ const adaptPatrocinio2025 = (row: any, cdenParsed: any[], precursorasParsed: any
 };
 
 export const parseData = () => {
-  const cdenParsed = Papa.parse<EntidadeCDEN>(cdenCSV.trim(), { header: true, skipEmptyLines: true }).data;
-  const precursorasParsed = Papa.parse<EntidadePrecursora>(precursorasCSV.trim(), { header: true, skipEmptyLines: true }).data;
+  const cdenParsed = Papa.parse<EntidadeCDEN>(cdenCSV.trim(), { header: true, skipEmptyLines: true })
+    .data.map(row => ({ ...row, CNPJ: normalizeCNPJ(row.CNPJ), Entidade: normalizeString(row.Entidade) }));
+  const precursorasParsed = Papa.parse<EntidadePrecursora>(precursorasCSV.trim(), { header: true, skipEmptyLines: true })
+    .data.map(row => ({ ...row, CNPJ: normalizeCNPJ(row.CNPJ), Entidade: normalizeString(row.Entidade) }));
   const fomentoRaw = Papa.parse<any>(fomento2025CSV.trim(), { header: true, skipEmptyLines: true }).data;
   const fomento2026Raw = Papa.parse<any>(fomento2026CSV.trim(), { header: true, skipEmptyLines: true }).data;
   const patrocinioRaw = Papa.parse<any>(patrocinioCSV.trim(), { header: true, skipEmptyLines: true }).data;
   
   const newFomentoRaw = Papa.parse<any>(newFomentoCSV.trim(), { header: true, skipEmptyLines: true, delimiter: ';' }).data;
-  const newFomentoMap = new Map(newFomentoRaw.map((r: any) => [r.CNPJ, r]));
+  const newFomentoMap = new Map(newFomentoRaw.map((r: any) => [normalizeCNPJ(r.CNPJ), r]));
 
   // 2. Processamento via Adapters (Camada de Tradução)
   const fomentoHistoricoParsed = fomentoRaw.map(row => adaptFomento2025(row, cdenParsed, precursorasParsed));
