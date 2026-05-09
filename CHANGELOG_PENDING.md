@@ -3,12 +3,14 @@
 Este arquivo registra todas as modificações realizadas no projeto desde o último sincronismo. Ele deve ser utilizado pela plataforma para gerar a mensagem de Pull Request / Commit de forma completa e em Português do Brasil (pt-BR). Ao receber a confirmação de que o sincronismo foi realizado, este arquivo deve ser "zerado" pelo agente.
 
 ## Atualizações recentes:
-- **Correção da Sanitização de CSV em tempo construcional (Tipagem + Syntax)**: Refatatorado o script `scripts/clean-base.ts` para usar `JSON.stringify` na injeção do string CSV em constantes do Typescript (`src/data/*.ts`), evitando a quebra do parser da linguagem (TS1005) por caracteres especiais isolados. Restauração concluída e teste do linter e builds efetuados com total sucesso (`npm run lint` / `compile_applet`).
-- **Remoção de Código Obsoleto**: Limpeza do utilitário temporário de pós-sanitização da inicialização em `parser.ts` para dar vez exclusiva à pré-limpeza executada pelo `clean-base.ts`, tornando a carga da UI e filtros no aplicativo mais leves.
-- Sincronização prévia concluída e log de alterações reiniciado.
-- **Normalização Defensiva e Consistência de Dados (Protocolo Nível 3)**:
-  - Implementação efetiva da "Inserção Defensiva na Carga de Dados Iniciais" (Entrega D).
-  - Atualização do motor de tradução e parse de planilhas (`src/data/parser.ts`) para aplicar de imediato os sanitizadores globais via `src/utils/sanitizers.ts`.
-  - Extração limpa baseada na interceptação imediata após leitura do Papa Parse para arrays associativos (`cdenParsed`, `precursorasParsed`, `fomentoHistorico`, e afins), mitigando contaminação em cascata nos processadores e na renderização da interface.
-  - CNPJs problemáticos e desformatados agora são padronizados uniformemente garantindo os 14 dígitos (base para consultas cruzadas precisas com arquivos satélites).
-  - Normalização estrita de strings/títulos (removendo aspas residuais) e de representações geográficas (coalescência bidirecional de Siglas x Nome Completo das UF).
+- Sincronismo com GitHub efetuado e log de alterações reiniciado.
+- **Ação A implementada (Protocolo Nível 2 - Tipagens)**: Centralização global de Tipos e Interfaces do sistema. Foi criado o diretório estrutural `src/types/` agregando os contratos dispersos no `parser.ts` (`EntidadeSelecionada`, `EntidadeCDEN`, etc) e `infraBR_types.ts`, isolando a camada de domínio dos arquivos de dados, limpando dependências cruzadas e mitigando quebras circulares no Typescript. Build rodado e validado garantindo segurança total da UI.
+- **Ação B implementada (Protocolo Nível 2 - Separação do Parser)**: Refatoração da lógica do parser de dados (`src/data/parser.ts`) implementando o padrão de *Separation of Concerns* (Separação de Responsabilidades).
+  - Isolamento dos utilitários de limpeza e conversão de formato de números em `src/utils/formatters.ts`.
+  - Separação dos adaptadores de transformação da infraestrutura e regras de negócio para as diferentes tipologias de arquivos CSV da base de dados (`adaptFomento2025`, `adaptFomento2026`, `adaptPatrocinio2025`) para `src/data/adapters.ts`.
+  - Redução do `parser.ts` primário para atuar estritamente como ponte orquestradora da etapa de parse do Papaparse, resultando em um código modular, mais limpo e legível. Build executado com sucesso.
+- **Ação C implementada (Protocolo Nível 2 - Fragmentação de Monolitos)**: Modularização do monolito de interface `Overview.tsx` utilizando o princípio de Separation of Concerns e Clean Code.
+  - Extração de toda a complexidade computacional (métrica de KPIs, distribuição geográfica, filtros dimensionais e agregações complexas da matriz Infra-BR e Fomento) para um novo custom react hook, construído em `/src/hooks/useOverviewMetrics.ts`.
+  - Desmembramento da camada UI (Interface) original (~1100 linhas) em subcomponentes menores, concisos e fáceis de colaborar, alocados na nova estrutura de diretório `/src/components/overview/` (`OverviewKPIs.tsx`, `OverviewHistoryChart.tsx`, `OverviewMap.tsx`, `OverviewDistributionChart.tsx`, `OverviewInfraBRPanel.tsx` e `OverviewUtils.tsx`).
+  - O componente primário `Overview.tsx` manteve apenas a atribuição de *container/orchestrator*, controlando a injeção de dependências visuais, sem regras fortes.
+  - Totalmente testado com sucesso pelo *Vite JS/Rollup*.
