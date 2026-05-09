@@ -1,7 +1,7 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
-import chatHandler from "./api/chat.js";
+import chatHandler from "./api/chat.ts";
 
 async function startServer() {
   const app = express();

@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { EDITAIS_CONTEXT } from '../src/editais-context.js';
+import { EDITAIS_CONTEXT } from '../src/editais-context.ts';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
