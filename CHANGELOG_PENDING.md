@@ -14,3 +14,7 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
   - Desmembramento da camada UI (Interface) original (~1100 linhas) em subcomponentes menores, concisos e fáceis de colaborar, alocados na nova estrutura de diretório `/src/components/overview/` (`OverviewKPIs.tsx`, `OverviewHistoryChart.tsx`, `OverviewMap.tsx`, `OverviewDistributionChart.tsx`, `OverviewInfraBRPanel.tsx` e `OverviewUtils.tsx`).
   - O componente primário `Overview.tsx` manteve apenas a atribuição de *container/orchestrator*, controlando a injeção de dependências visuais, sem regras fortes.
   - Totalmente testado com sucesso pelo *Vite JS/Rollup*.
+- **Ação D implementada (Protocolo Nível 2 - Fragmentação dos Monolitos de Tabelas)**: Extração da lógica UI/negócios dos monolitos massivos `Directory.tsx` e `DirectoryECGeral.tsx`.
+  - Foram criados os *custom hooks* `useDirectory.ts` e `useDirectoryECGeral.ts`, isolando completamente os longos processos de ordenação, paginação global, contagem indexada de Entidades e controle múltiplo de filtros dimensionais.
+  - Fragmentação do painel modular de controles e tabelas da matriz UI em componentes atômicos dentro de `src/components/directory/`, extraindo a formatação e as renderizações aninhadas para `DirectoryFilters.tsx`, `DirectoryRow.tsx`, além das suas derivações parciais no EC Geral (`DirectoryECGeralFilters.tsx` e `DirectoryECGeralRow.tsx`) e utilitários visuais unificados (`DirectoryUtils.tsx` e `InfraBRProgressBar.tsx`).
+  - Atualização do `ROADMAP.md` e testado em Build limpo com sucesso.
