@@ -69,6 +69,20 @@ export function normalizeCNPJ(cnpj: string | number | null | undefined): string 
 }
 
 /**
+ * Formata uma string de CNPJ (exclusivamente números) para o formato XX.XXX.XXX/XXXX-XX.
+ */
+export function formatCNPJ(cnpjStr: string | null | undefined): string {
+  if (!cnpjStr) return '';
+  const onlyNumbers = cnpjStr.replace(/\D/g, '');
+  if (onlyNumbers.length !== 14) return cnpjStr; // Returns as is if not 14 digits
+  
+  return onlyNumbers.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    '$1.$2.$3/$4-$5'
+  );
+}
+
+/**
  * Retorna o nome por extenso de um estado baseando-se na sua sigla (UF).
  * Se o parâmetro passado já for o nome completo, retorna-o formatado.
  */

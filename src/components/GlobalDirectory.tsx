@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import { Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { formatCNPJ } from '../utils/sanitizers';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -215,7 +216,7 @@ export function GlobalDirectory({}: GlobalDirectoryProps) {
                       ) : null}
                     </div>
                   </td>
-                  <td className="py-3 px-6 text-[11px] text-slate-600 font-mono whitespace-nowrap">{item.CNPJ}</td>
+                  <td className="py-3 px-6 text-[11px] text-slate-600 font-mono whitespace-nowrap">{formatCNPJ(item.CNPJ)}</td>
                   <td className="py-3 px-6">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800">
                       {item.ESTADO || '-'}

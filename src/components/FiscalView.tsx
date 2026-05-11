@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Cell, LabelList, Legend } from 'recharts';
-import { Users, FileText, Map as MapIcon, CircleDollarSign } from 'lucide-react';
+import { Users, FileText, Map as MapIcon, CircleDollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { EntidadeSelecionada } from '../types';
+import { formatCNPJ } from '../utils/sanitizers';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -18,6 +19,7 @@ export function FiscalView({ data }: FiscalViewProps) {
   const { appData } = useData();
   const selecionados = data || appData.fomento2026;
   const [selectedFiscal, setSelectedFiscal] = useState<string | null>(null);
+  const [expandedFiscal, setExpandedFiscal] = useState<string | null>(null);
 
   const fiscalData = useMemo(() => {
     const map = new Map<string, {
@@ -32,6 +34,7 @@ export function FiscalView({ data }: FiscalViewProps) {
       statesPatrocinio: Set<string>;
       regionsFomento: Set<string>;
       regionsPatrocinio: Set<string>;
+      projects: EntidadeSelecionada[];
     }>();
 
     selecionados.forEach(item => {
@@ -49,11 +52,13 @@ export function FiscalView({ data }: FiscalViewProps) {
           statesPatrocinio: new Set(),
           regionsFomento: new Set(),
           regionsPatrocinio: new Set(),
+          projects: [],
         });
       }
       const f = map.get(fiscalName)!;
       f.processes += 1;
       f.totalConcedido += item.VALOR_REPASSE;
+      f.projects.push(item);
       
       const repasse = item.tipoRepasse || 'Fomento';
       if (repasse === 'Fomento') {
@@ -218,46 +223,94 @@ export function FiscalView({ data }: FiscalViewProps) {
             {fiscalData
               .filter(f => !selectedFiscal || f.name === selectedFiscal)
               .map((f, i) => (
-              <div key={i} className="border border-slate-200 rounded-md p-4 hover:border-[#008f4c]/50 transition-colors bg-slate-50/50">
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-bold text-[#003865] flex items-center">
-                    <Users size={16} className="mr-2 text-[#008f4c]" />
-                    {f.name}
-                  </h4>
-                  <div className="font-semibold text-[#008f4c] text-lg">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(f.totalConcedido)}
+              <div 
+                key={i} 
+                className="border border-slate-200 rounded-md hover:border-[#008f4c]/50 transition-colors bg-slate-50/50 overflow-hidden"
+              >
+                <div 
+                  className="p-4 cursor-pointer"
+                  onClick={() => setExpandedFiscal(expandedFiscal === f.name ? null : f.name)}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="font-bold text-[#003865] flex items-center">
+                      <Users size={16} className="mr-2 text-[#008f4c]" />
+                      {f.name}
+                    </h4>
+                    <div className="flex items-center gap-4">
+                      <div className="font-semibold text-[#008f4c] text-lg">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(f.totalConcedido)}
+                      </div>
+                      <div className="text-slate-400">
+                        {expandedFiscal === f.name ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm mt-3 border-t border-slate-200/60 pt-3">
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Total Processos</div>
+                      <div className="font-medium text-slate-800">{f.processes} projeto{f.processes !== 1 && 's'}</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Repasses</div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        {f.processesFomento > 0 && <div className="text-[#008f4c] font-medium">{f.processesFomento} Fomento</div>}
+                        {f.processesPatrocinio > 0 && <div className="text-amber-600 font-medium">{f.processesPatrocinio} Patrocínio</div>}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Regiões</div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        {f.regionsFomentoList && <div className="text-[#008f4c] font-medium" title={f.regionsFomentoList}>{f.regionsFomentoList}</div>}
+                        {f.regionsPatrocinioList && <div className="text-amber-600 font-medium" title={f.regionsPatrocinioList}>{f.regionsPatrocinioList}</div>}
+                        {!f.regionsFomentoList && !f.regionsPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Estados</div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        {f.statesFomentoList && <div className="text-[#008f4c] font-medium line-clamp-1" title={f.statesFomentoList}>({f.statesFomentoCount}) {f.statesFomentoList}</div>}
+                        {f.statesPatrocinioList && <div className="text-amber-600 font-medium line-clamp-1" title={f.statesPatrocinioList}>({f.statesPatrocinioCount}) {f.statesPatrocinioList}</div>}
+                        {!f.statesFomentoList && !f.statesPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm mt-3 border-t border-slate-200/60 pt-3">
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Total Processos</div>
-                    <div className="font-medium text-slate-800">{f.processes} projeto{f.processes !== 1 && 's'}</div>
-                  </div>
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Repasses</div>
-                    <div className="flex flex-col gap-0.5 text-xs">
-                      {f.processesFomento > 0 && <div className="text-[#008f4c] font-medium">{f.processesFomento} Fomento</div>}
-                      {f.processesPatrocinio > 0 && <div className="text-amber-600 font-medium">{f.processesPatrocinio} Patrocínio</div>}
+                {expandedFiscal === f.name && (
+                  <div className="bg-white border-t border-slate-200">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left text-slate-600">
+                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                          <tr>
+                            <th scope="col" className="px-4 py-3">Nome</th>
+                            <th scope="col" className="px-4 py-3">CNPJ</th>
+                            <th scope="col" className="px-4 py-3">SEI</th>
+                            <th scope="col" className="px-4 py-3 text-center">Estado</th>
+                            <th scope="col" className="px-4 py-3 text-right">Repasse</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {f.projects.map((proj, pIdx) => (
+                            <tr key={pIdx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                              <td className="px-4 py-3 font-medium text-slate-800 break-words max-w-xs">{proj.ENTIDADE || 'N/A'}</td>
+                              <td className="px-4 py-3 whitespace-nowrap">{formatCNPJ(proj.CNPJ) || 'N/A'}</td>
+                              <td className="px-4 py-3 whitespace-nowrap text-[#003865]">{proj.SEI || 'N/A'}</td>
+                              <td className="px-4 py-3 text-center">
+                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700">
+                                  {proj.ESTADO || 'N/A'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right font-medium text-[#008f4c]">
+                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proj.VALOR_REPASSE)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Regiões</div>
-                    <div className="flex flex-col gap-0.5 text-xs">
-                      {f.regionsFomentoList && <div className="text-[#008f4c] font-medium" title={f.regionsFomentoList}>{f.regionsFomentoList}</div>}
-                      {f.regionsPatrocinioList && <div className="text-amber-600 font-medium" title={f.regionsPatrocinioList}>{f.regionsPatrocinioList}</div>}
-                      {!f.regionsFomentoList && !f.regionsPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Estados</div>
-                    <div className="flex flex-col gap-0.5 text-xs">
-                      {f.statesFomentoList && <div className="text-[#008f4c] font-medium line-clamp-1" title={f.statesFomentoList}>({f.statesFomentoCount}) {f.statesFomentoList}</div>}
-                      {f.statesPatrocinioList && <div className="text-amber-600 font-medium line-clamp-1" title={f.statesPatrocinioList}>({f.statesPatrocinioCount}) {f.statesPatrocinioList}</div>}
-                      {!f.statesFomentoList && !f.statesPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             ))}
             {fiscalData.filter(f => !selectedFiscal || f.name === selectedFiscal).length === 0 && (
