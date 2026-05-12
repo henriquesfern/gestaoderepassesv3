@@ -21,3 +21,9 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - Criado `src/shared/index.ts` para consolidar exportações compartilhadas da camada de interface.
 - Atualizado `src/app/router/TabContent.tsx` para consumir componentes por meio das novas fronteiras de `features`, preservando o comportamento atual.
 - Atualizado `src/App.tsx` para consumir `FloatingControls` pela camada `shared`.
+
+## 2026-05-12 - PR-03 (Pipeline de Dados em Camadas)
+- Criados módulos de pipeline em `src/data/pipeline/` para separar responsabilidades de ingestão (`ingest.ts`) e transformação (`transform.ts`).
+- Criado `buildAppData.ts` para consolidar a construção da fonte de dados da aplicação com `infraBR`.
+- Mantido `src/data/parser.ts` como fachada pública estável, agora delegando a construção dos dados ao pipeline modular.
+- Refatoração sem alteração de regra de negócio, com foco em organização e previsibilidade da camada de dados.
