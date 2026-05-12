@@ -74,13 +74,16 @@ export function useOverviewMetrics(
 
     const totalPossibleDimensions = filteredData.length * 6;
     const avgDimensions = filteredData.length > 0 ? (totalHits / filteredData.length) : 0;
-    const avgPercentage = (avgDimensions / 6) * 100;
+    
+    // Calcula o percentual baseado em dimensões únicas alcançadas / 6 dimensões totais DO Infra-BR
+    const uniqueDimensionCount = uniqueDimensionsSet.size;
+    const avgPercentage = (uniqueDimensionCount / 6) * 100;
 
     return {
       total: filteredData.length,
       totalFomentado: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalRepasse),
       avgPercentage,
-      totalDimensions: uniqueDimensionsSet.size,
+      totalDimensions: uniqueDimensionCount,
       totalPossibleDimensions,
       avgDimensions
     };
