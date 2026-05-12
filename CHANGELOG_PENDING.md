@@ -8,3 +8,11 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - **Ação R implementada (Protocolo Nível 1 - Ajuste de Lógica de KPIs)**:
   - Ajuste na lógica de cálculo de "Total de Dimensões Atingidas" e "Percentual de Aderência" no Painel de Overview para apresentar o alcance real das dimensões do Infra-BR (dimensões únicas atingidas / 6), corrigindo a percepção de aderência tanto no cenário nacional quanto sob filtro estadual.
   - Ajuste nos labels do tooltip no Painel de Overview, removendo a referência a "média" para apresentar "Percentual de aderência" direto, refletindo a nova lógica de cálculo.
+
+## 2026-05-12 - PR-01 (Fundação de Arquitetura)
+- Refatorado `src/App.tsx` para atuar como orquestrador leve do layout, navegação e conteúdo.
+- Criados módulos de navegação em `src/app/navigation/tabs.ts` com configuração de abas, separadores de seção e títulos de cabeçalho.
+- Criado `src/app/layout/theme.ts` para centralizar o tema visual institucional.
+- Criado `src/app/layout/Sidebar.tsx` para encapsular a sidebar e o comportamento de seleção de abas.
+- Criado `src/app/router/TabContent.tsx` para concentrar o roteamento condicional das telas por aba, preservando o comportamento funcional existente.
+
