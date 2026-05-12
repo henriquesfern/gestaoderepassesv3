@@ -15,11 +15,30 @@ interface FiscalViewProps {
   data?: EntidadeSelecionada[];
 }
 
+const parseDate = (dateStr: string) => {
+  if (dateStr.includes('/')) {
+    const [d, m, y] = dateStr.split('/').map(Number);
+    return new Date(y, m - 1, d);
+  } else {
+    // Expecting yyyy-MM-dd
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+};
+
 export function FiscalView({ data }: FiscalViewProps) {
   const { appData } = useData();
   const selecionados = data || appData.fomento2026;
   const [selectedFiscal, setSelectedFiscal] = useState<string | null>(null);
   const [expandedFiscal, setExpandedFiscal] = useState<string | null>(null);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+
+  const toggleProject = (sei: string) => {
+    const newExpanded = new Set(expandedProjects);
+    if (newExpanded.has(sei)) newExpanded.delete(sei);
+    else newExpanded.add(sei);
+    setExpandedProjects(newExpanded);
+  };
 
   const fiscalData = useMemo(() => {
     const map = new Map<string, {
@@ -292,19 +311,105 @@ export function FiscalView({ data }: FiscalViewProps) {
                         </thead>
                         <tbody>
                           {f.projects.map((proj, pIdx) => (
-                            <tr key={pIdx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
-                              <td className="px-4 py-3 font-medium text-slate-800 break-words max-w-xs">{proj.ENTIDADE || 'N/A'}</td>
-                              <td className="px-4 py-3 whitespace-nowrap">{formatCNPJ(proj.CNPJ) || 'N/A'}</td>
-                              <td className="px-4 py-3 whitespace-nowrap text-[#003865]">{proj.SEI || 'N/A'}</td>
-                              <td className="px-4 py-3 text-center">
-                                <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700">
-                                  {proj.ESTADO || 'N/A'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-right font-medium text-[#008f4c]">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proj.VALOR_REPASSE)}
-                              </td>
-                            </tr>
+                                                    <React.Fragment key={pIdx}>
+                              <tr 
+                                className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 cursor-pointer"
+                                onClick={() => (proj.gestao_inicioexecucao || proj.gestao_primeirorepasse || proj.gestao_status) && toggleProject(proj.SEI)}
+                              >
+                                <td className="px-4 py-3 font-medium text-slate-800 break-words max-w-xs flex items-center gap-2">
+                                  {(proj.gestao_inicioexecucao || proj.gestao_primeirorepasse || proj.gestao_status) && (
+                                    <span className="text-slate-400">
+                                      {expandedProjects.has(proj.SEI) ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </span>
+                                  )}
+                                  {proj.ENTIDADE || 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">{formatCNPJ(proj.CNPJ) || 'N/A'}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-[#003865]">{proj.SEI || 'N/A'}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700">
+                                    {proj.ESTADO || 'N/A'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-right font-medium text-[#008f4c]">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proj.VALOR_REPASSE)}
+                                </td>
+                              </tr>
+                              {expandedProjects.has(proj.SEI) && (proj.gestao_inicioexecucao || proj.gestao_primeirorepasse || proj.gestao_status) ? (
+                                <tr className="bg-slate-50/30 border-b border-slate-200">
+                                  <td colSpan={5} className="px-4 py-3 px-6 pb-4 text-xs">
+                                    <div className="p-3 bg-white border border-[#003865]/10 rounded-md shadow-sm space-y-4">
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Fiscal Suplente</div>
+                                          <div className="text-slate-700 font-medium">{proj.gestao_fiscalsuplente || '-'}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Período de Execução</div>
+                                          <div className="text-slate-700 font-medium">{proj.gestao_inicioexecucao || '-'} a {proj.gestao_fimexecucao || '-'}</div>
+                                          {proj.gestao_inicioexecucao && proj.gestao_fimexecucao && (() => {
+                                            const start = parseDate(proj.gestao_inicioexecucao);
+                                            const end = parseDate(proj.gestao_fimexecucao);
+                                            const now = new Date();
+                                            const total = end.getTime() - start.getTime();
+                                            const elapsedPos = Math.min(Math.max(now.getTime() - start.getTime(), 0), total);
+                                            const percentage = (elapsedPos / total) * 100;
+
+                                            if (total <= 0) return null;
+
+                                            return (
+                                              <div className="relative w-full bg-slate-200 rounded-full h-2 mt-2 overflow-hidden">
+                                                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full" />
+                                                <div className="absolute top-0 right-0 h-full bg-slate-200 transition-all duration-300" style={{ width: `${100 - percentage}%` }} />
+                                                <div
+                                                  className="absolute top-0.5 h-1.5 w-1.5 bg-black border border-black rotate-45"
+                                                  style={{ left: `${percentage}%`, transform: 'translateX(-50%)' }}
+                                                />
+                                              </div>
+                                            );
+                                          })()}
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Termo de Fomento</div>
+                                          <div className="text-slate-700 font-medium">{proj.gestao_termodefomento || '-'}</div>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-100 pt-3">
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Status</div>
+                                          <div className="text-slate-700 font-medium">
+                                            {proj.gestao_status && (
+                                              <span className={cn("inline-block px-2 py-0.5 rounded text-[10px] font-bold", 
+                                                ['Em execução', 'Primeiro Repasse', 'Segundo Repasse'].includes(proj.gestao_status) ? "bg-blue-100 text-blue-700" :
+                                                proj.gestao_status === 'Em prestação de Contas' ? "bg-orange-100 text-orange-700" :
+                                                proj.gestao_status === 'Finalizado' ? "bg-emerald-100 text-emerald-700" :
+                                                "bg-slate-100 text-slate-700"
+                                              )}>
+                                                {proj.gestao_status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">1º Repasse</div>
+                                          <div className="text-[#008f4c] font-bold">
+                                            {proj.gestao_primeirorepasse || '-'} 
+                                            {proj.gestao_dataprimeirorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({proj.gestao_dataprimeirorepasse})</span>}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">2º Repasse</div>
+                                          <div className="text-[#008f4c] font-bold">
+                                            {proj.gestao_segundorepasse || '-'} 
+                                            {proj.gestao_datasegundorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({proj.gestao_datasegundorepasse})</span>}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ) : null}
+                              </React.Fragment>
                           ))}
                         </tbody>
                       </table>

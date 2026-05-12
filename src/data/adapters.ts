@@ -52,11 +52,15 @@ export const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed:
 /**
  * Adapter para Fomento 2026 (Corrente)
  */
-export const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed: any[], newFomentoMap?: Map<string, any>): EntidadeSelecionada => {
-  const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
-  const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-  const newRow = newFomentoMap ? newFomentoMap.get(row.CNPJ) : null;
+export const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed: any[], newFomentoMap?: Map<string, any>, gestao26Map?: Map<string, any>): EntidadeSelecionada => {
+  const normalizeCNPJ = (cnpj: string) => cnpj.replace(/\D/g, '');
+  const normalizedCNPJ = normalizeCNPJ(row.CNPJ || '');
+
+  const isCDEN = cdenParsed.some(cden => normalizeCNPJ(cden.CNPJ) === normalizedCNPJ);
+  const isPrecursora = precursorasParsed.some(prec => normalizeCNPJ(prec.CNPJ) === normalizedCNPJ);
+  const newRow = newFomentoMap ? newFomentoMap.get(normalizedCNPJ) : null;
   const targetRow = newRow || row;
+  const gestaoRow = gestao26Map ? gestao26Map.get(normalizedCNPJ) : null;
   
   return {
     ENTIDADE: row.ENTIDADE || '',
@@ -85,6 +89,16 @@ export const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed:
     PUBLICO_ALVO: row.PUBLICO_ALVO || '',
     OBJETIVO_ESTRATEGICO: row.OBJETIVO_ESTRATEGICO || '',
     TEXTO_NORM: row.TEXTO_NORM || '',
+    gestao_inicioexecucao: gestaoRow?.inicioexecucao,
+    gestao_fimexecucao: gestaoRow?.fimexecucao,
+    gestao_termodefomento: gestaoRow?.termodefomento,
+    gestao_status: gestaoRow?.status,
+    gestao_primeirorepasse: gestaoRow?.primeirorepasse,
+    gestao_dataprimeirorepasse: gestaoRow?.dataprimeirorepasse,
+    gestao_segundorepasse: gestaoRow?.segundorepasse,
+    gestao_datasegundorepasse: gestaoRow?.datasegundorepasse,
+    gestao_fiscalsuplente: gestaoRow?.fiscalsuplente,
+    gestao_situacaofinal: gestaoRow?.situacaofinal,
     RANKING_ADERENCIA_INFRABR: targetRow.Ranking_Aderencia_InfraBR_M3_3_VALIDADO || row.RANKING_ADERENCIA_INFRABR || '',
     SCORES: targetRow.Scores_Dimensoes_M3_3_VALIDADO || row.SCORES || '',
     DIMENSAO_PRINCIPAL: row.DIMENSAO_PRINCIPAL || '',
