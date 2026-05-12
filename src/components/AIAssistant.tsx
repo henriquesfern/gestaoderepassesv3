@@ -161,7 +161,7 @@ export function AIAssistant() {
       setMessages(prev => [...prev, { role: 'model', text: text || '' }]);
     } catch (error: any) {
       console.error(error);
-      setMessages(prev => [...prev, { role: 'model', text: `**Erro ao consultar a base de dados via IA:** ${error.message}` }]);
+      setMessages(prev => [...prev, { role: 'model', text: `**IA indisponível no momento:** ${error.message}` }]);
     } finally {
       setLoading(false);
     }

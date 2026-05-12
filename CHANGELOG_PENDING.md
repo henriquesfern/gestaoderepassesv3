@@ -33,3 +33,9 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - Refatorado `src/data/adapters.ts` para remover `any` das assinaturas e adotar tipos explícitos nas entradas e mapas auxiliares.
 - Ajustado `src/data/parser.ts` para parse tipado dos datasets e construção de mapas com tipos fortes.
 - Mantidas as regras de negócio existentes, com foco em previsibilidade e segurança de tipagem.
+
+## 2026-05-12 - PR-05 (IA opcional com fallback seguro)
+- Atualizado `src/services/aiService.ts` para operar com fallback amigável quando `GEMINI_API_KEY` não está configurada.
+- Mantido o comportamento original da integração Gemini quando a chave está presente.
+- Ajustada mensagem de erro da interface da IA em `src/components/AIAssistant.tsx` para orientação mais clara ao usuário.
+- Refatoração focada em operação gratuita-first sem quebrar funcionalidades centrais do dashboard.
