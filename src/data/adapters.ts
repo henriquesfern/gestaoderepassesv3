@@ -3,6 +3,21 @@ import { parseCurrency, parseNumberBR } from '../utils/formatters';
 import { getRegionByState } from './regions';
 import type { RawFomento2025Row, RawFomento2026Row, RawPatrocinio2025Row, GestaoFomento26Row } from './types';
 
+const toStr = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null) return '';
+  return String(value);
+};
+
+const parseNumberFlexible = (value: string | number | undefined | null): number => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  return parseNumberBR(toStr(value)) || 0;
+};
+
+const parseCurrencyFlexible = (value: string | number | undefined | null): number => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  return parseCurrency(toStr(value));
+};
+
 /**
  * Adapter para Fomento 2025 (Histórico)
  */
@@ -33,11 +48,14 @@ export const adaptFomento2025 = (
     OBJETIVO: linhaSolicitada,
     CATEGORIA: linhaSolicitada,
     ESTADO: row.Estado || row.ESTADO || '',
-    NOTA: parseNumberBR(row['Classificação']) || 0,
+	/* NOTA: parseNumberBR(row['Classificação']) || 0, */
+	NOTA: parseNumberFlexible(row['Classificação']),
     VOTOS: 0,
-    VALOR_REPASSE: parseCurrency(row.Valor),
+    /* VALOR_REPASSE: parseCurrency(row.Valor),*/
+	VALOR_REPASSE: parseCurrencyFlexible(row.Valor),
     CONTROLE_ORCAMENTO: 0,
-    VALOR_PROJETO: parseCurrency(row.Valor),
+    /* VALOR_PROJETO: parseCurrency(row.Valor), */
+	VALOR_PROJETO: parseCurrencyFlexible(row.Valor),
     CONTROLE_PROJETO: 0,
     AJUSTE_VALOR_CONCEDENTE: '',
     TIPOENTIDADE: '',
@@ -79,12 +97,17 @@ export const adaptFomento2026 = (
     OBJETIVO: row.OBJETIVO_ESTRATEGICO || row.OBJETIVO || '',
     CATEGORIA: row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO || '',
     ESTADO: row.ESTADO || row.SIGLA_UF || '',
-    NOTA: parseNumberBR(row['MÉDIA']) || 0,
+    /*NOTA: parseNumberBR(row['MÉDIA']) || 0,*/
+	NOTA: parseNumberFlexible(row['MÉDIA']),
     VOTOS: parseInt(String(row['VOTOS'] || 0), 10) || 0,
-    VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),
-    CONTROLE_ORCAMENTO: parseCurrency(row['CONTROLEORÇAMENTO']),
-    VALOR_PROJETO: parseCurrency(row['VALORPROJETO']),
-    CONTROLE_PROJETO: parseCurrency(row['CONTROLEPROJETO']),
+    /*VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),*/
+	VALOR_REPASSE: parseCurrencyFlexible(row['VALOR_CONCEDENTEAJUSTADO']),
+    /*CONTROLE_ORCAMENTO: parseCurrency(row['CONTROLEORÇAMENTO']),*/
+	CONTROLE_ORCAMENTO: parseCurrencyFlexible(row['CONTROLEORÇAMENTO']),
+    /*VALOR_PROJETO: parseCurrency(row['VALORPROJETO']),*/
+	VALOR_PROJETO: parseCurrencyFlexible(row['VALORPROJETO']),
+    /*CONTROLE_PROJETO: parseCurrency(row['CONTROLEPROJETO']),*/
+	CONTROLE_PROJETO: parseCurrencyFlexible(row['CONTROLEPROJETO']),
     AJUSTE_VALOR_CONCEDENTE: row['AJUSTEVALORCONCEDENTE'] || '',
     TIPOENTIDADE: row.TIPOENTIDADE === '#ERROR!' ? 'Desconhecido' : row.TIPOENTIDADE,
     REGIÃO: row['REGIÃO'] || getRegionByState(row.ESTADO || row.SIGLA_UF || ''),
@@ -170,9 +193,11 @@ export const adaptPatrocinio2025 = (
     OBJETIVO: objetivoTruncated || categoria,
     CATEGORIA: categoria,
     ESTADO: row.Estado || '',
-    NOTA: parseNumberBR(row['Pontuação']),
+    /*NOTA: parseNumberBR(row['Pontuação']),*/
+	NOTA: parseNumberFlexible(row['Pontuação']),
     VOTOS: 0,
-    VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),
+    /*VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),*/
+	VALOR_REPASSE: parseCurrencyFlexible(row['Valor de Repasse']),
     CONTROLE_ORCAMENTO: 0,
     VALOR_PROJETO: 0,
     CONTROLE_PROJETO: 0,
