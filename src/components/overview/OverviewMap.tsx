@@ -51,7 +51,7 @@ export function OverviewMap({
             <RadixTooltip.Root>
               <RadixTooltip.Trigger asChild>
                 <div className="flex flex-col items-end cursor-help group">
-                  <span className="text-[10px] font-bold text-slate-400 mb-1 uppercase group-hover:text-slate-600 transition-colors">Média Aderência Infra-BR</span>
+                  <span className="text-[10px] font-bold text-slate-400 mb-1 uppercase group-hover:text-slate-600 transition-colors">Aderência Infra-BR</span>
                   <AdherenceProgressBar percentage={kpis.avgPercentage} className="w-24 h-2" />
                 </div>
               </RadixTooltip.Trigger>
@@ -62,7 +62,7 @@ export function OverviewMap({
                 >
                   <div className="space-y-3">
                     <div className="pb-2 border-b border-slate-100">
-                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Cálculo de Média de Aderência</h4>
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Cálculo de Aderência</h4>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-[11px]">
@@ -78,7 +78,7 @@ export function OverviewMap({
                         <span className="font-bold text-slate-800">{kpis.avgDimensions.toFixed(2)} / 6.00</span>
                       </div>
                       <div className="flex justify-between text-[11px]">
-                        <span className="text-slate-600 font-medium italic">Percentual médio de aderência:</span>
+                        <span className="text-slate-600 font-medium italic">Percentual de aderência:</span>
                         <span className="font-bold text-indigo-600">{kpis.avgPercentage.toFixed(1)}%</span>
                       </div>
                     </div>
