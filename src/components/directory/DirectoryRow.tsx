@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn, getDimensionColor, getColorForChild, getSegmentColor, buildTree } from './DirectoryUtils';
 import { InfraBRProgressBar } from './InfraBRProgressBar';
 import { motion, AnimatePresence } from 'motion/react';
+import { formatCNPJ } from '../../utils/sanitizers';
 
 export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
   const hasAnexoInfo = Boolean(item.OBJETIVO_COMPLETO || item.AREA_ABRANGENCIA || item.OBJETIVO_ESPECIFICO_COMPLETO || item.PUBLICO_ALVO || item.RANKING_ADERENCIA_INFRABR);
@@ -109,7 +110,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
         </div>
       </div>
       </td>
-      <td className="py-3 px-6 text-[10px] text-slate-600 font-mono whitespace-nowrap align-top">{item.CNPJ}</td>
+      <td className="py-3 px-6 text-[10px] text-slate-600 font-mono whitespace-nowrap align-top">{formatCNPJ(item.CNPJ)}</td>
       <td className="py-3 px-6 align-top">
         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800">
           {item.ESTADO}

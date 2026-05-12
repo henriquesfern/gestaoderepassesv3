@@ -7,6 +7,7 @@ import Markdown from 'react-markdown';
 import 'katex/dist/katex.min.css';
 import { useData } from '../context/DataContext';
 import { infraData } from '../data/infraBR_parser';
+import { askGemini } from '../services/aiService';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 function ChartRenderer({ node, className, children, ...props }: any) {
@@ -155,25 +156,9 @@ export function AIAssistant() {
         infraBR_estados: infraData.infraEstados.map(d => ({ UF: d.sigla_uf, Nota: d.infra_br, Rank: d.rank }))
       };
 
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messages,
-          userText,
-          contextData
-        })
-      });
+      const text = await askGemini(messages, userText, contextData);
       
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Erro desconhecido no servidor.');
-      }
-
-      setMessages(prev => [...prev, { role: 'model', text: data.text || '' }]);
+      setMessages(prev => [...prev, { role: 'model', text: text || '' }]);
     } catch (error: any) {
       console.error(error);
       setMessages(prev => [...prev, { role: 'model', text: `**Erro ao consultar a base de dados via IA:** ${error.message}` }]);

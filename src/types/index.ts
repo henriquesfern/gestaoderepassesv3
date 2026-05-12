@@ -37,6 +37,16 @@ export interface EntidadeSelecionada {
   DATA_INICIO?: string;
   DATA_FIM?: string;
   MES?: string;
+  gestao_inicioexecucao?: string;
+  gestao_fimexecucao?: string;
+  gestao_termodefomento?: string;
+  gestao_status?: string;
+  gestao_primeirorepasse?: string;
+  gestao_dataprimeirorepasse?: string;
+  gestao_segundorepasse?: string;
+  gestao_datasegundorepasse?: string;
+  gestao_fiscalsuplente?: string;
+  gestao_situacaofinal?: string;
   OBJETIVO_COMPLETO?: string;
   AREA_ABRANGENCIA?: string;
   OBJETIVO_ESPECIFICO_COMPLETO?: string;

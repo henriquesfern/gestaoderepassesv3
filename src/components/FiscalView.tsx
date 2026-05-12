@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { useData } from '../context/DataContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Cell, LabelList, Legend } from 'recharts';
-import { Users, FileText, Map as MapIcon, CircleDollarSign } from 'lucide-react';
+import { Users, FileText, Map as MapIcon, CircleDollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { EntidadeSelecionada } from '../types';
+import { formatCNPJ } from '../utils/sanitizers';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -14,10 +15,30 @@ interface FiscalViewProps {
   data?: EntidadeSelecionada[];
 }
 
+const parseDate = (dateStr: string) => {
+  if (dateStr.includes('/')) {
+    const [d, m, y] = dateStr.split('/').map(Number);
+    return new Date(y, m - 1, d);
+  } else {
+    // Expecting yyyy-MM-dd
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+};
+
 export function FiscalView({ data }: FiscalViewProps) {
   const { appData } = useData();
   const selecionados = data || appData.fomento2026;
   const [selectedFiscal, setSelectedFiscal] = useState<string | null>(null);
+  const [expandedFiscal, setExpandedFiscal] = useState<string | null>(null);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+
+  const toggleProject = (sei: string) => {
+    const newExpanded = new Set(expandedProjects);
+    if (newExpanded.has(sei)) newExpanded.delete(sei);
+    else newExpanded.add(sei);
+    setExpandedProjects(newExpanded);
+  };
 
   const fiscalData = useMemo(() => {
     const map = new Map<string, {
@@ -32,6 +53,7 @@ export function FiscalView({ data }: FiscalViewProps) {
       statesPatrocinio: Set<string>;
       regionsFomento: Set<string>;
       regionsPatrocinio: Set<string>;
+      projects: EntidadeSelecionada[];
     }>();
 
     selecionados.forEach(item => {
@@ -49,11 +71,13 @@ export function FiscalView({ data }: FiscalViewProps) {
           statesPatrocinio: new Set(),
           regionsFomento: new Set(),
           regionsPatrocinio: new Set(),
+          projects: [],
         });
       }
       const f = map.get(fiscalName)!;
       f.processes += 1;
       f.totalConcedido += item.VALOR_REPASSE;
+      f.projects.push(item);
       
       const repasse = item.tipoRepasse || 'Fomento';
       if (repasse === 'Fomento') {
@@ -218,46 +242,180 @@ export function FiscalView({ data }: FiscalViewProps) {
             {fiscalData
               .filter(f => !selectedFiscal || f.name === selectedFiscal)
               .map((f, i) => (
-              <div key={i} className="border border-slate-200 rounded-md p-4 hover:border-[#008f4c]/50 transition-colors bg-slate-50/50">
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-bold text-[#003865] flex items-center">
-                    <Users size={16} className="mr-2 text-[#008f4c]" />
-                    {f.name}
-                  </h4>
-                  <div className="font-semibold text-[#008f4c] text-lg">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(f.totalConcedido)}
+              <div 
+                key={i} 
+                className="border border-slate-200 rounded-md hover:border-[#008f4c]/50 transition-colors bg-slate-50/50 overflow-hidden"
+              >
+                <div 
+                  className="p-4 cursor-pointer"
+                  onClick={() => setExpandedFiscal(expandedFiscal === f.name ? null : f.name)}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="font-bold text-[#003865] flex items-center">
+                      <Users size={16} className="mr-2 text-[#008f4c]" />
+                      {f.name}
+                    </h4>
+                    <div className="flex items-center gap-4">
+                      <div className="font-semibold text-[#008f4c] text-lg">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(f.totalConcedido)}
+                      </div>
+                      <div className="text-slate-400">
+                        {expandedFiscal === f.name ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm mt-3 border-t border-slate-200/60 pt-3">
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Total Processos</div>
+                      <div className="font-medium text-slate-800">{f.processes} projeto{f.processes !== 1 && 's'}</div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Repasses</div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        {f.processesFomento > 0 && <div className="text-[#008f4c] font-medium">{f.processesFomento} Fomento</div>}
+                        {f.processesPatrocinio > 0 && <div className="text-amber-600 font-medium">{f.processesPatrocinio} Patrocínio</div>}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Regiões</div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        {f.regionsFomentoList && <div className="text-[#008f4c] font-medium" title={f.regionsFomentoList}>{f.regionsFomentoList}</div>}
+                        {f.regionsPatrocinioList && <div className="text-amber-600 font-medium" title={f.regionsPatrocinioList}>{f.regionsPatrocinioList}</div>}
+                        {!f.regionsFomentoList && !f.regionsPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Estados</div>
+                      <div className="flex flex-col gap-0.5 text-xs">
+                        {f.statesFomentoList && <div className="text-[#008f4c] font-medium line-clamp-1" title={f.statesFomentoList}>({f.statesFomentoCount}) {f.statesFomentoList}</div>}
+                        {f.statesPatrocinioList && <div className="text-amber-600 font-medium line-clamp-1" title={f.statesPatrocinioList}>({f.statesPatrocinioCount}) {f.statesPatrocinioList}</div>}
+                        {!f.statesFomentoList && !f.statesPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-sm mt-3 border-t border-slate-200/60 pt-3">
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Total Processos</div>
-                    <div className="font-medium text-slate-800">{f.processes} projeto{f.processes !== 1 && 's'}</div>
-                  </div>
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Repasses</div>
-                    <div className="flex flex-col gap-0.5 text-xs">
-                      {f.processesFomento > 0 && <div className="text-[#008f4c] font-medium">{f.processesFomento} Fomento</div>}
-                      {f.processesPatrocinio > 0 && <div className="text-amber-600 font-medium">{f.processesPatrocinio} Patrocínio</div>}
+                {expandedFiscal === f.name && (
+                  <div className="bg-white border-t border-slate-200">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm text-left text-slate-600">
+                        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                          <tr>
+                            <th scope="col" className="px-4 py-3">Nome</th>
+                            <th scope="col" className="px-4 py-3">CNPJ</th>
+                            <th scope="col" className="px-4 py-3">SEI</th>
+                            <th scope="col" className="px-4 py-3 text-center">Estado</th>
+                            <th scope="col" className="px-4 py-3 text-right">Repasse</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {f.projects.map((proj, pIdx) => (
+                                                    <React.Fragment key={pIdx}>
+                              <tr 
+                                className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 cursor-pointer"
+                                onClick={() => (proj.gestao_inicioexecucao || proj.gestao_primeirorepasse || proj.gestao_status) && toggleProject(proj.SEI)}
+                              >
+                                <td className="px-4 py-3 font-medium text-slate-800 break-words max-w-xs flex items-center gap-2">
+                                  {(proj.gestao_inicioexecucao || proj.gestao_primeirorepasse || proj.gestao_status) && (
+                                    <span className="text-slate-400">
+                                      {expandedProjects.has(proj.SEI) ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </span>
+                                  )}
+                                  {proj.ENTIDADE || 'N/A'}
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">{formatCNPJ(proj.CNPJ) || 'N/A'}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-[#003865]">{proj.SEI || 'N/A'}</td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700">
+                                    {proj.ESTADO || 'N/A'}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-right font-medium text-[#008f4c]">
+                                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(proj.VALOR_REPASSE)}
+                                </td>
+                              </tr>
+                              {expandedProjects.has(proj.SEI) && (proj.gestao_inicioexecucao || proj.gestao_primeirorepasse || proj.gestao_status) ? (
+                                <tr className="bg-slate-50/30 border-b border-slate-200">
+                                  <td colSpan={5} className="px-4 py-3 px-6 pb-4 text-xs">
+                                    <div className="p-3 bg-white border border-[#003865]/10 rounded-md shadow-sm space-y-4">
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Fiscal Suplente</div>
+                                          <div className="text-slate-700 font-medium">{proj.gestao_fiscalsuplente || '-'}</div>
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Período de Execução</div>
+                                          <div className="text-slate-700 font-medium">{proj.gestao_inicioexecucao || '-'} a {proj.gestao_fimexecucao || '-'}</div>
+                                          {proj.gestao_inicioexecucao && proj.gestao_fimexecucao && (() => {
+                                            const start = parseDate(proj.gestao_inicioexecucao);
+                                            const end = parseDate(proj.gestao_fimexecucao);
+                                            const now = new Date();
+                                            const total = end.getTime() - start.getTime();
+                                            const elapsedPos = Math.min(Math.max(now.getTime() - start.getTime(), 0), total);
+                                            const percentage = (elapsedPos / total) * 100;
+
+                                            if (total <= 0) return null;
+
+                                            return (
+                                              <div className="relative w-full bg-slate-200 rounded-full h-2 mt-2 overflow-hidden">
+                                                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 rounded-full" />
+                                                <div className="absolute top-0 right-0 h-full bg-slate-200 transition-all duration-300" style={{ width: `${100 - percentage}%` }} />
+                                                <div
+                                                  className="absolute top-0.5 h-1.5 w-1.5 bg-black border border-black rotate-45"
+                                                  style={{ left: `${percentage}%`, transform: 'translateX(-50%)' }}
+                                                />
+                                              </div>
+                                            );
+                                          })()}
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Termo de Fomento</div>
+                                          <div className="text-slate-700 font-medium">{proj.gestao_termodefomento || '-'}</div>
+                                        </div>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-slate-100 pt-3">
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Status</div>
+                                          <div className="text-slate-700 font-medium">
+                                            {proj.gestao_status && (
+                                              <span className={cn("inline-block px-2 py-0.5 rounded text-[10px] font-bold", 
+                                                ['Em execução', 'Primeiro Repasse', 'Segundo Repasse'].includes(proj.gestao_status) ? "bg-blue-100 text-blue-700" :
+                                                proj.gestao_status === 'Em prestação de Contas' ? "bg-orange-100 text-orange-700" :
+                                                proj.gestao_status === 'Finalizado' ? "bg-emerald-100 text-emerald-700" :
+                                                "bg-slate-100 text-slate-700"
+                                              )}>
+                                                {proj.gestao_status}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">1º Repasse</div>
+                                          <div className="text-[#008f4c] font-bold">
+                                            {proj.gestao_primeirorepasse || '-'} 
+                                            {proj.gestao_dataprimeirorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({proj.gestao_dataprimeirorepasse})</span>}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">2º Repasse</div>
+                                          <div className="text-[#008f4c] font-bold">
+                                            {proj.gestao_segundorepasse || '-'} 
+                                            {proj.gestao_datasegundorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({proj.gestao_datasegundorepasse})</span>}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ) : null}
+                              </React.Fragment>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Regiões</div>
-                    <div className="flex flex-col gap-0.5 text-xs">
-                      {f.regionsFomentoList && <div className="text-[#008f4c] font-medium" title={f.regionsFomentoList}>{f.regionsFomentoList}</div>}
-                      {f.regionsPatrocinioList && <div className="text-amber-600 font-medium" title={f.regionsPatrocinioList}>{f.regionsPatrocinioList}</div>}
-                      {!f.regionsFomentoList && !f.regionsPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-slate-500 text-xs uppercase tracking-wider mb-1">Estados</div>
-                    <div className="flex flex-col gap-0.5 text-xs">
-                      {f.statesFomentoList && <div className="text-[#008f4c] font-medium line-clamp-1" title={f.statesFomentoList}>({f.statesFomentoCount}) {f.statesFomentoList}</div>}
-                      {f.statesPatrocinioList && <div className="text-amber-600 font-medium line-clamp-1" title={f.statesPatrocinioList}>({f.statesPatrocinioCount}) {f.statesPatrocinioList}</div>}
-                      {!f.statesFomentoList && !f.statesPatrocinioList && <div className="font-medium text-slate-500">N/A</div>}
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             ))}
             {fiscalData.filter(f => !selectedFiscal || f.name === selectedFiscal).length === 0 && (

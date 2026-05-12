@@ -53,18 +53,34 @@ export function useOverviewMetrics(
 
   const kpis = useMemo(() => {
     const totalRepasse = filteredData.reduce((sum, item) => sum + item.VALOR_REPASSE, 0);
-    const totalDimensions = filteredData.reduce((sum, item) => {
-      return sum + (item.RANKING_ADERENCIA_INFRABR ? item.RANKING_ADERENCIA_INFRABR.split('|').length : 0);
-    }, 0);
+    let totalHits = 0;
+    const uniqueDimensionsSet = new Set<string>();
+
+    const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
+    filteredData.forEach(item => {
+      if (item.RANKING_ADERENCIA_INFRABR) {
+        const dims = item.RANKING_ADERENCIA_INFRABR.split('|');
+        totalHits += dims.length;
+        dims.forEach(d => {
+          const p = d.trim();
+          const dashIndex = p.indexOf('-');
+          const namePartRaw = dashIndex !== -1 ? p.substring(dashIndex + 1).trim() : p.trim();
+          const namePartNorm = normalize(namePartRaw);
+          if (namePartNorm) uniqueDimensionsSet.add(namePartNorm);
+        });
+      }
+    });
+
     const totalPossibleDimensions = filteredData.length * 6;
-    const avgDimensions = filteredData.length > 0 ? (totalDimensions / filteredData.length) : 0;
+    const avgDimensions = filteredData.length > 0 ? (totalHits / filteredData.length) : 0;
     const avgPercentage = (avgDimensions / 6) * 100;
 
     return {
       total: filteredData.length,
       totalFomentado: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(totalRepasse),
       avgPercentage,
-      totalDimensions,
+      totalDimensions: uniqueDimensionsSet.size,
       totalPossibleDimensions,
       avgDimensions
     };
@@ -148,15 +164,36 @@ export function useOverviewMetrics(
       ? selecionados.filter(item => item.CATEGORIA === selectedCategoria)
       : selecionados;
 
-    const map = new Map<string, { totalDimensions: number, totalEntities: number }>();
+    const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
+    const map = new Map<string, { totalHits: number, dimensionsSet: Set<string>, totalEntities: number }>();
     dataToUse.forEach(item => {
       const state = item.ESTADO || 'Indefinido';
-      const current = map.get(state) || { totalDimensions: 0, totalEntities: 0 };
+      const current = map.get(state) || { totalHits: 0, dimensionsSet: new Set<string>(), totalEntities: 0 };
       current.totalEntities += 1;
-      current.totalDimensions += (item.RANKING_ADERENCIA_INFRABR ? item.RANKING_ADERENCIA_INFRABR.split('|').length : 0);
+      if (item.RANKING_ADERENCIA_INFRABR) {
+        const dims = item.RANKING_ADERENCIA_INFRABR.split('|');
+        current.totalHits += dims.length;
+        dims.forEach(d => {
+          const p = d.trim();
+          const dashIndex = p.indexOf('-');
+          const namePartRaw = dashIndex !== -1 ? p.substring(dashIndex + 1).trim() : p.trim();
+          const namePartNorm = normalize(namePartRaw);
+          if (namePartNorm) current.dimensionsSet.add(namePartNorm);
+        });
+      }
       map.set(state, current);
     });
-    return map;
+
+    const result = new Map<string, { totalDimensions: number, totalHits: number, totalEntities: number }>();
+    map.forEach((value, key) => {
+      result.set(key, { 
+        totalDimensions: value.dimensionsSet.size, 
+        totalHits: value.totalHits, 
+        totalEntities: value.totalEntities 
+      });
+    });
+    return result;
   }, [selecionados, selectedCategoria]);
 
   const sortedStateData = useMemo(() => {

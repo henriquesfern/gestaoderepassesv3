@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { formatCNPJ } from '../../utils/sanitizers';
 
 export function DirectoryECGeralRow({ item }: any) {
   const state = item.origem ? item.origem.replace('Crea-', '').toUpperCase() : '-';
@@ -36,7 +37,7 @@ export function DirectoryECGeralRow({ item }: any) {
           <div className="flex flex-col gap-2">
             {item.cnpjsDetails.map((detail: any, i: number) => (
               <div key={i} className="flex flex-col gap-1">
-                <span className="font-mono">{detail.cnpj}</span>
+                <span className="font-mono">{formatCNPJ(detail.cnpj)}</span>
                 <div className="flex flex-wrap gap-1">
                   {detail.sources.map((source: string) => {
                     let colorClass = 'bg-slate-100 text-slate-600 border border-slate-200';

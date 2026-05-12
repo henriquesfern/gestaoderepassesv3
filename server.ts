@@ -1,18 +1,12 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
-import chatHandler from "./api/chat.ts";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json({ limit: '10mb' }));
-
-  // API routes
-  app.post("/api/chat", async (req, res) => {
-    await chatHandler(req, res);
-  });
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

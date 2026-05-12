@@ -182,8 +182,8 @@ export function OverviewMap({
                         let adherenceInfo = undefined;
                         if (adherence && adherence.totalEntities > 0) {
                           adherenceInfo = {
-                            avgDimensions: adherence.totalDimensions / adherence.totalEntities,
-                            avgPercentage: ((adherence.totalDimensions / adherence.totalEntities) / 6) * 100,
+                            avgDimensions: adherence.totalHits / adherence.totalEntities,
+                            avgPercentage: ((adherence.totalHits / adherence.totalEntities) / 6) * 100,
                             totalDimensions: adherence.totalDimensions,
                             totalEntities: adherence.totalEntities
                           };
