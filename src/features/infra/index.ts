@@ -1,0 +1,1 @@
+export { InfraBRInsights } from '../../components/InfraBRInsights';

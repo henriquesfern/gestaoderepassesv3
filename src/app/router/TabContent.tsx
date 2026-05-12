@@ -1,16 +1,14 @@
 import React from 'react';
-import { Overview } from '../../components/Overview';
-import { Directory } from '../../components/Directory';
-import { GlobalDirectory } from '../../components/GlobalDirectory';
-import { GlobalEntitiesOverview } from '../../components/GlobalEntitiesOverview';
-import { FinancialPanel } from '../../components/FinancialPanel';
-import { FiscalView } from '../../components/FiscalView';
-import { InsightsView } from '../../components/InsightsView';
-import { StateForceView } from '../../components/StateForceView';
-import { AIAssistant } from '../../components/AIAssistant';
-import { InsightsECGeral } from '../../components/InsightsECGeral';
-import { DirectoryECGeral } from '../../components/DirectoryECGeral';
-import { InfraBRInsights } from '../../components/InfraBRInsights';
+import { Overview, GlobalEntitiesOverview } from '../../features/overview';
+import { Directory, GlobalDirectory, DirectoryECGeral } from '../../features/directory';
+
+import { FinancialPanel } from '../../features/financial';
+import { FiscalView } from '../../features/fiscal';
+import { InsightsView, StateForceView, InsightsECGeral } from '../../features/insights';
+
+import { AIAssistant } from '../../features/ai';
+
+import { InfraBRInsights } from '../../features/infra';
 import { type AppData } from '../../context/DataContext';
 import { type TabId } from '../navigation/tabs';
 

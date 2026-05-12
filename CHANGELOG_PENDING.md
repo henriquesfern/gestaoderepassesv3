@@ -16,3 +16,8 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - Criado `src/app/layout/Sidebar.tsx` para encapsular a sidebar e o comportamento de seleção de abas.
 - Criado `src/app/router/TabContent.tsx` para concentrar o roteamento condicional das telas por aba, preservando o comportamento funcional existente.
 
+## 2026-05-12 - PR-02 (Estrutura por Domínio/Feature - etapa inicial)
+- Criadas entradas de domínio em `src/features/*/index.ts` para organizar o acesso às telas por contexto funcional (overview, directory, fiscal, financial, insights, infra e ai).
+- Criado `src/shared/index.ts` para consolidar exportações compartilhadas da camada de interface.
+- Atualizado `src/app/router/TabContent.tsx` para consumir componentes por meio das novas fronteiras de `features`, preservando o comportamento atual.
+- Atualizado `src/App.tsx` para consumir `FloatingControls` pela camada `shared`.

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { FloatingControls } from './components/FloatingControls';
+import { FloatingControls } from './shared';
 import { useData } from './context/DataContext';
 import { Sidebar } from './app/layout/Sidebar';
 import { appTheme } from './app/layout/theme';

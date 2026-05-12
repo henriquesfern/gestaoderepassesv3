@@ -1,0 +1,1 @@
+export { FiscalView } from '../../components/FiscalView';
