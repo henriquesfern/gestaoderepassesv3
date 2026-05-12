@@ -1,50 +1,73 @@
-import { EntidadeSelecionada } from '../types';
+import { EntidadeCDEN, EntidadePrecursora, EntidadeSelecionada } from '../types';
 import { parseCurrency, parseNumberBR } from '../utils/formatters';
 import { getRegionByState } from './regions';
+import type { RawFomento2025Row, RawFomento2026Row, RawPatrocinio2025Row, GestaoFomento26Row } from './types';
+
+const toStr = (value: string | number | undefined | null): string => {
+  if (value === undefined || value === null) return '';
+  return String(value);
+};
+
+const parseNumberFlexible = (value: string | number | undefined | null): number => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  return parseNumberBR(toStr(value)) || 0;
+};
+
+const parseCurrencyFlexible = (value: string | number | undefined | null): number => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
+  return parseCurrency(toStr(value));
+};
 
 /**
  * Adapter para Fomento 2025 (Histórico)
  */
-export const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
+export const adaptFomento2025 = (
+  row: RawFomento2025Row,
+  cdenParsed: EntidadeCDEN[],
+  precursorasParsed: EntidadePrecursora[]
+): EntidadeSelecionada => {
   const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
   const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-  
+
   const getField = (prefix: string) => {
     const key = Object.keys(row).find(k => k.trim().startsWith(prefix));
     return key ? row[key] : '';
   };
 
-  let linhaSolicitada = getField('Linha');
+  let linhaSolicitada = String(getField('Linha') || '');
   if (linhaSolicitada === '1') linhaSolicitada = 'Atividade principal do Sistema Confea/Crea';
   else if (linhaSolicitada === '2') linhaSolicitada = 'Transparência, Legalidade e Legitimidade do Sistema Confea/Crea';
   else if (linhaSolicitada === '3') linhaSolicitada = 'Papel do Sistema Confea/Crea';
   else linhaSolicitada = 'Outros';
 
-  const razaoSocial = getField('Razão Social') || row.Sigla || '';
+  const razaoSocial = String(getField('Razão Social') || row.Sigla || '');
 
   return {
     ENTIDADE: razaoSocial,
-    CNPJ: row.CNPJ,
+    CNPJ: row.CNPJ || '',
     OBJETIVO: linhaSolicitada,
     CATEGORIA: linhaSolicitada,
     ESTADO: row.Estado || row.ESTADO || '',
-    NOTA: parseNumberBR(row['Classificação']) || 0,
+	/* NOTA: parseNumberBR(row['Classificação']) || 0, */
+	NOTA: parseNumberFlexible(row['Classificação']),
     VOTOS: 0,
-    VALOR_REPASSE: parseCurrency(row.Valor),
+    /* VALOR_REPASSE: parseCurrency(row.Valor),*/
+	VALOR_REPASSE: parseCurrencyFlexible(row.Valor),
     CONTROLE_ORCAMENTO: 0,
-    VALOR_PROJETO: parseCurrency(row.Valor),
+    /* VALOR_PROJETO: parseCurrency(row.Valor), */
+	VALOR_PROJETO: parseCurrencyFlexible(row.Valor),
     CONTROLE_PROJETO: 0,
     AJUSTE_VALOR_CONCEDENTE: '',
     TIPOENTIDADE: '',
     REGIÃO: getRegionByState(row.Estado || row.ESTADO || ''),
     FISCAL: row.FISCAL || '',
     FISCAL_SUPLENTE: '',
-    SEI: getField('Processo SEI') || getField('ProcessoSEI') || '',
+    SEI: String(getField('Processo SEI') || getField('ProcessoSEI') || ''),
     IsCDEN: isCDEN,
     IsPrecursora: isPrecursora,
     tipoRepasse: 'Fomento' as const,
-    DATA_INICIO: getField('DATA INÍCIO') || '',
-    DATA_FIM: getField('DATA FIM') || '',
+    DATA_INICIO: String(getField('DATA INÍCIO') || ''),
+    DATA_FIM: String(getField('DATA FIM') || ''),
     MES: ''
   };
 };
@@ -52,7 +75,13 @@ export const adaptFomento2025 = (row: any, cdenParsed: any[], precursorasParsed:
 /**
  * Adapter para Fomento 2026 (Corrente)
  */
-export const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed: any[], newFomentoMap?: Map<string, any>, gestao26Map?: Map<string, any>): EntidadeSelecionada => {
+export const adaptFomento2026 = (
+  row: RawFomento2026Row,
+  cdenParsed: EntidadeCDEN[],
+  precursorasParsed: EntidadePrecursora[],
+  newFomentoMap?: Map<string, RawFomento2026Row>,
+  gestao26Map?: Map<string, GestaoFomento26Row>
+): EntidadeSelecionada => {
   const normalizeCNPJ = (cnpj: string) => cnpj.replace(/\D/g, '');
   const normalizedCNPJ = normalizeCNPJ(row.CNPJ || '');
 
@@ -61,19 +90,24 @@ export const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed:
   const newRow = newFomentoMap ? newFomentoMap.get(normalizedCNPJ) : null;
   const targetRow = newRow || row;
   const gestaoRow = gestao26Map ? gestao26Map.get(normalizedCNPJ) : null;
-  
+
   return {
     ENTIDADE: row.ENTIDADE || '',
     CNPJ: row.CNPJ || '',
     OBJETIVO: row.OBJETIVO_ESTRATEGICO || row.OBJETIVO || '',
     CATEGORIA: row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO || '',
     ESTADO: row.ESTADO || row.SIGLA_UF || '',
-    NOTA: parseNumberBR(row['MÉDIA']) || 0,
-    VOTOS: parseInt(row['VOTOS'], 10) || 0,
-    VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),
-    CONTROLE_ORCAMENTO: parseCurrency(row['CONTROLEORÇAMENTO']),
-    VALOR_PROJETO: parseCurrency(row['VALORPROJETO']),
-    CONTROLE_PROJETO: parseCurrency(row['CONTROLEPROJETO']),
+    /*NOTA: parseNumberBR(row['MÉDIA']) || 0,*/
+	NOTA: parseNumberFlexible(row['MÉDIA']),
+    VOTOS: parseInt(String(row['VOTOS'] || 0), 10) || 0,
+    /*VALOR_REPASSE: parseCurrency(row['VALOR_CONCEDENTEAJUSTADO']),*/
+	VALOR_REPASSE: parseCurrencyFlexible(row['VALOR_CONCEDENTEAJUSTADO']),
+    /*CONTROLE_ORCAMENTO: parseCurrency(row['CONTROLEORÇAMENTO']),*/
+	CONTROLE_ORCAMENTO: parseCurrencyFlexible(row['CONTROLEORÇAMENTO']),
+    /*VALOR_PROJETO: parseCurrency(row['VALORPROJETO']),*/
+	VALOR_PROJETO: parseCurrencyFlexible(row['VALORPROJETO']),
+    /*CONTROLE_PROJETO: parseCurrency(row['CONTROLEPROJETO']),*/
+	CONTROLE_PROJETO: parseCurrencyFlexible(row['CONTROLEPROJETO']),
     AJUSTE_VALOR_CONCEDENTE: row['AJUSTEVALORCONCEDENTE'] || '',
     TIPOENTIDADE: row.TIPOENTIDADE === '#ERROR!' ? 'Desconhecido' : row.TIPOENTIDADE,
     REGIÃO: row['REGIÃO'] || getRegionByState(row.ESTADO || row.SIGLA_UF || ''),
@@ -136,13 +170,20 @@ export const adaptFomento2026 = (row: any, cdenParsed: any[], precursorasParsed:
 /**
  * Adapter para Patrocínio 2025
  */
-export const adaptPatrocinio2025 = (row: any, cdenParsed: any[], precursorasParsed: any[]): EntidadeSelecionada => {
+export const adaptPatrocinio2025 = (
+  row: RawPatrocinio2025Row,
+  cdenParsed: EntidadeCDEN[],
+  precursorasParsed: EntidadePrecursora[]
+): EntidadeSelecionada => {
   const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
   const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-  
+
   const tipo = row['Tipo'] || '';
   const tipoPub = row['TipoPublicacao'] || '';
-  const categoria = tipo === 'PUBLICAÇÃO' && tipoPub ? (tipoPub.charAt(0).toUpperCase() + tipoPub.slice(1).toLowerCase()) : (tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase());
+  const categoria = tipo === 'PUBLICAÇÃO' && tipoPub
+    ? (tipoPub.charAt(0).toUpperCase() + tipoPub.slice(1).toLowerCase())
+    : (tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase());
+
   const projetoFull = row['Projeto'] || '';
   const objetivoTruncated = projetoFull.length > 35 ? projetoFull.substring(0, 35) + '...' : projetoFull;
 
@@ -152,13 +193,15 @@ export const adaptPatrocinio2025 = (row: any, cdenParsed: any[], precursorasPars
     OBJETIVO: objetivoTruncated || categoria,
     CATEGORIA: categoria,
     ESTADO: row.Estado || '',
-    NOTA: parseNumberBR(row['Pontuação']),
+    /*NOTA: parseNumberBR(row['Pontuação']),*/
+	NOTA: parseNumberFlexible(row['Pontuação']),
     VOTOS: 0,
-    VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),
+    /*VALOR_REPASSE: parseCurrency(row['Valor de Repasse']),*/
+	VALOR_REPASSE: parseCurrencyFlexible(row['Valor de Repasse']),
     CONTROLE_ORCAMENTO: 0,
     VALOR_PROJETO: 0,
     CONTROLE_PROJETO: 0,
-    REGIÃO: getRegionByState(row.Estado),
+    REGIÃO: getRegionByState(row.Estado || ''),
     FISCAL: row.Fiscal || '',
     FISCAL_SUPLENTE: row['Fiscal Suplente'] || '',
     SEI: row.SEI || '',

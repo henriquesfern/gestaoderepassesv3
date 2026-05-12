@@ -27,3 +27,9 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - Criado `buildAppData.ts` para consolidar a construção da fonte de dados da aplicação com `infraBR`.
 - Mantido `src/data/parser.ts` como fachada pública estável, agora delegando a construção dos dados ao pipeline modular.
 - Refatoração sem alteração de regra de negócio, com foco em organização e previsibilidade da camada de dados.
+
+## 2026-05-12 - PR-04 (Tipagem forte dos Adapters)
+- Criado `src/data/types.ts` com contratos tipados para linhas brutas de Fomento 2025, Fomento 2026, Patrocínio 2025 e gestão de fomento.
+- Refatorado `src/data/adapters.ts` para remover `any` das assinaturas e adotar tipos explícitos nas entradas e mapas auxiliares.
+- Ajustado `src/data/parser.ts` para parse tipado dos datasets e construção de mapas com tipos fortes.
+- Mantidas as regras de negócio existentes, com foco em previsibilidade e segurança de tipagem.
