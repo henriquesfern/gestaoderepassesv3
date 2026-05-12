@@ -2,14 +2,23 @@ import { GoogleGenAI } from '@google/genai';
 import { EDITAIS_CONTEXT } from '../editais-context.ts';
 
 export async function askGemini(messages: any[], userText: string, contextData: any) {
-  const apiKey = process.env.GEMINI_API_KEY; 
-  
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  // Fallback seguro: mantém o app funcional sem chave de IA
   if (!apiKey) {
-    throw new Error("A chave da API do Gemini (GEMINI_API_KEY) não está configurada.");
+    return [
+      '### IA indisponível no momento',
+      '',
+      'A integração com IA está desativada porque a variável `GEMINI_API_KEY` não foi configurada.',
+      '',
+      'Você ainda pode usar normalmente todos os painéis do dashboard (Visão Geral, Diretórios, Insights e Infra-BR).',
+      '',
+      'Se quiser, posso te orientar a configurar a chave no ambiente para habilitar a IA.'
+    ].join('\n');
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  
+
   const systemInstruction = `Você é um assistente de IA integrado ao sistema de Fomento, Patrocínio e Infra-BR.
 Sua função é gerar relatórios, responder perguntas e detalhar indicadores EXCLUSIVAMENTE com base nestes dados:
 ${JSON.stringify(contextData)}
@@ -48,15 +57,15 @@ Lembre-se: por padrão, APENAS ofereça o gráfico no final do texto de forma at
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [
-        ...messages.map((m: any) => ({
-           role: m.role,
-           parts: [{ text: m.text }]
-        })),
-        { role: 'user', parts: [{ text: userText }] }
+      ...messages.map((m: any) => ({
+        role: m.role,
+        parts: [{ text: m.text }]
+      })),
+      { role: 'user', parts: [{ text: userText }] }
     ],
     config: {
-        systemInstruction,
-        temperature: 0.1
+      systemInstruction,
+      temperature: 0.1
     }
   });
 
