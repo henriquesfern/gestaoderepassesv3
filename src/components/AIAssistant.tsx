@@ -31,6 +31,97 @@ function safeString(value: any, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+function firstExistingKey(obj: any, candidates: string[]): string | null {
+  if (!obj || typeof obj !== 'object') return null;
+  for (const c of candidates) {
+    if (Object.prototype.hasOwnProperty.call(obj, c)) return c;
+  }
+  return null;
+}
+
+function normalizeChartConfig(raw: any) {
+  const config = raw && typeof raw === 'object' ? raw : {};
+  const type = safeString(config.type, 'bar').toLowerCase();
+
+  let data = safeArray(config.data);
+  if (!data.length) data = safeArray(config.items);
+  if (!data.length) data = safeArray(config.values);
+  if (!data.length && safeArray(config.labels).length && safeArray(config.series).length) {
+    const labels = safeArray(config.labels);
+    const series = safeArray(config.series);
+    data = labels.map((label: any, i: number) => ({
+      name: String(label ?? `Item ${i + 1}`),
+      value: Number(series[i] ?? 0)
+    }));
+  }
+
+  if (!data.length && typeof config.dataset === 'object' && config.dataset) {
+    data = safeArray(config.dataset.data);
+  }
+
+  const sample = data[0] || {};
+
+  const xKeyCandidates = [
+    config.xKey,
+    config.x_key,
+    config.labelKey,
+    config.categoryKey,
+    'name',
+    'label',
+    'categoria',
+    'item',
+    'x'
+  ].filter(Boolean) as string[];
+
+  const yKeyCandidates = [
+    config.yKey,
+    config.y_key,
+    config.valueKey,
+    config.metricKey,
+    'value',
+    'valor',
+    'total',
+    'quantidade',
+    'y'
+  ].filter(Boolean) as string[];
+
+  let xKey = xKeyCandidates.find(k => Object.prototype.hasOwnProperty.call(sample, k));
+  let yKey = yKeyCandidates.find(k => Object.prototype.hasOwnProperty.call(sample, k));
+
+  if (!xKey) {
+    const sampleKeys = Object.keys(sample);
+    xKey = sampleKeys.find(k => typeof sample[k] === 'string') || sampleKeys[0] || 'name';
+  }
+
+  if (!yKey) {
+    const sampleKeys = Object.keys(sample);
+    yKey =
+      sampleKeys.find(k => typeof sample[k] === 'number') ||
+      sampleKeys.find(k => !Number.isNaN(Number(sample[k]))) ||
+      'value';
+  }
+
+  const normalized = data.map((item: any, index: number) => {
+    const xVal = item?.[xKey!] ?? item?.name ?? item?.label ?? `Item ${index + 1}`;
+    const yRaw = item?.[yKey!] ?? item?.value ?? item?.valor ?? 0;
+    const yNum = Number(yRaw);
+    return {
+      ...item,
+      [xKey!]: String(xVal),
+      [yKey!]: Number.isFinite(yNum) ? yNum : 0
+    };
+  });
+
+  return {
+    type,
+    data: normalized,
+    xKey: xKey!,
+    yKey: yKey!,
+    color: safeString(config.color, '#4f46e5'),
+    label: safeString(config.label, 'Valor')
+  };
+}
+
 function ChartRenderer({ className, children, ...props }: any) {
   const match = /language-(\w+)/.exec(className || '');
   const lang = match ? match[1] : '';
@@ -39,7 +130,7 @@ function ChartRenderer({ className, children, ...props }: any) {
   const isChartConfig =
     lang === 'json-chart' ||
     lang === 'jsonchart' ||
-    (lang === 'json' && codeString.includes('"type":') && codeString.includes('"data":'));
+    (lang === 'json' && codeString.includes('"type":'));
 
   if (isChartConfig) {
     try {
@@ -48,19 +139,9 @@ function ChartRenderer({ className, children, ...props }: any) {
         .replace(/,\s*}/g, '}')
         .replace(/,\s*]/g, ']');
 
-      const config = JSON.parse(cleanJson);
-
-      const type = safeString(config?.type, 'bar').toLowerCase();
-      const xKey = safeString(config?.xKey, 'name');
-      const yKey = safeString(config?.yKey, 'value');
-      const color = safeString(config?.color, '#4f46e5');
-      const label = safeString(config?.label, 'Valor');
-
-      const data = safeArray(config?.data).map((item: any) => ({
-        ...item,
-        [xKey]: item?.[xKey] ?? 'N/A',
-        [yKey]: Number(item?.[yKey] ?? 0)
-      }));
+      const rawConfig = JSON.parse(cleanJson);
+      const config = normalizeChartConfig(rawConfig);
+      const { type, data, xKey, yKey, color, label } = config;
 
       if (!data.length) {
         return (
@@ -221,7 +302,6 @@ export function AIAssistant() {
           Nota: d.infra_br,
           Rank: d.rank
         })),
-        // normativos (resumo controlado para não estourar payload)
         normativos_contexto: String(EDITAIS_CONTEXT || '').slice(0, 16000)
       };
 
@@ -293,9 +373,7 @@ export function AIAssistant() {
           <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-60">
             <Bot size={64} className="text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-700 mb-2">Como posso ajudar?</h3>
-            <p className="text-slate-500 text-sm">
-              Você pode pedir relatórios, comparações e também consultas sobre normativos relacionados ao contexto.
-            </p>
+            <p className="text-slate-500 text-sm">Você pode pedir relatórios, comparações e gráficos sobre fomento, patrocínio e Infra-BR.</p>
           </div>
         )}
 
@@ -346,7 +424,7 @@ export function AIAssistant() {
                 handleSubmit(e);
               }
             }}
-            placeholder="Pergunte sobre fomento, patrocínio, Infra-BR e normativos..."
+            placeholder="Pergunte sobre dados e peça gráficos (ex.: gere um gráfico de barras com top 5 estados por repasse)..."
             className="flex-1 resize-none h-14 bg-slate-100 border-transparent rounded-xl px-4 py-4 pr-14 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm outline-none"
             disabled={loading}
           />
