@@ -130,6 +130,7 @@ export function AIAssistant() {
     }
     return [];
   });
+
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -158,39 +159,45 @@ export function AIAssistant() {
     setLoading(true);
 
     try {
+      // Contexto reduzido para evitar payload excessivo e timeout em serverless
+      const topFomento2026 = [...appData.fomento2026]
+        .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
+        .slice(0, 120);
+
+      const topFomento2025 = [...appData.fomentoHistorico]
+        .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
+        .slice(0, 120);
+
+      const topPatrocinio2025 = [...appData.patrocinioHistorico]
+        .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
+        .slice(0, 120);
+
       const contextData = {
-        fomento2025: appData.fomentoHistorico.map(d => ({
-          Entidade: d.ENTIDADE,
-          UF: d.ESTADO,
-          Repasse: d.VALOR_REPASSE,
-          Objetivo: d.OBJETIVO
-        })),
-        fomento2026: appData.fomento2026.map(d => ({
+        resumo: {
+          totalFomento2026: appData.fomento2026.length,
+          totalFomento2025: appData.fomentoHistorico.length,
+          totalPatrocinio2025: appData.patrocinioHistorico.length
+        },
+        fomento2026_top: topFomento2026.map(d => ({
           Entidade: d.ENTIDADE,
           UF: d.ESTADO,
           Repasse: d.VALOR_REPASSE,
           Objetivo: d.OBJETIVO,
           RankingInfraBR: d.RANKING_ADERENCIA_INFRABR
         })),
-        patrocinio2025: appData.patrocinioHistorico.map(d => ({
+        fomento2025_top: topFomento2025.map(d => ({
+          Entidade: d.ENTIDADE,
+          UF: d.ESTADO,
+          Repasse: d.VALOR_REPASSE,
+          Objetivo: d.OBJETIVO
+        })),
+        patrocinio2025_top: topPatrocinio2025.map(d => ({
           Entidade: d.ENTIDADE,
           UF: d.ESTADO,
           Repasse: d.VALOR_REPASSE,
           Projeto: d.OBJETIVO
         })),
-        infraBR_detalhamento: infraData.detalhamento.map(d => ({
-          Dimensao: d.DIMENSAO,
-          Componente: d.COMPONENTE,
-          Indicador: d.INDICADOR,
-          Interpretacao: d.INTERPRETACAO,
-          Descricao: d.DESCRICAO
-        })),
-        infraBR_dimensoes: infraData.dimensoes.map(d => ({
-          UF: d.sigla_uf,
-          Dimensao: d.dimension_name,
-          Valor: d.value
-        })),
-        infraBR_estados: infraData.infraEstados.map(d => ({
+        infraBR_estados: infraData.infraEstados.slice(0, 27).map(d => ({
           UF: d.sigla_uf,
           Nota: d.infra_br,
           Rank: d.rank
@@ -207,7 +214,7 @@ export function AIAssistant() {
         })
       });
 
-      // Parsing resiliente (não quebra se backend devolver HTML/texto em erro)
+      // Parsing resiliente: evita quebra quando backend retorna HTML/texto em erro
       const rawText = await response.text();
 
       let payload: any = null;
@@ -240,7 +247,6 @@ export function AIAssistant() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
-      {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -263,7 +269,6 @@ export function AIAssistant() {
         )}
       </div>
 
-      {/* Warning Alert */}
       <div className="bg-indigo-50 border-b border-indigo-100 p-4 shrink-0 flex items-start gap-3">
         <AlertCircle size={20} className="text-indigo-600 shrink-0 mt-0.5" />
         <p className="text-sm text-indigo-800 leading-relaxed">
@@ -272,15 +277,14 @@ export function AIAssistant() {
         </p>
       </div>
 
-      {/* Chat Area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-60">
             <Bot size={64} className="text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-700 mb-2">Como posso ajudar?</h3>
             <p className="text-slate-500 text-sm">
-              Você pode pedir relatórios específicos, comparações entre estados,
-              entidades que mais receberam verba, ou detalhamentos e componentes dos indicadores do Infra-BR.
+              Você pode pedir relatórios específicos, comparações entre estados, entidades que mais receberam verba,
+              ou detalhamentos e componentes dos indicadores do Infra-BR.
             </p>
           </div>
         )}
@@ -331,7 +335,6 @@ export function AIAssistant() {
         )}
       </div>
 
-      {/* Input Area */}
       <div className="bg-white border-t border-slate-200 p-4 shrink-0">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex gap-3 relative">
           <textarea
