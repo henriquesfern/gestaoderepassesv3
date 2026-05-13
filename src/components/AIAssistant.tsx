@@ -119,7 +119,12 @@ export function AIAssistant() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
+    <div
+      className="flex flex-col h-full bg-slate-50 relative overflow-hidden"
+      style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
+      }}
+    >
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -170,12 +175,61 @@ export function AIAssistant() {
               </div>
             )}
 
-            <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === 'user' ? 'bg-[#003865] text-white rounded-br-none' : 'bg-white border border-slate-200 shadow-sm rounded-bl-none text-slate-700'}`}>
+            <div
+              className={`max-w-[80%] rounded-2xl p-4 ${
+                msg.role === 'user'
+                  ? 'bg-[#003865] text-white rounded-br-none'
+                  : 'bg-white border border-slate-200 shadow-sm rounded-bl-none text-slate-700'
+              }`}
+              style={{
+                fontSize: '15px',
+                lineHeight: 1.65,
+                letterSpacing: 'normal',
+                wordBreak: 'break-word',
+                overflowWrap: 'anywhere'
+              }}
+            >
               {msg.role === 'user' ? (
-                <p className="whitespace-pre-wrap">{msg.text}</p>
+                <p className="whitespace-pre-wrap m-0">{msg.text}</p>
               ) : (
-                <div className="markdown-body prose prose-sm max-w-none prose-slate prose-p:leading-relaxed">
-                  <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]}>
+                <div className="max-w-none text-slate-700">
+                  <Markdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    skipHtml={true}
+                    components={{
+                      // Estrutura básica e segura
+                      h1: ({ children }) => <h1 className="text-lg font-semibold mt-2 mb-2">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-base font-semibold mt-2 mb-2">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>,
+                      p: ({ children }) => <p className="my-2">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      ul: ({ children }) => <ul className="list-disc pl-5 my-2">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal pl-5 my-2">{children}</ol>,
+                      li: ({ children }) => <li className="my-1">{children}</li>,
+                      blockquote: ({ children }) => (
+                        <blockquote className="border-l-4 border-slate-300 pl-3 my-2 text-slate-600">{children}</blockquote>
+                      ),
+                      code: ({ children }) => (
+                        <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-[13px]">{children}</code>
+                      ),
+                      pre: ({ children }) => (
+                        <pre className="bg-slate-100 text-slate-700 p-3 rounded-lg overflow-auto text-[13px] my-2">{children}</pre>
+                      ),
+                      a: ({ children, href }) => (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-indigo-600 underline underline-offset-2"
+                        >
+                          {children}
+                        </a>
+                      ),
+                      hr: () => <hr className="my-3 border-slate-200" />
+                    }}
+                  >
                     {msg.text}
                   </Markdown>
                 </div>
