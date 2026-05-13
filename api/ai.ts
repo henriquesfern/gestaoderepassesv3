@@ -1,6 +1,3 @@
-import { GoogleGenAI } from '@google/genai';
-import { EDITAIS_CONTEXT } from '../src/editais-context';
-
 type ChatMessage = {
   role: 'user' | 'model';
   text: string;
@@ -51,29 +48,22 @@ export default async function handler(req: any, res: any) {
 
     const contextSize = JSON.stringify(contextData).length;
     console.log('[api/ai] request', {
-      hasKey: !!apiKey,
       messagesCount: messages.length,
       userTextLength: userText.length,
       contextSize
     });
 
+    // Import dinâmico para evitar crash de boot da function
+    const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey });
 
     const systemInstruction = `Você é um assistente de IA integrado ao sistema de Fomento, Patrocínio e Infra-BR.
-Sua função é gerar relatórios, responder perguntas e detalhar indicadores EXCLUSIVAMENTE com base nestes dados:
-${JSON.stringify(contextData)}
-
-DOCUMENTOS DE APOIO (Editais, Portarias, Leis e Decisões Normativas):
-${EDITAIS_CONTEXT}
-
-REGRAS ESTABELECIDAS:
-1. RESPONDA APENAS SOBRE FOMENTO, PATROCÍNIO, NOTAS DO INFRA-BR, DIMENSÕES, COMPONENTES E INDICADORES FORNECIDOS NOS DADOS.
-2. Recuse educadamente qualquer assunto fora deste escopo, citando regras de conduta.
-3. Não emita opiniões pessoais ou invente dados. Caso seja questionado sobre algo que não está nos dados ou documentos, diga que as informações não estão no sistema.
-4. Formate as respostas utilizando Markdown para criar relatórios estruturados, claros e cordiais.
-5. NUNCA gere o bloco "json-chart" a menos que o usuário tenha pedido um gráfico EXPLICITAMENTE em sua mensagem.
-6. APENAS quando um gráfico for explicitamente solicitado, você DEVE gerar EXATAMENTE um bloco markdown \`\`\`json-chart ... \`\`\`.
-7. Tipos suportados para gráfico: "bar", "line" ou "pie". Limite a quantidade de itens para legibilidade.`;
+Responda EXCLUSIVAMENTE com base no contexto recebido.
+Regras:
+1) Não invente dados.
+2) Se faltar dado no contexto, diga explicitamente.
+3) Responda em português do Brasil com markdown claro.
+4) Só gere bloco \`\`\`json-chart quando o usuário pedir gráfico explicitamente.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -82,7 +72,14 @@ REGRAS ESTABELECIDAS:
           role: m.role,
           parts: [{ text: m.text }]
         })),
-        { role: 'user', parts: [{ text: userText }] }
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `PERGUNTA:\n${userText}\n\nCONTEXTO:\n${JSON.stringify(contextData)}`
+            }
+          ]
+        }
       ],
       config: {
         systemInstruction,
