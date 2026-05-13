@@ -31,21 +31,25 @@ function safeString(value: any, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
-function firstExistingKey(obj: any, candidates: string[]): string | null {
-  if (!obj || typeof obj !== 'object') return null;
-  for (const c of candidates) {
-    if (Object.prototype.hasOwnProperty.call(obj, c)) return c;
-  }
-  return null;
-}
-
 function normalizeChartConfig(raw: any) {
   const config = raw && typeof raw === 'object' ? raw : {};
   const type = safeString(config.type, 'bar').toLowerCase();
 
-  let data = safeArray(config.data);
+  let data: any[] = [];
+
+  // 1) Formato direto esperado
+  data = safeArray(config.data);
+
+  // 2) Alternativas comuns
   if (!data.length) data = safeArray(config.items);
   if (!data.length) data = safeArray(config.values);
+
+  // 3) dataset.data
+  if (!data.length && config.dataset && typeof config.dataset === 'object') {
+    data = safeArray(config.dataset.data);
+  }
+
+  // 4) labels + series (array simples)
   if (!data.length && safeArray(config.labels).length && safeArray(config.series).length) {
     const labels = safeArray(config.labels);
     const series = safeArray(config.series);
@@ -55,8 +59,41 @@ function normalizeChartConfig(raw: any) {
     }));
   }
 
-  if (!data.length && typeof config.dataset === 'object' && config.dataset) {
-    data = safeArray(config.dataset.data);
+  // 5) labels + series em objeto { "2025":[...], "2026":[...] } -> pega a primeira série
+  if (!data.length && safeArray(config.labels).length && config.series && typeof config.series === 'object' && !Array.isArray(config.series)) {
+    const labels = safeArray(config.labels);
+    const seriesKeys = Object.keys(config.series);
+    const firstKey = seriesKeys[0];
+    const arr = safeArray(config.series[firstKey]);
+    data = labels.map((label: any, i: number) => ({
+      name: String(label ?? `Item ${i + 1}`),
+      value: Number(arr[i] ?? 0)
+    }));
+  }
+
+  // 6) labels + datasets (padrão Chart.js)
+  if (!data.length && safeArray(config.labels).length && safeArray(config.datasets).length) {
+    const labels = safeArray(config.labels);
+    const firstDs = config.datasets[0] || {};
+    const dsData = safeArray(firstDs.data);
+    data = labels.map((label: any, i: number) => ({
+      name: String(label ?? `Item ${i + 1}`),
+      value: Number(dsData[i] ?? 0)
+    }));
+  }
+
+  // 7) data no formato Chart.js: { labels:[], datasets:[...] }
+  if (!data.length && config.data && typeof config.data === 'object') {
+    const labels = safeArray(config.data.labels);
+    const datasets = safeArray(config.data.datasets);
+    if (labels.length && datasets.length) {
+      const firstDs = datasets[0] || {};
+      const dsData = safeArray(firstDs.data);
+      data = labels.map((label: any, i: number) => ({
+        name: String(label ?? `Item ${i + 1}`),
+        value: Number(dsData[i] ?? 0)
+      }));
+    }
   }
 
   const sample = data[0] || {};
@@ -70,6 +107,7 @@ function normalizeChartConfig(raw: any) {
     'label',
     'categoria',
     'item',
+    'entidade',
     'x'
   ].filter(Boolean) as string[];
 
@@ -82,6 +120,7 @@ function normalizeChartConfig(raw: any) {
     'valor',
     'total',
     'quantidade',
+    'repasse',
     'y'
   ].filter(Boolean) as string[];
 
@@ -89,22 +128,23 @@ function normalizeChartConfig(raw: any) {
   let yKey = yKeyCandidates.find(k => Object.prototype.hasOwnProperty.call(sample, k));
 
   if (!xKey) {
-    const sampleKeys = Object.keys(sample);
-    xKey = sampleKeys.find(k => typeof sample[k] === 'string') || sampleKeys[0] || 'name';
+    const keys = Object.keys(sample);
+    xKey = keys.find(k => typeof sample[k] === 'string') || keys[0] || 'name';
   }
 
   if (!yKey) {
-    const sampleKeys = Object.keys(sample);
+    const keys = Object.keys(sample);
     yKey =
-      sampleKeys.find(k => typeof sample[k] === 'number') ||
-      sampleKeys.find(k => !Number.isNaN(Number(sample[k]))) ||
+      keys.find(k => typeof sample[k] === 'number') ||
+      keys.find(k => !Number.isNaN(Number(sample[k]))) ||
       'value';
   }
 
   const normalized = data.map((item: any, index: number) => {
-    const xVal = item?.[xKey!] ?? item?.name ?? item?.label ?? `Item ${index + 1}`;
-    const yRaw = item?.[yKey!] ?? item?.value ?? item?.valor ?? 0;
+    const xVal = item?.[xKey!] ?? item?.name ?? item?.label ?? item?.entidade ?? `Item ${index + 1}`;
+    const yRaw = item?.[yKey!] ?? item?.value ?? item?.valor ?? item?.repasse ?? 0;
     const yNum = Number(yRaw);
+
     return {
       ...item,
       [xKey!]: String(xVal),
