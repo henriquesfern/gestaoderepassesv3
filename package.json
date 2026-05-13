@@ -14,7 +14,13 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "lint": "npm run typecheck"
+    "lint": "npm run typecheck",
+    "changelog:status": "tsx scripts/changelog.ts status",
+    "changelog:reset": "tsx scripts/changelog.ts reset",
+    "changelog:add": "tsx scripts/changelog.ts add",
+    "flow:status": "tsx scripts/flow.ts status",
+    "flow:prepare-pr": "tsx scripts/flow.ts prepare-pr",
+    "flow:finalize-main": "tsx scripts/flow.ts finalize-main"
   },
   "dependencies": {
     "@google/genai": "^1.50.1",
