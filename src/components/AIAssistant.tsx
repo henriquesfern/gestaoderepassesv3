@@ -61,18 +61,8 @@ function ChartRenderer({ className, children, ...props }: any) {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey={config.xKey} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} width={80} />
-                <Tooltip
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey={config.yKey}
-                  name={config.label || 'Valor'}
-                  stroke={config.color || '#4f46e5'}
-                  strokeWidth={3}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
-                />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                <Line type="monotone" dataKey={config.yKey} name={config.label || 'Valor'} stroke={config.color || '#4f46e5'} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
               </LineChart>
             ) : config.type === 'pie' ? (
               <PieChart>
@@ -100,20 +90,15 @@ function ChartRenderer({ className, children, ...props }: any) {
         </div>
       );
     } catch (e: any) {
-      console.error('Error rendering chart:', e);
       return (
         <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm border border-red-200 my-4 not-prose">
-          Erro ao renderizar gráfico. Verifique o console: {e.message}
+          Erro ao renderizar gráfico: {e.message}
         </div>
       );
     }
   }
 
-  return (
-    <code className={className} {...props}>
-      {children}
-    </code>
-  );
+  return <code className={className} {...props}>{children}</code>;
 }
 
 export function AIAssistant() {
@@ -130,7 +115,6 @@ export function AIAssistant() {
     }
     return [];
   });
-
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -138,16 +122,14 @@ export function AIAssistant() {
     sessionStorage.setItem('ai_chat_history', JSON.stringify(messages));
   }, [messages]);
 
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, loading]);
+
   const clearChat = () => {
     setMessages([]);
     sessionStorage.removeItem('ai_chat_history');
   };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages, loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,18 +141,9 @@ export function AIAssistant() {
     setLoading(true);
 
     try {
-      // Contexto reduzido para evitar payload excessivo e timeout em serverless
-      const topFomento2026 = [...appData.fomento2026]
-        .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
-        .slice(0, 120);
-
-      const topFomento2025 = [...appData.fomentoHistorico]
-        .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
-        .slice(0, 120);
-
-      const topPatrocinio2025 = [...appData.patrocinioHistorico]
-        .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
-        .slice(0, 120);
+      const topFomento2026 = [...appData.fomento2026].sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE).slice(0, 120);
+      const topFomento2025 = [...appData.fomentoHistorico].sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE).slice(0, 120);
+      const topPatrocinio2025 = [...appData.patrocinioHistorico].sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE).slice(0, 120);
 
       const contextData = {
         resumo: {
@@ -207,14 +180,9 @@ export function AIAssistant() {
       const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages,
-          userText,
-          contextData
-        })
+        body: JSON.stringify({ messages, userText, contextData })
       });
 
-      // Parsing resiliente: evita quebra quando backend retorna HTML/texto em erro
       const rawText = await response.text();
 
       let payload: any = null;
@@ -232,13 +200,9 @@ export function AIAssistant() {
       const text = payload?.text || 'Sem resposta da IA.';
       setMessages(prev => [...prev, { role: 'model', text }]);
     } catch (error: any) {
-      console.error(error);
       setMessages(prev => [
         ...prev,
-        {
-          role: 'model',
-          text: `**Erro ao consultar a base de dados via IA:** ${error?.message || 'IA indisponível no momento.'}`
-        }
+        { role: 'model', text: `**Erro ao consultar a base de dados via IA:** ${error?.message || 'IA indisponível no momento.'}` }
       ]);
     } finally {
       setLoading(false);
@@ -272,8 +236,7 @@ export function AIAssistant() {
       <div className="bg-indigo-50 border-b border-indigo-100 p-4 shrink-0 flex items-start gap-3">
         <AlertCircle size={20} className="text-indigo-600 shrink-0 mt-0.5" />
         <p className="text-sm text-indigo-800 leading-relaxed">
-          <strong>Aviso:</strong> Este assistente responde exclusivamente baseando-se nos projetos de fomento, patrocínio e na avaliação do Infra-BR armazenados neste app.
-          Respondendo a regras de conduta, a IA foi instruída a não abordar outros assuntos ou solicitações alheias à base de dados.
+          <strong>Aviso:</strong> Este assistente responde exclusivamente com base nos dados do app.
         </p>
       </div>
 
@@ -282,10 +245,7 @@ export function AIAssistant() {
           <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-60">
             <Bot size={64} className="text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-700 mb-2">Como posso ajudar?</h3>
-            <p className="text-slate-500 text-sm">
-              Você pode pedir relatórios específicos, comparações entre estados, entidades que mais receberam verba,
-              ou detalhamentos e componentes dos indicadores do Infra-BR.
-            </p>
+            <p className="text-slate-500 text-sm">Pergunte sobre fomento, patrocínio e Infra-BR.</p>
           </div>
         )}
 
@@ -297,22 +257,12 @@ export function AIAssistant() {
               </div>
             )}
 
-            <div
-              className={`max-w-[80%] rounded-2xl p-4 ${
-                msg.role === 'user'
-                  ? 'bg-[#003865] text-white rounded-br-none'
-                  : 'bg-white border border-slate-200 shadow-sm rounded-bl-none text-slate-700'
-              }`}
-            >
+            <div className={`max-w-[80%] rounded-2xl p-4 ${msg.role === 'user' ? 'bg-[#003865] text-white rounded-br-none' : 'bg-white border border-slate-200 shadow-sm rounded-bl-none text-slate-700'}`}>
               {msg.role === 'user' ? (
                 <p className="whitespace-pre-wrap">{msg.text}</p>
               ) : (
                 <div className="markdown-body prose prose-sm max-w-none prose-slate prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0 prose-pre:text-slate-800">
-                  <Markdown
-                    remarkPlugins={[remarkGfm, remarkMath]}
-                    rehypePlugins={[rehypeKatex]}
-                    components={{ code: ChartRenderer }}
-                  >
+                  <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={{ code: ChartRenderer }}>
                     {msg.text}
                   </Markdown>
                 </div>
@@ -327,9 +277,9 @@ export function AIAssistant() {
               <Bot size={18} className="text-indigo-600" />
             </div>
             <div className="bg-white border border-slate-200 shadow-sm rounded-2xl rounded-bl-none p-4 flex gap-2 items-center">
-              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" />
             </div>
           </div>
         )}
@@ -346,7 +296,7 @@ export function AIAssistant() {
                 handleSubmit(e);
               }
             }}
-            placeholder="Pergunte sobre fomento, patrocínio e Infra-BR (Ex: Qual o detalhamento e as notas do indicador de mobilidade?)..."
+            placeholder="Pergunte sobre fomento, patrocínio e Infra-BR..."
             className="flex-1 resize-none h-14 bg-slate-100 border-transparent rounded-xl px-4 py-4 pr-14 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all text-sm outline-none"
             disabled={loading}
           />
