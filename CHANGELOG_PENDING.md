@@ -39,3 +39,8 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
 - Mantido o comportamento original da integração Gemini quando a chave está presente.
 - Ajustada mensagem de erro da interface da IA em `src/components/AIAssistant.tsx` para orientação mais clara ao usuário.
 - Refatoração focada em operação gratuita-first sem quebrar funcionalidades centrais do dashboard.
+
+## 2026-05-12 - Correção IA segura (backend Vercel)
+- Implementado endpoint server-side `api/ai.ts` para consulta ao Gemini com chave protegida via `process.env.GEMINI_API_KEY`.
+- Ajustado `AIAssistant` para consumir `/api/ai` em vez de executar consulta direta no frontend.
+- Restabelecido padrão seguro de segredo encapsulado no backend, evitando exposição de chave no bundle cliente.
