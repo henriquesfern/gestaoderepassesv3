@@ -130,7 +130,6 @@ export function AIAssistant() {
     }
     return [];
   });
-
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -208,10 +207,19 @@ export function AIAssistant() {
         })
       });
 
-      const payload = await response.json();
+      // Parsing resiliente (não quebra se backend devolver HTML/texto em erro)
+      const rawText = await response.text();
+
+      let payload: any = null;
+      try {
+        payload = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        payload = null;
+      }
 
       if (!response.ok) {
-        throw new Error(payload?.message || 'IA indisponível no momento.');
+        const backendMsg = payload?.message || payload?.error;
+        throw new Error(backendMsg || `Falha HTTP ${response.status} ao consultar IA.`);
       }
 
       const text = payload?.text || 'Sem resposta da IA.';
@@ -220,7 +228,10 @@ export function AIAssistant() {
       console.error(error);
       setMessages(prev => [
         ...prev,
-        { role: 'model', text: `**Erro ao consultar a base de dados via IA:** ${error?.message || 'IA indisponível no momento.'}` }
+        {
+          role: 'model',
+          text: `**Erro ao consultar a base de dados via IA:** ${error?.message || 'IA indisponível no momento.'}`
+        }
       ]);
     } finally {
       setLoading(false);
@@ -229,6 +240,7 @@ export function AIAssistant() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 relative overflow-hidden">
+      {/* Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -251,6 +263,7 @@ export function AIAssistant() {
         )}
       </div>
 
+      {/* Warning Alert */}
       <div className="bg-indigo-50 border-b border-indigo-100 p-4 shrink-0 flex items-start gap-3">
         <AlertCircle size={20} className="text-indigo-600 shrink-0 mt-0.5" />
         <p className="text-sm text-indigo-800 leading-relaxed">
@@ -259,13 +272,15 @@ export function AIAssistant() {
         </p>
       </div>
 
+      {/* Chat Area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-60">
             <Bot size={64} className="text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-700 mb-2">Como posso ajudar?</h3>
             <p className="text-slate-500 text-sm">
-              Você pode pedir relatórios específicos, comparações entre estados, entidades que mais receberam verba, ou detalhamentos e componentes dos indicadores do Infra-BR.
+              Você pode pedir relatórios específicos, comparações entre estados,
+              entidades que mais receberam verba, ou detalhamentos e componentes dos indicadores do Infra-BR.
             </p>
           </div>
         )}
@@ -289,7 +304,11 @@ export function AIAssistant() {
                 <p className="whitespace-pre-wrap">{msg.text}</p>
               ) : (
                 <div className="markdown-body prose prose-sm max-w-none prose-slate prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0 prose-pre:text-slate-800">
-                  <Markdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[rehypeKatex]} components={{ code: ChartRenderer }}>
+                  <Markdown
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeKatex]}
+                    components={{ code: ChartRenderer }}
+                  >
                     {msg.text}
                   </Markdown>
                 </div>
@@ -312,12 +331,13 @@ export function AIAssistant() {
         )}
       </div>
 
+      {/* Input Area */}
       <div className="bg-white border-t border-slate-200 p-4 shrink-0">
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto flex gap-3 relative">
           <textarea
             value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => {
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSubmit(e);
