@@ -9,6 +9,26 @@ type RequestBody = {
   contextData?: any;
 };
 
+function isChartRequest(text: string): boolean {
+  const t = (text || '').toLowerCase();
+  const keywords = [
+    'gráfico',
+    'grafico',
+    'chart',
+    'plot',
+    'pizza',
+    'barras',
+    'barra',
+    'linha',
+    'pie',
+    'line chart',
+    'bar chart',
+    'json-chart',
+    'json chart'
+  ];
+  return keywords.some(k => t.includes(k));
+}
+
 export default async function handler(req: any, res: any) {
   try {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -43,27 +63,36 @@ export default async function handler(req: any, res: any) {
       });
     }
 
+    // BLOQUEIO DE GRÁFICOS (regra de produto)
+    if (isChartRequest(userText)) {
+      return res.status(200).json({
+        text:
+          '### Geração de gráficos temporariamente indisponível\n\n' +
+          'No momento, a solução ainda não está preparada para a geração de gráficos na consulta de IA e está em processo de aprendizado para isso.\n\n' +
+          'Se quiser, posso continuar com a análise em formato textual (ranking, comparativos e resumos).'
+      });
+    }
+
     const contextSize = JSON.stringify(contextData).length;
     console.log('[api/ai] request', {
       messagesCount: messages.length,
       userTextLength: userText.length,
-      contextSize,
-      hasNormativos: !!contextData?.normativos_contexto
+      contextSize
     });
 
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey });
 
-    const systemInstruction = `Você é um assistente de IA do dashboard de Fomento, Patrocínio e Infra-BR.
-Responda APENAS com base no contexto recebido (incluindo normativos quando disponíveis).
+    const systemInstruction = `Você é um assistente de IA do dashboard de Fomento, Patrocínio, Infra-BR e Normativos.
 
-Regras:
-1) Nunca invente dados fora do contexto.
-2) Se faltar dado, informe claramente.
-3) Responda em português do Brasil com markdown claro.
-4) Só gere bloco \`\`\`json-chart quando o usuário pedir gráfico explicitamente.
-5) Tipos de gráfico aceitos: bar, line, pie.
-6) Em resposta com gráfico, prefira no máximo top 5 ou top 10 itens.`;
+REGRAS:
+1) Responda APENAS com base no contexto recebido.
+2) Não invente dados.
+3) Se faltar dado, diga explicitamente.
+4) Responda em português do Brasil, em markdown claro.
+5) NÃO gerar gráficos.
+6) NÃO gerar blocos json-chart, chart, plot ou similares.
+7) Se o usuário pedir gráfico, informe que a solução ainda não está preparada para geração de gráficos e está em processo de aprendizado.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
