@@ -38,7 +38,7 @@ export function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-0.5 pb-4 px-3">
-        {menuItems.map(item => (
+        {menuItems.map((item) => (
           <div key={item.id}>
             {renderMenuItem(item.id, item.label, item.icon, item.depth)}
             {sectionBreakAfter.includes(item.id) && <div className="my-2 border-t border-white/10 mx-2"></div>}

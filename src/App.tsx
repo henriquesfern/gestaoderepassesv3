@@ -16,7 +16,7 @@ function cn(...inputs: ClassValue[]) {
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
   const { appData } = useData();
-  console.log('?? Workflow V3: Carregando dados validados via Zod Adatpers...');
+  console.log('Workflow V3: Carregando dados validados...');
 
   return (
     <div className={cn('relative min-h-screen flex h-screen overflow-hidden font-sans', appTheme.colors.bg, appTheme.colors.text)}>

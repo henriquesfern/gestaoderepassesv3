@@ -2,7 +2,15 @@
 
 Este arquivo registra todas as modificações realizadas no projeto desde o último sincronismo. Ele deve ser utilizado pela plataforma para gerar a mensagem de Pull Request / Commit de forma completa e em Português do Brasil (pt-BR). Ao receber a confirmação de que o sincronismo foi realizado, este arquivo deve ser "zerado" pelo agente.
 
-## Atualizações recentes:
+## Atualizações recentes
+
+### Bloco sugerido para Commit 1 - Correção estrutural
+- **Resolução de conflitos de merge na arquitetura do app (Protocolo Nível 3 - Estabilização estrutural)**:
+  - Removidos marcadores de conflito aninhados de arquivos centrais da aplicação, incluindo `src/App.tsx`, `src/app/layout/*`, `src/app/navigation/tabs.ts` e `src/app/router/TabContent.tsx`.
+  - Restauradas exportações limpas nos módulos de `src/features/*` e `src/shared/index.ts`, preservando a arquitetura por domínio já adotada pelo projeto.
+  - Reorganizado `CHANGELOG_PENDING.md` para voltar a um estado consistente antes da validação completa do projeto.
+
+### Itens anteriores ainda pendentes
 - **Ação Q implementada (Protocolo Nível 1 - Refinamento Visual da Barra de Progresso)**:
   - Ajuste na renderização da barra de progresso: o degradê agora é fixo no recipiente (representando o período total) e o preenchimento revela a cor correspondente à data atual, melhorando a precisão visual do avanço temporal.
 - **Ação R implementada (Protocolo Nível 1 - Ajuste de Lógica de KPIs)**:
