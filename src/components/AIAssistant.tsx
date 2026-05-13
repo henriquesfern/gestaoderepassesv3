@@ -133,7 +133,7 @@ export function AIAssistant() {
           <div>
             <h2 className="text-xl font-bold text-slate-800">Assistente de IA</h2>
             <p className="text-sm text-slate-500">
-              Consulta inteligente aos dados de fomento, patrocínio, Infra-BR e normativos (sem geração de gráficos)
+              Consulta textual institucional sobre fomento, patrocínio, Infra-BR e normativos
             </p>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function AIAssistant() {
       <div className="bg-indigo-50 border-b border-indigo-100 p-4 shrink-0 flex items-start gap-3">
         <AlertCircle size={20} className="text-indigo-600 shrink-0 mt-0.5" />
         <p className="text-sm text-indigo-800 leading-relaxed">
-          <strong>Aviso:</strong> A solução ainda não está preparada para geração de gráficos na consulta de IA e está em processo de aprendizado para isso.
+          <strong>Aviso:</strong> Este canal prioriza formatação textual simples e institucional para melhor legibilidade.
         </p>
       </div>
 
@@ -162,7 +162,7 @@ export function AIAssistant() {
             <Bot size={64} className="text-slate-400 mb-4" />
             <h3 className="text-lg font-medium text-slate-700 mb-2">Como posso ajudar?</h3>
             <p className="text-slate-500 text-sm">
-              Você pode pedir relatórios e comparações em formato textual sobre fomento, patrocínio, Infra-BR e normativos.
+              Faça perguntas sobre fomento, patrocínio, Infra-BR e normativos. As respostas serão apresentadas em texto institucional.
             </p>
           </div>
         )}
@@ -198,25 +198,25 @@ export function AIAssistant() {
                     rehypePlugins={[rehypeKatex]}
                     skipHtml={true}
                     components={{
-                      // Estrutura básica e segura
-                      h1: ({ children }) => <h1 className="text-lg font-semibold mt-2 mb-2">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-base font-semibold mt-2 mb-2">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>,
+                      // Apenas formatações básicas
                       p: ({ children }) => <p className="my-2">{children}</p>,
                       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
                       em: ({ children }) => <em className="italic">{children}</em>,
                       ul: ({ children }) => <ul className="list-disc pl-5 my-2">{children}</ul>,
                       ol: ({ children }) => <ol className="list-decimal pl-5 my-2">{children}</ol>,
                       li: ({ children }) => <li className="my-1">{children}</li>,
-                      blockquote: ({ children }) => (
-                        <blockquote className="border-l-4 border-slate-300 pl-3 my-2 text-slate-600">{children}</blockquote>
-                      ),
-                      code: ({ children }) => (
-                        <code className="bg-slate-100 text-slate-700 px-1 py-0.5 rounded text-[13px]">{children}</code>
-                      ),
-                      pre: ({ children }) => (
-                        <pre className="bg-slate-100 text-slate-700 p-3 rounded-lg overflow-auto text-[13px] my-2">{children}</pre>
-                      ),
+
+                      // Removidos/neutralizados: headings, blockquote, code, pre
+                      h1: ({ children }) => <p className="my-2 font-semibold">{children}</p>,
+                      h2: ({ children }) => <p className="my-2 font-semibold">{children}</p>,
+                      h3: ({ children }) => <p className="my-2 font-semibold">{children}</p>,
+                      h4: ({ children }) => <p className="my-2 font-semibold">{children}</p>,
+                      h5: ({ children }) => <p className="my-2 font-semibold">{children}</p>,
+                      h6: ({ children }) => <p className="my-2 font-semibold">{children}</p>,
+                      blockquote: ({ children }) => <p className="my-2">{children}</p>,
+                      code: ({ children }) => <span>{children}</span>,
+                      pre: ({ children }) => <div>{children}</div>,
+
                       a: ({ children, href }) => (
                         <a
                           href={href}
