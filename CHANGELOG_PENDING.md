@@ -10,6 +10,12 @@ Este arquivo registra todas as modificações realizadas no projeto desde o últ
   - Restauradas exportações limpas nos módulos de `src/features/*` e `src/shared/index.ts`, preservando a arquitetura por domínio já adotada pelo projeto.
   - Reorganizado `CHANGELOG_PENDING.md` para voltar a um estado consistente antes da validação completa do projeto.
 
+### Bloco sugerido para Commit 2 - Ajuste funcional do chat
+- **Ajuste no chat da IA (Protocolo Nível 1 - Correção de renderização textual)**:
+  - Removido o parser matemático da resposta do assistente para evitar conflito entre Markdown e valores monetários no formato `R$`.
+  - Aplicada normalização leve nas mensagens do modelo para recompor valores monetários quebrados, limpar caracteres invisíveis e reduzir fragmentação indevida de texto no histórico e nas novas respostas.
+  - Ajustada a estratégia de quebra de linha do balão do chat para preservar melhor a leitura de palavras e cifras longas.
+
 ### Itens anteriores ainda pendentes
 - **Ação Q implementada (Protocolo Nível 1 - Refinamento Visual da Barra de Progresso)**:
   - Ajuste na renderização da barra de progresso: o degradê agora é fixo no recipiente (representando o período total) e o preenchimento revela a cor correspondente à data atual, melhorando a precisão visual do avanço temporal.
