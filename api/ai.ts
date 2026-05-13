@@ -11,7 +11,6 @@ type RequestBody = {
 
 export default async function handler(req: any, res: any) {
   try {
-    // CORS básico
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -21,9 +20,7 @@ export default async function handler(req: any, res: any) {
     }
 
     if (req.method !== 'POST') {
-      return res.status(405).json({
-        error: 'Método não permitido. Use POST.'
-      });
+      return res.status(405).json({ error: 'Método não permitido. Use POST.' });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -50,20 +47,23 @@ export default async function handler(req: any, res: any) {
     console.log('[api/ai] request', {
       messagesCount: messages.length,
       userTextLength: userText.length,
-      contextSize
+      contextSize,
+      hasNormativos: !!contextData?.normativos_contexto
     });
 
-    // Import dinâmico para evitar crash de boot da function
     const { GoogleGenAI } = await import('@google/genai');
     const ai = new GoogleGenAI({ apiKey });
 
-    const systemInstruction = `Você é um assistente de IA integrado ao sistema de Fomento, Patrocínio e Infra-BR.
-Responda EXCLUSIVAMENTE com base no contexto recebido.
+    const systemInstruction = `Você é um assistente de IA do dashboard de Fomento, Patrocínio e Infra-BR.
+Responda APENAS com base no contexto recebido (incluindo normativos quando disponíveis).
+
 Regras:
-1) Não invente dados.
-2) Se faltar dado no contexto, diga explicitamente.
+1) Nunca invente dados fora do contexto.
+2) Se faltar dado, informe claramente.
 3) Responda em português do Brasil com markdown claro.
-4) Só gere bloco \`\`\`json-chart quando o usuário pedir gráfico explicitamente.`;
+4) Só gere bloco \`\`\`json-chart quando o usuário pedir gráfico explicitamente.
+5) Tipos de gráfico aceitos: bar, line, pie.
+6) Em resposta com gráfico, prefira no máximo top 5 ou top 10 itens.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -76,7 +76,7 @@ Regras:
           role: 'user',
           parts: [
             {
-              text: `PERGUNTA:\n${userText}\n\nCONTEXTO:\n${JSON.stringify(contextData)}`
+              text: `PERGUNTA DO USUÁRIO:\n${userText}\n\nCONTEXTO DE DADOS:\n${JSON.stringify(contextData)}`
             }
           ]
         }
