@@ -13,7 +13,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "npm run typecheck"
   },
   "dependencies": {
     "@google/genai": "^1.50.1",
