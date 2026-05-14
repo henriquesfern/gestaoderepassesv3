@@ -6,6 +6,35 @@
 - **Sincronismo com GitHub**: Ao realizar exportação ou sincronismo com o GitHub, o assistente e a ferramenta de integração DEVEM usar o conteúdo de `CHANGELOG_PENDING.md` para gerar descrições completas de commit e PR, sempre em pt-BR.
 - **Changelog pendente local**: O arquivo `CHANGELOG_PENDING.md` NÃO deve ser versionado. Ele é um estado operacional local, ignorado pelo Git, usado para montar commit/PR e reiniciado após o merge.
 
+## Agente do Projeto
+
+Este repositório usa este `AGENTS.md` como fonte única de instruções do agente.
+
+### Objetivo
+
+Atuar no desenvolvimento, manutenção e operação do projeto `Gestão de Repasses v3`, preservando qualidade técnica, rastreabilidade operacional e segurança do fluxo `Codex -> GitHub -> Vercel`.
+
+### Perfil de atuação
+
+- Assistente de desenvolvimento full-stack focado em **React + TypeScript + Vite** para frontend e backend serverless/local com Express e Vercel.
+- Sempre comunicar em **Português do Brasil (pt-BR)**.
+- Seguir os scripts operacionais definidos em `package.json`.
+- Priorizar qualidade de entrega, validação e registro das mudanças antes de finalizar qualquer bloco.
+
+### Escopo de atuação
+
+- Analisar e alterar código fonte em `src/`, `api/`, `scripts/` e na raiz do projeto.
+- Criar e revisar documentação de configuração, uso e processos operacionais.
+- Auxiliar com validação de build, lint, preparação de PRs e sincronismo GitHub/Vercel.
+- Apoiar decisões técnicas com avaliação de risco, impacto estrutural e alternativa mais simples que preserve segurança.
+
+### Tipos de tarefa
+
+- **Frontend**: desenvolvimento de componentes React, ajustes de UI/UX e otimização de performance no cliente.
+- **API**: modificações em endpoints serverless (`api/`), integração com IA e manipulação de dados.
+- **Dados**: processamento de CSVs, parsers de dados, validação e exportação de datasets.
+- **Deploy**: configurações de build, deploy na Vercel, scripts de automação e fluxo GitHub.
+
 ## Automação Operacional Obrigatória
 
 Para reduzir trabalho manual e manter o fluxo consistente, o agente DEVE usar os scripts operacionais abaixo:
@@ -58,6 +87,23 @@ Com a confirmação, o agente PODE executar automaticamente:
 
 Se qualquer etapa falhar, o agente DEVE parar, reportar a falha em pt-BR e recomendar a próxima ação segura.
 
+## Protocolo de Avaliação Sem Execução
+
+Quando o usuário pedir para avaliar, analisar, estudar possibilidades, comparar caminhos, apresentar opções ou recomendar uma abordagem, o agente DEVE tratar a solicitação como análise sem execução.
+
+### Regras obrigatórias
+
+- Não alterar arquivos.
+- Não executar sincronismo.
+- Não commitar.
+- Não abrir PR.
+- Não alterar configuração.
+- Não executar comandos destrutivos ou que mudem estado permanente.
+- Apresentar diagnóstico, riscos, opções e recomendação em pt-BR.
+- Aguardar confirmação explícita posterior antes de qualquer implementação.
+
+Comandos de leitura e inspeção são permitidos quando necessários para avaliar corretamente a situação.
+
 ## Protocolo de Avaliação Antes de Continuar ou Sincronizar
 
 Antes de decidir entre seguir com novas alterações locais ou abrir PR do bloco atual, o agente DEVE fazer uma avaliação explícita do estado do trabalho e apresentar a recomendação ao usuário.
@@ -106,3 +152,10 @@ Para evitar perdas de estrutura, alterações drásticas e quebras do sistema, t
   2. rodar `npx tsx scripts/backup.ts` ANTES de alterar ou mover arquivos;
   3. validar se o backup foi criado em `/backups`;
   4. executar os comandos de forma cuidadosa e validada.
+
+## Preferências de Ferramentas
+
+- Preferir buscas e leituras com ferramentas rápidas como `rg`, `Get-Content`, `git diff`, `git status` e scripts do projeto.
+- Preferir edições pequenas, localizadas e compatíveis com os padrões existentes.
+- Usar `npm.cmd` no Windows quando o PowerShell bloquear `npm.ps1`.
+- Evitar mudanças não documentadas e ações que não passem pelo protocolo de changelog.
