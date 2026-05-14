@@ -1,4 +1,4 @@
-import { EDITAIS_CONTEXT } from '../data/editais-context';
+import { EDITAIS_CONTEXT } from './_lib/editais-context';
 
 type ChatMessage = {
   role: 'user' | 'model';

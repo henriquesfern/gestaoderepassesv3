@@ -12,3 +12,8 @@
   - Transformado o carregamento das abas em lazy load com Suspense para reduzir código inicial do frontend.
   - Separados chunks de IA/markdown e visualização no build da Vite para melhorar cache e carregamento sob demanda.
   - Movido o parser principal de dados para importação dinâmica no DataProvider, evitando que os datasets mais pesados entrem no bootstrap inicial.
+## Registro automático - 13/05/2026, 21:10
+
+- **Hotfix da IA em runtime na Vercel**:
+  - Movido o artefato editais-context para api/_lib para garantir empacotamento junto da função serverless.
+  - Ajustados os imports da rota /api/ai e do gerador de contexto para eliminar o ERR_MODULE_NOT_FOUND em produção.

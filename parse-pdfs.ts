@@ -23,7 +23,7 @@ async function parseAll() {
     }
   }
 
-  const outDir = path.join(process.cwd(), 'data');
+  const outDir = path.join(process.cwd(), 'api', '_lib');
   const outPath = path.join(outDir, 'editais-context.ts');
   fs.mkdirSync(outDir, { recursive: true });
 
