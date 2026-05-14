@@ -1,4 +1,4 @@
-import { EDITAIS_CONTEXT } from './_lib/editais-context';
+import { EDITAIS_CONTEXT } from './_lib/editais-context.js';
 
 type ChatMessage = {
   role: 'user' | 'model';

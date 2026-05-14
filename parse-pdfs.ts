@@ -24,7 +24,7 @@ async function parseAll() {
   }
 
   const outDir = path.join(process.cwd(), 'api', '_lib');
-  const outPath = path.join(outDir, 'editais-context.ts');
+  const outPath = path.join(outDir, 'editais-context.js');
   fs.mkdirSync(outDir, { recursive: true });
 
   const content = `export const EDITAIS_CONTEXT = ${JSON.stringify(combinedText)};\n`;
