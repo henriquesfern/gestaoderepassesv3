@@ -22,3 +22,10 @@
 - **Hotfix de compatibilidade do contexto normativo na Vercel**:
   - Convertido o artefato editais-context para arquivo JavaScript em api/_lib para compatibilidade direta com o runtime serverless.
   - Atualizados os imports da rota /api/ai e do gerador de contexto para usar o caminho explícito em .js.
+## Registro automático - 13/05/2026, 21:32
+
+- **Externalização dos datasets pesados do cliente**:
+  - Criado pipeline de exportação para public/data com os datasets pesados de Fomento, Patrocínio e Infra-BR.
+  - Tornado o parser principal assíncrono, carregando CSVs estáticos por fetch em vez de embutir bases grandes em módulos TypeScript.
+  - Movido o consumo de Infra-BR para o appData do DataProvider, removendo imports síncronos dos blocos pesados em vários componentes e hooks.
+  - Reduzido o chunk parser para cerca de 38 kB e eliminado o antigo bloco gigante de infraBR_parser do bundle.

@@ -1,9 +1,10 @@
 import React from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend, BarChart, CartesianGrid, XAxis, YAxis, Bar } from 'recharts';
-import { infraData } from '../../data/infraBR_parser';
+import type { InfraRuntimeData } from '../../data/runtime-loaders';
 import { stateSiglaToName } from '../../hooks/useInfraBRMetrics';
 
 interface InfraBRStateDetailsProps {
+  infraData: InfraRuntimeData;
   selectedState: string;
   setSelectedState: (state: string) => void;
   selectedDimension: string;
@@ -14,6 +15,7 @@ interface InfraBRStateDetailsProps {
 }
 
 export function InfraBRStateDetails({ 
+  infraData,
   selectedState, setSelectedState, 
   selectedDimension, setSelectedDimension, 
   availableDimensions, radarData, componentData 

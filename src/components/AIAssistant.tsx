@@ -3,7 +3,6 @@ import { AlertCircle, Bot, Send, Sparkles, Trash2 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useData } from '../context/DataContext';
-import { infraData } from '../data/infraBR_parser';
 
 type ChatMessage = {
   role: 'user' | 'model';
@@ -107,7 +106,7 @@ export function AIAssistant() {
           Repasse: d.VALOR_REPASSE,
           Projeto: d.OBJETIVO
         })),
-        infraBR_estados: infraData.infraEstados.slice(0, 27).map((d) => ({
+        infraBR_estados: appData.infraBR.infraEstados.slice(0, 27).map((d) => ({
           UF: d.sigla_uf,
           Nota: d.infra_br,
           Rank: d.rank

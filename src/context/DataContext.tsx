@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 type ParseData = typeof import('../data/parser').parseData;
-export type AppData = ReturnType<ParseData>;
+export type AppData = Awaited<ReturnType<ParseData>>;
 
 interface DataContextType {
   appData: AppData | null;
@@ -19,7 +19,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // We defer the execution using setTimeout so that initial paint is not blocked.
     const timer = setTimeout(async () => {
       const { parseData } = await import('../data/parser');
-      const data = parseData();
+      const data = await parseData();
 
       if (isMounted) {
         setDataState({ appData: data, isLoading: false });

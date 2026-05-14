@@ -1,6 +1,8 @@
-import { infraData } from '../../data/infraBR_parser';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { InfraRuntimeData } from '../../data/runtime-loaders';
+
+type InfraLookupData = Pick<InfraRuntimeData, 'detalhamento'>;
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -17,7 +19,7 @@ export const getDimensionColor = (dimension: string) => {
   return "bg-slate-100 text-slate-600 border-slate-200";
 };
 
-export const getColorForChild = (childName: string) => {
+export const getColorForChild = (childName: string, infraData: InfraLookupData) => {
   const normalized = childName.trim().toUpperCase();
   const found = infraData.detalhamento.find(d => 
     d.COMPONENTE.trim().toUpperCase() === normalized || 
@@ -51,7 +53,7 @@ export interface TreeNode {
   }[];
 }
 
-export const buildTree = (dimStr: string, compStr: string, indStr: string) => {
+export const buildTree = (dimStr: string, compStr: string, indStr: string, infraData: InfraLookupData) => {
   const dims = dimStr ? dimStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim(), components: [] } }) : [];
   const comps = compStr ? compStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim(), indicators: [] } }) : [];
   const inds = indStr ? indStr.split('|').map(s => { const p = s.trim().split('-'); return { rank: p[0]?.trim() || '', name: p.slice(1).join('-').trim() } }) : [];

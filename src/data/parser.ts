@@ -1,26 +1,35 @@
 import Papa from 'papaparse';
 import { cdenCSV } from './cden';
 import { precursorasCSV } from './precursoras';
-import { fomento2025CSV } from './fomento2025';
-import { fomento2026CSV } from './fomento2026';
-import { patrocinioCSV } from './patrocinio2025';
-import { infraData } from './infraBR_parser';
-import { newFomentoCSV } from './newFomentoData';
 import { gestaofomento26 } from './gestaofomento26';
+import { fetchStaticText, loadInfraRuntimeData, parseCsvRows } from './runtime-loaders';
 
 import { EntidadeCDEN, EntidadePrecursora } from '../types';
 import { adaptFomento2025, adaptFomento2026, adaptPatrocinio2025 } from './adapters';
 import type { RawFomento2025Row, RawFomento2026Row, RawPatrocinio2025Row, GestaoFomento26Row } from './types';
 
-export const parseData = () => {
+export const parseData = async () => {
   const cdenParsed = Papa.parse<EntidadeCDEN>(cdenCSV.trim(), { header: true, skipEmptyLines: true }).data;
   const precursorasParsed = Papa.parse<EntidadePrecursora>(precursorasCSV.trim(), { header: true, skipEmptyLines: true }).data;
 
-  const fomentoRaw = Papa.parse<RawFomento2025Row>(fomento2025CSV.trim(), { header: true, skipEmptyLines: true }).data;
-  const fomento2026Raw = Papa.parse<RawFomento2026Row>(fomento2026CSV.trim(), { header: true, skipEmptyLines: true }).data;
-  const patrocinioRaw = Papa.parse<RawPatrocinio2025Row>(patrocinioCSV.trim(), { header: true, skipEmptyLines: true }).data;
+  const [
+    fomento2025Text,
+    fomento2026Text,
+    patrocinio2025Text,
+    newFomentoText,
+    infraData,
+  ] = await Promise.all([
+    fetchStaticText('fomento2025.csv'),
+    fetchStaticText('fomento2026.csv'),
+    fetchStaticText('patrocinio2025.csv'),
+    fetchStaticText('GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv'),
+    loadInfraRuntimeData(),
+  ]);
 
-  const newFomentoRaw = Papa.parse<RawFomento2026Row>(newFomentoCSV.trim(), { header: true, skipEmptyLines: true, delimiter: ';' }).data;
+  const fomentoRaw = parseCsvRows<RawFomento2025Row>(fomento2025Text);
+  const fomento2026Raw = parseCsvRows<RawFomento2026Row>(fomento2026Text);
+  const patrocinioRaw = parseCsvRows<RawPatrocinio2025Row>(patrocinio2025Text);
+  const newFomentoRaw = parseCsvRows<RawFomento2026Row>(newFomentoText, { delimiter: ';' });
   const normalizeCNPJ = (cnpj: string) => cnpj.replace(/\D/g, '');
 
   const newFomentoMap = new Map<string, RawFomento2026Row>(
