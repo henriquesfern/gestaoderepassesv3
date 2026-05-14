@@ -9,13 +9,13 @@ Automatizar ao máximo o fluxo operacional do projeto sem depender de memória m
 ### Changelog
 
 - `npm run changelog:status`
-  - mostra se o `CHANGELOG_PENDING.md` possui pendências
+  - mostra se o `CHANGELOG_PENDING.md` local possui pendências
 
 - `npm run changelog:add -- --title "Título" --item "Item 1" --item "Item 2"`
-  - adiciona uma entrada estruturada ao changelog
+  - adiciona uma entrada estruturada ao changelog local
 
 - `npm run changelog:reset`
-  - zera o arquivo e mantém apenas o cabeçalho `# Alterações Pendentes de Sincronismo (GitHub)`
+  - zera o arquivo local e mantém apenas o cabeçalho `# Alterações Pendentes de Sincronismo (GitHub)`
 
 ### Fluxo operacional
 
@@ -31,10 +31,10 @@ Automatizar ao máximo o fluxo operacional do projeto sem depender de memória m
 
 - `npm run flow:finalize-main`
   - deve ser executado na `main`
-  - reinicia o `CHANGELOG_PENDING.md` após o sincronismo
+  - reinicia o `CHANGELOG_PENDING.md` local após o sincronismo
 
 - `npm run flow:finalize-main -- --commit`
-  - reinicia o changelog e cria um commit automático de limpeza
+  - mantido apenas por compatibilidade; o changelog pendente é local e ignorado pelo Git
 
 ## Fluxo recomendado
 
@@ -59,8 +59,11 @@ npm run flow:prepare-pr
 npm run flow:finalize-main
 ```
 
+Não é necessário abrir PR separado para limpar o `CHANGELOG_PENDING.md`, pois ele é um estado local ignorado pelo Git.
+
 ## Observações
 
 - A branch `producao` permanece congelada e não deve entrar no fluxo normal.
 - O check obrigatório da `main` continua sendo `qualidade`.
 - O conteúdo de `.tmp/` é temporário e não entra em versionamento.
+- O arquivo `CHANGELOG_PENDING.md` também não entra em versionamento; o histórico sincronizado fica no corpo do PR e nos commits.

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { execSync } from 'node:child_process';
-import { CHANGELOG_HEADER, getChangelogBody, hasPendingEntries, resetChangelog } from './lib/changelog.js';
+import { CHANGELOG_HEADER, CHANGELOG_PATH, getChangelogBody, hasPendingEntries, resetChangelog } from './lib/changelog.js';
 
 const PR_BODY_PATH = resolve(process.cwd(), '.tmp', 'pr-body.md');
 
@@ -61,13 +61,14 @@ function main() {
       console.log(`Branch atual: ${getCurrentBranch()}`);
       console.log(`Workspace limpo: ${getGitStatus() ? 'não' : 'sim'}`);
       console.log(`Changelog com pendências: ${hasPendingEntries() ? 'sim' : 'não'}`);
+      console.log(`Changelog local: ${CHANGELOG_PATH}`);
       break;
     }
     case 'prepare-pr': {
       const branch = ensureWorkingBranch();
 
       if (!hasPendingEntries()) {
-        throw new Error('O CHANGELOG_PENDING.md está vazio. Registre as entregas antes de abrir o PR.');
+        throw new Error('O CHANGELOG_PENDING.md local está vazio. Registre as entregas antes de abrir o PR.');
       }
 
       console.log('Executando build...');
@@ -88,18 +89,15 @@ function main() {
       }
 
       resetChangelog();
-      console.log('CHANGELOG_PENDING.md reiniciado com sucesso.');
+      console.log('CHANGELOG_PENDING.md local reiniciado com sucesso.');
+      console.log('Arquivo mantido apenas localmente; nenhum commit de limpeza é necessário.');
 
       if (existsSync(PR_BODY_PATH)) {
         writeFileSync(PR_BODY_PATH, '', 'utf8');
       }
 
       if (commitAfterReset) {
-        execSync('git add CHANGELOG_PENDING.md', { cwd: process.cwd(), stdio: 'inherit' });
-        execSync('git commit -m "chore: reinicia changelog pendente apos sincronismo"', {
-          cwd: process.cwd(),
-          stdio: 'inherit',
-        });
+        console.log('A opção --commit foi mantida por compatibilidade, mas o changelog pendente agora é local e ignorado pelo Git.');
       }
       break;
     }
