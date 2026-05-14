@@ -8,6 +8,12 @@
   },
   "scripts": {
     "dev": "tsx server.ts",
+    "dev:ui": "npm run dev",
+    "dev:vercel": "npx vercel dev",
+    "dev:env:pull": "npx vercel env pull .env.local",
+    "dev:preview": "npm run build && vite preview --host",
+    "dev:check": "npm run lint && npm run build",
+    "dev:doctor": "tsx scripts/local-dev.ts doctor",
     "start": "tsx server.ts",
     "validate": "echo 'Nothing to validate'",
     "build": "vite build",

@@ -35,20 +35,38 @@ Mais detalhes em [docs/operacao/fluxo-release.md](docs/operacao/fluxo-release.md
 Pré-requisitos:
 
 - Node.js 20 ou superior
+- trabalhar na pasta local do repositório Git: [gestaoderepassesv3-git](C:/Users/fernando.henriques/Downloads/github/gestaoderepassesv3-git)
 
-Comandos principais:
+Fluxos principais:
 
 ```bash
 npm install
-npm run dev
+npm run dev:doctor
+npm run dev:ui
 ```
 
-Validações:
+Quando precisar validar o comportamento da Vercel e da IA localmente:
 
 ```bash
-npm run build
-npm run lint
+npm run dev:env:pull
+npm run dev:vercel
 ```
+
+Preview local do build:
+
+```bash
+npm run dev:preview
+```
+
+Checagem antes de PR:
+
+```bash
+npm run dev:check
+```
+
+Guia detalhado:
+
+- [docs/operacao/ambiente-local-vscode.md](docs/operacao/ambiente-local-vscode.md)
 
 ## Variáveis de ambiente
 
@@ -59,6 +77,7 @@ Crie um arquivo `.env.local` quando necessário e configure:
 ## Observações importantes
 
 - O deploy Vercel usa `vercel.json` com build Vite e saída em `dist`.
-- O runtime local ainda não replica integralmente as rotas serverless da Vercel; esse alinhamento faz parte da etapa técnica seguinte do saneamento.
+- Para ajustes visuais rápidos, prefira `npm run dev:ui`.
+- Para testar IA e funções da Vercel localmente, prefira `npm run dev:vercel`.
 - O arquivo `CHANGELOG_PENDING.md` deve ser atualizado sempre que houver alterações construtivas no repositório.
 - A branch `producao` não deve mais ser usada como destino de release ou de desenvolvimento.
