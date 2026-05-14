@@ -3,7 +3,6 @@ import { AlertCircle, Bot, Send, Sparkles, Trash2 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useData } from '../context/DataContext';
-import { EDITAIS_CONTEXT } from '../editais-context';
 import { infraData } from '../data/infraBR_parser';
 
 type ChatMessage = {
@@ -112,8 +111,7 @@ export function AIAssistant() {
           UF: d.sigla_uf,
           Nota: d.infra_br,
           Rank: d.rank
-        })),
-        normativos_contexto: String(EDITAIS_CONTEXT || '').slice(0, 16000)
+        }))
       };
 
       const response = await fetch('/api/ai', {

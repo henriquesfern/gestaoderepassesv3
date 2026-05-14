@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { parseData } from '../data/parser';
 
-export type AppData = ReturnType<typeof parseData>;
+type ParseData = typeof import('../data/parser').parseData;
+export type AppData = ReturnType<ParseData>;
 
 interface DataContextType {
   appData: AppData | null;
@@ -14,13 +14,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [dataState, setDataState] = useState<DataContextType>({ appData: null, isLoading: true });
 
   useEffect(() => {
-    // We defer the execution using setTimeout so that initial paint is not blocked
-    const timer = setTimeout(() => {
+    let isMounted = true;
+
+    // We defer the execution using setTimeout so that initial paint is not blocked.
+    const timer = setTimeout(async () => {
+      const { parseData } = await import('../data/parser');
       const data = parseData();
-      setDataState({ appData: data, isLoading: false });
+
+      if (isMounted) {
+        setDataState({ appData: data, isLoading: false });
+      }
     }, 10);
-    
-    return () => clearTimeout(timer);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
   }, []);
 
   if (dataState.isLoading) {
