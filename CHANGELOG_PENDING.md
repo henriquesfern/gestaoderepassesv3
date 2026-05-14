@@ -47,3 +47,9 @@
 - **Protocolo de avaliação antes de PR ou continuação local**:
   - Registrado no AGENTS.md o critério obrigatório de avaliar coesão, impacto estrutural, risco de regressão, validação executada e pendência residual antes de decidir entre continuar localmente ou sincronizar no GitHub.
   - Definida a regra de recomendar PR primeiro quando o bloco já estiver validado e a próxima frente aumentar a complexidade ou mudar outra área estrutural.
+## Registro automático - 14/05/2026, 12:11
+
+- **Arquitetura lazy para gráficos**:
+  - Desacoplei painéis de gráficos pesados em componentes assíncronos nas visões Insights, ECGeral, Financeira, Fiscal e Infra-BR, reduzindo o carregamento inicial do bloco de visualização.
+  - Removi o chunk manual único de recharts no Vite e deixei o bundler separar mapas, infraestrutura de visualização e cartões de gráficos por demanda.
+  - Validei a nova arquitetura com lint e build, sem retorno do aviso anterior de chunk de gráficos acima de 500 kB.
