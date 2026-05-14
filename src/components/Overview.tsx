@@ -1,6 +1,5 @@
 import React from 'react';
 import { useData } from '../context/DataContext';
-import { infraData } from '../data/infraBR_parser';
 import type { EntidadeSelecionada } from '../types';
 
 import { useOverviewMetrics } from '../hooks/useOverviewMetrics';
@@ -74,7 +73,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               stateData={metrics.stateData}
               stateBreakdownData={metrics.stateBreakdownData}
               sortedStateData={metrics.sortedStateData}
-              infraData={infraData}
+              infraData={appData.infraBR}
               totalGlobalRepasse={metrics.totalGlobalRepasse}
               maxStateValue={metrics.maxStateValue}
               getStateColor={metrics.getStateColor}

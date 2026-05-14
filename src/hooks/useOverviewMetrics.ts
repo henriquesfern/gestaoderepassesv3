@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from 'react';
 import { geoMercator } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
-import { infraData } from '../data/infraBR_parser';
 import { getStateSigla } from '../data/regions';
 import { getCityCoords } from '../data/municipalities';
 import { EntidadeSelecionada } from '../types';
@@ -25,6 +24,7 @@ export function useOverviewMetrics(
   colorScaleEnd: string
 ) {
   const { appData } = useData();
+  const infraData = appData.infraBR;
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [selectedInfraDimension, setSelectedInfraDimension] = useState<string | null>(null);

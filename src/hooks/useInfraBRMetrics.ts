@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { infraData } from '../data/infraBR_parser';
 import { useData } from '../context/DataContext';
 
 export const stateSiglaToName: Record<string, string> = {
@@ -15,6 +14,7 @@ export const nameToSigla = Object.fromEntries(Object.entries(stateSiglaToName).m
 
 export function useInfraBRMetrics() {
   const { appData } = useData();
+  const infraData = appData.infraBR;
   const [selectedState, setSelectedState] = useState<string>('SP');
   const [selectedDimension, setSelectedDimension] = useState<string>('SANEAMENTO BÁSICO');
 
@@ -117,6 +117,7 @@ export function useInfraBRMetrics() {
       selectedDimension, setSelectedDimension
     },
     metrics: {
+      infraData,
       stateRepasse,
       stateRepasseBreakdown,
       correlationData,

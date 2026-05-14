@@ -18,12 +18,14 @@ export function InfraBRInsights() {
         />
 
         <InfraBRMapView 
+          infraData={metrics.infraData}
           stateRepasse={metrics.stateRepasse}
           stateRepasseBreakdown={metrics.stateRepasseBreakdown}
           setSelectedState={state.setSelectedState}
         />
 
         <InfraBRStateDetails 
+          infraData={metrics.infraData}
           selectedState={state.selectedState}
           setSelectedState={state.setSelectedState}
           selectedDimension={state.selectedDimension}

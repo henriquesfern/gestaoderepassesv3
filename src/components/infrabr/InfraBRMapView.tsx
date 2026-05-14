@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleLinear } from 'd3-scale';
 import { geoMercator } from 'd3-geo';
-import { infraData } from '../../data/infraBR_parser';
+import type { InfraRuntimeData } from '../../data/runtime-loaders';
 
 const geoUrl = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson";
 
 interface InfraBRMapViewProps {
+  infraData: InfraRuntimeData;
   stateRepasse: Map<string, number>;
   stateRepasseBreakdown: Map<string, { fomento26: number, fomento25: number, patrocinio25: number }>;
   setSelectedState: (state: string) => void;
@@ -14,7 +15,7 @@ interface InfraBRMapViewProps {
 
 const formatBRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(val);
 
-export function InfraBRMapView({ stateRepasse, stateRepasseBreakdown, setSelectedState }: InfraBRMapViewProps) {
+export function InfraBRMapView({ infraData, stateRepasse, stateRepasseBreakdown, setSelectedState }: InfraBRMapViewProps) {
   const [geoData, setGeoData] = useState<any>(null);
   const [mapTooltip, setMapTooltip] = useState<{content: string, infraBr?: number, rank?: number, totalRepasse?: number, fomento26?: number, fomento25?: number, patrocinio25?: number, x: number, y: number} | null>(null);
 
