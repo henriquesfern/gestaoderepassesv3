@@ -177,6 +177,36 @@ Ordem recomendada:
 4. abrir commit/PR
 5. validar preview da Vercel apenas como confirmação final
 
+## Execução assistida do fluxo remoto
+
+Quando o trabalho local estiver pronto para sincronismo, o agente deve apresentar uma conferência antes de executar o pacote remoto.
+
+A conferência deve mostrar:
+
+- branch atual e branch alvo;
+- arquivos alterados;
+- escopo do pacote;
+- comandos já executados e resultado;
+- comandos que ainda serão executados;
+- estado esperado do `CHANGELOG_PENDING.md`;
+- riscos residuais.
+
+Depois dessa conferência, o agente deve pedir uma confirmação única para executar tudo de uma vez.
+
+Com a confirmação, o fluxo pode incluir:
+
+1. `npm run dev:doctor`;
+2. `npm run dev:check`;
+3. `npm run flow:prepare-pr`;
+4. commit e push do branch;
+5. abertura do PR;
+6. acompanhamento de GitHub Actions e preview da Vercel;
+7. marcação do PR como pronto para revisão;
+8. merge do PR;
+9. atualização local da `main`;
+10. `npm run flow:finalize-main`;
+11. PR operacional separado para limpar o `CHANGELOG_PENDING.md`, caso a proteção da `main` bloqueie push direto.
+
 ## Resumo prático
 
 Se quiser a versão mais curta possível:
