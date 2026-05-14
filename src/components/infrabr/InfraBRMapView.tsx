@@ -3,8 +3,7 @@ import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import { scaleLinear } from 'd3-scale';
 import { geoMercator } from 'd3-geo';
 import type { InfraRuntimeData } from '../../data/runtime-loaders';
-
-const geoUrl = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson";
+import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../../lib/brazilGeo';
 
 interface InfraBRMapViewProps {
   infraData: InfraRuntimeData;
@@ -20,7 +19,7 @@ export function InfraBRMapView({ infraData, stateRepasse, stateRepasseBreakdown,
   const [mapTooltip, setMapTooltip] = useState<{content: string, infraBr?: number, rank?: number, totalRepasse?: number, fomento26?: number, fomento25?: number, patrocinio25?: number, x: number, y: number} | null>(null);
 
   useEffect(() => {
-    fetch(geoUrl).then(res => res.json()).then(data => setGeoData(data));
+    loadBrazilStatesGeoJson().then(data => setGeoData(data));
   }, []);
 
   const mapProjection = useMemo(() => {
@@ -48,7 +47,7 @@ export function InfraBRMapView({ infraData, stateRepasse, stateRepasseBreakdown,
           height={500}
           style={{ width: "100%", height: "100%", maxWidth: "800px" }}
         >
-          <Geographies geography={geoData || geoUrl}>
+          <Geographies geography={geoData || BRAZIL_STATES_GEOJSON_URL}>
             {({ geographies }) =>
               geographies.map(geo => {
                 const ufSigla = geo.properties.sigla;

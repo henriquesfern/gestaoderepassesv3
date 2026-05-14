@@ -23,6 +23,24 @@ Para reduzir trabalho manual e manter o fluxo consistente, o agente DEVE usar os
 - Depois de concluir merge na `main`, executar `flow:finalize-main`.
 - O arquivo `CHANGELOG_PENDING.md` só deve permanecer com conteúdo enquanto existirem entregas ainda não sincronizadas.
 
+## Protocolo de Avaliação Antes de Continuar ou Sincronizar
+
+Antes de decidir entre seguir com novas alterações locais ou abrir PR do bloco atual, o agente DEVE fazer uma avaliação explícita do estado do trabalho e apresentar a recomendação ao usuário.
+
+### Critérios mínimos de avaliação
+
+- **Coesão do bloco atual**: verificar se as mudanças formam um pacote funcional fechado e compreensível.
+- **Impacto estrutural**: verificar se os arquivos alterados atingem runtime, build, dados centrais, roteamento, integrações ou componentes globais.
+- **Risco de regressão**: considerar se já houve regressão recente, se o bloco alterou comportamento crítico ou se a próxima etapa tende a aumentar muito a superfície de risco.
+- **Validação executada**: considerar se `lint`, `build` e outras validações relevantes já passaram.
+- **Pendência residual**: identificar se o que falta é um refinamento incremental ou uma nova frente estrutural independente.
+
+### Regra de decisão
+
+- Se o bloco atual já entrega ganho técnico relevante, está validado e a próxima etapa aumenta a complexidade ou muda outra área importante, a recomendação padrão DEVE ser **abrir PR e sincronizar primeiro**.
+- Se o bloco atual ainda está incompleto, depende diretamente de uma continuação imediata pequena ou ficaria artificialmente fragmentado, o agente PODE recomendar **seguir localmente antes da PR**.
+- O agente DEVE sempre expor essa avaliação em pt-BR antes de sugerir o próximo passo quando houver dúvida razoável sobre continuar ou sincronizar.
+
 ## Protocolo de Criticidade de Ações e Prevenção de Falhas
 
 Para evitar perdas de estrutura, alterações drásticas e quebras do sistema, todas as ações devem ser avaliadas sob a ótica de **4 níveis de criticidade**. Dependendo do nível, o agente DEVE seguir o protocolo adequado ANTES de executar as modificações.

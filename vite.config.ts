@@ -25,6 +25,15 @@ export default defineConfig(({ mode }) => {
             }
 
             if (
+              id.includes('/d3-') ||
+              id.includes('\\d3-') ||
+              id.includes('node_modules/d3') ||
+              id.includes('internmap')
+            ) {
+              return 'viz-core';
+            }
+
+            if (
               id.includes('react-markdown') ||
               id.includes('remark-gfm') ||
               id.includes('remark-math') ||
@@ -35,12 +44,16 @@ export default defineConfig(({ mode }) => {
             }
 
             if (
-              id.includes('react-simple-maps') ||
-              id.includes('d3-geo') ||
-              id.includes('d3-scale') ||
               id.includes('recharts')
             ) {
-              return 'visualization';
+              return 'charts';
+            }
+
+            if (
+              id.includes('react-simple-maps') ||
+              id.includes('topojson-client')
+            ) {
+              return 'maps';
             }
 
             return undefined;
