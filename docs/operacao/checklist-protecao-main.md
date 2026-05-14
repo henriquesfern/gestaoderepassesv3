@@ -31,7 +31,7 @@ Criar uma branch protection rule específica para `producao` com uma das abordag
 
 - manter `.github/CODEOWNERS` apontando para `@henriquesfern`
 - manter a CI com job único `qualidade` para evitar ambiguidade em required checks
-- manter o `CHANGELOG_PENDING.md` atualizado em toda entrega
+- manter o `CHANGELOG_PENDING.md` local atualizado em toda entrega, sem versioná-lo
 
 ## Referências
 

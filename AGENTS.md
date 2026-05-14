@@ -2,26 +2,27 @@
 
 - **Idioma**: Todas as comunicações, resumos de alterações, comentários de código novos e metadados de sincronização DEVEM ser escritos em **Português do Brasil (pt-BR)**.
 - **Contexto**: Este projeto é um dashboard de monitoramento de fomento e infraestrutura voltado para o cenário brasileiro.
-- **Registro contínuo de alterações**: Imediatamente após realizar qualquer alteração construtiva no código, o agente DEVE documentar a mudança no arquivo `CHANGELOG_PENDING.md`.
+- **Registro contínuo de alterações**: Imediatamente após realizar qualquer alteração construtiva no código, o agente DEVE documentar a mudança no arquivo local `CHANGELOG_PENDING.md`.
 - **Sincronismo com GitHub**: Ao realizar exportação ou sincronismo com o GitHub, o assistente e a ferramenta de integração DEVEM usar o conteúdo de `CHANGELOG_PENDING.md` para gerar descrições completas de commit e PR, sempre em pt-BR.
+- **Changelog pendente local**: O arquivo `CHANGELOG_PENDING.md` NÃO deve ser versionado. Ele é um estado operacional local, ignorado pelo Git, usado para montar commit/PR e reiniciado após o merge.
 
 ## Automação Operacional Obrigatória
 
 Para reduzir trabalho manual e manter o fluxo consistente, o agente DEVE usar os scripts operacionais abaixo:
 
-- `npm run changelog:add -- --title "..." --item "..."`: registra uma entrega nova no `CHANGELOG_PENDING.md`
+- `npm run changelog:add -- --title "..." --item "..."`: registra uma entrega nova no `CHANGELOG_PENDING.md` local
 - `npm run changelog:status`: mostra se o changelog tem pendências
-- `npm run changelog:reset`: zera o `CHANGELOG_PENDING.md`, mantendo apenas o cabeçalho
+- `npm run changelog:reset`: zera o `CHANGELOG_PENDING.md` local, mantendo apenas o cabeçalho
 - `npm run flow:status`: mostra o estado do branch, do changelog e do workspace Git
 - `npm run flow:prepare-pr`: valida o branch atual, executa `build` e `lint` e gera um rascunho de PR em `.tmp/pr-body.md`
-- `npm run flow:finalize-main`: reseta o changelog no pós-merge quando o trabalho já foi sincronizado
+- `npm run flow:finalize-main`: reseta o changelog local no pós-merge quando o trabalho já foi sincronizado
 
 ### Regras de uso da automação
 
 - Depois de cada alteração construtiva, registrar a mudança com `changelog:add`.
 - Antes de abrir PR, executar `flow:prepare-pr`.
-- Depois de concluir merge na `main`, executar `flow:finalize-main`.
-- O arquivo `CHANGELOG_PENDING.md` só deve permanecer com conteúdo enquanto existirem entregas ainda não sincronizadas.
+- Depois de concluir merge na `main`, executar `flow:finalize-main` para limpar o estado local do changelog.
+- O arquivo local `CHANGELOG_PENDING.md` só deve permanecer com conteúdo enquanto existirem entregas ainda não sincronizadas.
 
 ## Protocolo de Execução Assistida de Sincronismo
 
@@ -35,7 +36,7 @@ O agente DEVE informar:
 - arquivos alterados e escopo funcional do pacote;
 - comandos já executados e resultado de cada um;
 - comandos que ainda serão executados, incluindo `dev:doctor`, `dev:check`, `flow:prepare-pr`, commit, push, abertura ou atualização de PR, marcação como pronto para revisão, merge e `flow:finalize-main`, quando aplicável;
-- estado esperado do `CHANGELOG_PENDING.md` antes e depois do merge;
+- estado esperado do `CHANGELOG_PENDING.md` local antes e depois do merge;
 - riscos residuais ou pontos que exigem atenção manual.
 
 ### Confirmação única do usuário
@@ -53,7 +54,7 @@ Com a confirmação, o agente PODE executar automaticamente:
 7. merge do PR quando checks obrigatórios estiverem verdes e o PR estiver mergeável;
 8. atualização local da `main`;
 9. execução de `flow:finalize-main`;
-10. criação e merge de PR operacional separado para limpar `CHANGELOG_PENDING.md`, caso a proteção da `main` impeça push direto.
+10. limpeza local do `CHANGELOG_PENDING.md`, sem PR operacional separado.
 
 Se qualquer etapa falhar, o agente DEVE parar, reportar a falha em pt-BR e recomendar a próxima ação segura.
 

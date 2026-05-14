@@ -79,5 +79,5 @@ Crie um arquivo `.env.local` quando necessário e configure:
 - O deploy Vercel usa `vercel.json` com build Vite e saída em `dist`.
 - Para ajustes visuais rápidos, prefira `npm run dev:ui`.
 - Para testar IA e funções da Vercel localmente, prefira `npm run dev:vercel`.
-- O arquivo `CHANGELOG_PENDING.md` deve ser atualizado sempre que houver alterações construtivas no repositório.
+- O arquivo local `CHANGELOG_PENDING.md` deve ser atualizado sempre que houver alterações construtivas; ele é usado para montar PRs e não entra em versionamento.
 - A branch `producao` não deve mais ser usada como destino de release ou de desenvolvimento.

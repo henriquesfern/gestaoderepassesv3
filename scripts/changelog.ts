@@ -40,7 +40,7 @@ function main() {
     }
     case 'reset': {
       resetChangelog();
-      console.log('CHANGELOG_PENDING.md zerado com sucesso.');
+      console.log('CHANGELOG_PENDING.md local zerado com sucesso.');
       break;
     }
     case 'add': {
@@ -52,7 +52,7 @@ function main() {
       }
 
       appendEntry(title, items);
-      console.log('Entrada adicionada ao CHANGELOG_PENDING.md.');
+      console.log('Entrada adicionada ao CHANGELOG_PENDING.md local.');
       break;
     }
     case 'body': {

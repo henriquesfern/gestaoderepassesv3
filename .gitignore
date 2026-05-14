@@ -9,3 +9,4 @@ coverage/
 .vercel
 .tmp/
 .env*.local
+CHANGELOG_PENDING.md

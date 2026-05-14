@@ -173,7 +173,7 @@ Ordem recomendada:
 
 1. testar localmente
 2. validar com `npm run dev:check`
-3. registrar as mudanças no `CHANGELOG_PENDING.md`
+3. registrar as mudanças no `CHANGELOG_PENDING.md` local
 4. abrir commit/PR
 5. validar preview da Vercel apenas como confirmação final
 
@@ -188,7 +188,7 @@ A conferência deve mostrar:
 - escopo do pacote;
 - comandos já executados e resultado;
 - comandos que ainda serão executados;
-- estado esperado do `CHANGELOG_PENDING.md`;
+- estado esperado do `CHANGELOG_PENDING.md` local;
 - riscos residuais.
 
 Depois dessa conferência, o agente deve pedir uma confirmação única para executar tudo de uma vez.
@@ -204,8 +204,7 @@ Com a confirmação, o fluxo pode incluir:
 7. marcação do PR como pronto para revisão;
 8. merge do PR;
 9. atualização local da `main`;
-10. `npm run flow:finalize-main`;
-11. PR operacional separado para limpar o `CHANGELOG_PENDING.md`, caso a proteção da `main` bloqueie push direto.
+10. `npm run flow:finalize-main` para limpar o changelog local.
 
 ## Resumo prático
 
