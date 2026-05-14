@@ -23,6 +23,40 @@ Para reduzir trabalho manual e manter o fluxo consistente, o agente DEVE usar os
 - Depois de concluir merge na `main`, executar `flow:finalize-main`.
 - O arquivo `CHANGELOG_PENDING.md` só deve permanecer com conteúdo enquanto existirem entregas ainda não sincronizadas.
 
+## Protocolo de Execução Assistida de Sincronismo
+
+Quando o bloco de trabalho estiver pronto para revisão, PR ou merge, o agente DEVE apresentar ao usuário uma conferência objetiva antes de executar o fluxo remoto completo.
+
+### Conferência obrigatória antes da execução
+
+O agente DEVE informar:
+
+- branch atual e branch alvo;
+- arquivos alterados e escopo funcional do pacote;
+- comandos já executados e resultado de cada um;
+- comandos que ainda serão executados, incluindo `dev:doctor`, `dev:check`, `flow:prepare-pr`, commit, push, abertura ou atualização de PR, marcação como pronto para revisão, merge e `flow:finalize-main`, quando aplicável;
+- estado esperado do `CHANGELOG_PENDING.md` antes e depois do merge;
+- riscos residuais ou pontos que exigem atenção manual.
+
+### Confirmação única do usuário
+
+Depois de apresentar a conferência, o agente DEVE solicitar confirmação explícita do usuário para executar o pacote completo de sincronismo em uma única sequência.
+
+Com a confirmação, o agente PODE executar automaticamente:
+
+1. validações locais necessárias;
+2. preparação do PR;
+3. commit e push do branch;
+4. abertura do PR;
+5. acompanhamento de CI e preview da Vercel;
+6. marcação do PR como pronto para revisão, quando ele tiver sido aberto como rascunho;
+7. merge do PR quando checks obrigatórios estiverem verdes e o PR estiver mergeável;
+8. atualização local da `main`;
+9. execução de `flow:finalize-main`;
+10. criação e merge de PR operacional separado para limpar `CHANGELOG_PENDING.md`, caso a proteção da `main` impeça push direto.
+
+Se qualquer etapa falhar, o agente DEVE parar, reportar a falha em pt-BR e recomendar a próxima ação segura.
+
 ## Protocolo de Avaliação Antes de Continuar ou Sincronizar
 
 Antes de decidir entre seguir com novas alterações locais ou abrir PR do bloco atual, o agente DEVE fazer uma avaliação explícita do estado do trabalho e apresentar a recomendação ao usuário.
