@@ -36,6 +36,7 @@ function toNumber(value: unknown): number {
   const normalized = String(value ?? '')
     .trim()
     .replace(/\u00A0/g, '')
+    .replace(/%/g, '')
     .replace(/\s+/g, '');
 
   if (!normalized) {
@@ -90,8 +91,8 @@ export async function loadInfraRuntimeData(): Promise<InfraRuntimeData> {
   }));
 
   const mediasBR = parseCsvRows<CsvRow>(mediasBRText).map((row) => ({
-    dimensao: pickField(row, ['dimensao']),
-    media_pais_pct: toNumber(pickField(row, ['media_pais_pct'])),
+    dimensao: pickField(row, ['dimensao', 'DimensÃ£o', 'Dimensão']),
+    media_pais_pct: toNumber(pickField(row, ['media_pais_pct', 'MÃ©dia do PaÃ­s', 'Média do País'])),
   }));
 
   const dimensoes = parseCsvRows<CsvRow>(dimensoesText).map((row) => ({
