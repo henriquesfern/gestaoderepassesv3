@@ -1,8 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { Suspense, lazy, useMemo } from 'react';
 import { useData } from '../context/DataContext';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ComposedChart, Line, Area } from 'recharts';
-import { ClipboardList, CheckCircle, TrendingDown } from 'lucide-react';
+import { CheckCircle, TrendingDown } from 'lucide-react';
 import type { EntidadeSelecionada } from '../types';
+import { ChartPanelFallback } from './shared/ChartPanelFallback';
+
+const FinancialRegionComparisonCard = lazy(async () => {
+  const module = await import('./financial/FinancialRegionComparisonCard');
+  return { default: module.FinancialRegionComparisonCard };
+});
+
+const FinancialAdjustmentFunnelCard = lazy(async () => {
+  const module = await import('./financial/FinancialAdjustmentFunnelCard');
+  return { default: module.FinancialAdjustmentFunnelCard };
+});
 
 interface FinancialPanelProps {
   data?: EntidadeSelecionada[];
@@ -16,8 +26,7 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
   const summary = useMemo(() => {
     let totalProp = 0;
     let totalConc = 0;
-    
-    // Some values might be missing or parsed as 0
+
     selecionados.forEach(item => {
       totalProp += item.VALOR_PROJETO || 0;
       totalConc += item.VALOR_REPASSE || 0;
@@ -26,7 +35,7 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
     return {
       totalProjeto: totalProp,
       totalConcedido: totalConc,
-      economia: totalProp - totalConc
+      economia: totalProp - totalConc,
     };
   }, [selecionados]);
 
@@ -41,10 +50,9 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
       data.Projeto += item.VALOR_PROJETO || 0;
       data.Concedido += item.VALOR_REPASSE || 0;
     });
-    return Array.from(map.values()).sort((a,b) => b.Projeto - a.Projeto);
+    return Array.from(map.values()).sort((a, b) => b.Projeto - a.Projeto);
   }, [selecionados]);
 
-  // Adjustments count (Ajustes de Valor Concedente = 'sim' or boolean based on CSV)
   const ajusteStats = useMemo(() => {
     let comAjuste = 0;
     let semAjuste = 0;
@@ -64,7 +72,6 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
   const formatBRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(val);
 
   const ORCAMENTO_TOTAL = 10000000;
-
   const tColorPrimary = theme === 'fomento' ? '#008f4c' : '#f59e0b';
   const tColorSecondary = theme === 'fomento' ? '#006837' : '#d97706';
   const textPrimaryClass = theme === 'fomento' ? 'text-[#008f4c]' : 'text-amber-500';
@@ -74,7 +81,7 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="p-6 bg-white border border-slate-200 shadow-sm relative overflow-hidden flex items-center justify-start gap-5">
-          <div className="absolute top-0 right-0 w-2 h-full z-20" style={{ backgroundColor: tColorPrimary }}></div>
+          <div className="absolute top-0 right-0 w-2 h-full z-20" style={{ backgroundColor: tColorPrimary }} />
           <div className={`p-4 rounded-lg shrink-0 relative z-10 w-[64px] h-[64px] flex items-center justify-center ${bgIconClass}`}>
             <CheckCircle className={textPrimaryClass} size={32} />
           </div>
@@ -91,7 +98,7 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
             </p>
           </div>
         </div>
-        
+
         <div className="p-6 bg-white border border-slate-200 shadow-sm flex items-center justify-start gap-5">
           <div className="p-4 bg-slate-50 rounded-lg shrink-0 flex items-center justify-center w-[64px] h-[64px]">
             <TrendingDown className="text-slate-500" size={32} />
@@ -105,50 +112,13 @@ export function FinancialPanel({ data, theme = 'fomento' }: FinancialPanelProps)
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <div className="lg:col-span-2 p-6 bg-white border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-6 border-b pb-2">Comparativo Solicitado vs. Repassado (Por Região)</h3>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={regionFinancial} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => `R$ ${(val / 1000000).toFixed(1)}M`} />
-                <Tooltip 
-                  formatter={(val: number) => formatBRL(val)}
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.375rem', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-                  itemStyle={{ color: '#f8fafc', fontWeight: 500 }}
-                  labelStyle={{ color: '#f8fafc', fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #334155', paddingBottom: '4px' }}
-                />
-                <Legend />
-                <Bar dataKey="Projeto" fill="#A0AAB2" name="Valor Solicitado" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Concedido" fill={tColorSecondary} name="Valor de Repasse" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Suspense fallback={<ChartPanelFallback className="lg:col-span-2 p-6 bg-white border border-slate-200 shadow-sm" />}>
+          <FinancialRegionComparisonCard regionFinancial={regionFinancial} formatBRL={formatBRL} tColorSecondary={tColorSecondary} />
+        </Suspense>
 
-        <div className="p-6 bg-white border border-slate-200 shadow-sm">
-          <h3 className="text-lg font-semibold text-slate-800 mb-6 border-b pb-2">Funil de Ajustes</h3>
-          <p className="text-sm text-slate-600 mb-4">
-            Proporção de projetos que tiveram o valor de repasse ajustado em relação à proposta original (identificado por 'sim' na coluna).
-          </p>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={ajusteStats} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" />
-                <YAxis dataKey="name" type="category" width={110} tick={{fontSize: 12}} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.375rem', color: '#f8fafc', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}
-                  itemStyle={{ color: '#f8fafc', fontWeight: 500 }}
-                  labelStyle={{ color: '#f8fafc', fontWeight: 'bold', marginBottom: '8px', borderBottom: '1px solid #334155', paddingBottom: '4px' }}
-                />
-                <Bar dataKey="items" fill={tColorPrimary} name="Qtd. Entidades" radius={[0, 4, 4, 0]} barSize={40} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Suspense fallback={<ChartPanelFallback />}>
+          <FinancialAdjustmentFunnelCard ajusteStats={ajusteStats} tColorPrimary={tColorPrimary} />
+        </Suspense>
       </div>
     </div>
   );

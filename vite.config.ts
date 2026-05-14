@@ -44,12 +44,6 @@ export default defineConfig(({ mode }) => {
             }
 
             if (
-              id.includes('recharts')
-            ) {
-              return 'charts';
-            }
-
-            if (
               id.includes('react-simple-maps') ||
               id.includes('topojson-client')
             ) {

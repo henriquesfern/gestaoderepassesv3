@@ -1,9 +1,22 @@
-import React, { useMemo } from 'react';
-import { ecGeralData, ECGeralType } from '../data/ECGeral';
+import React, { Suspense, lazy, useMemo } from 'react';
+import { ecGeralData } from '../data/ECGeral';
 import { useData } from '../context/DataContext';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { ChartPanelFallback } from './shared/ChartPanelFallback';
 
-const COLORS = ['#008f4c', '#003865', '#d4a017', '#e2e8f0', '#0284c7'];
+const InsightsECGeralCoverageCard = lazy(async () => {
+  const module = await import('./insights/InsightsECGeralCoverageCard');
+  return { default: module.InsightsECGeralCoverageCard };
+});
+
+const InsightsECGeralProportionCard = lazy(async () => {
+  const module = await import('./insights/InsightsECGeralProportionCard');
+  return { default: module.InsightsECGeralProportionCard };
+});
+
+const InsightsECGeralTypesCard = lazy(async () => {
+  const module = await import('./insights/InsightsECGeralTypesCard');
+  return { default: module.InsightsECGeralTypesCard };
+});
 
 const normalizeString = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/gi, '');
 
@@ -12,27 +25,24 @@ export function InsightsECGeral() {
   const stats = useMemo(() => {
     const allRepasses = [...appData.fomentoHistorico, ...appData.patrocinioHistorico];
     const repassesSet = new Set(allRepasses.map(r => normalizeString(r.ENTIDADE)));
-    
-    // We can also try matching sigla if present
-    
+
     let receivedAny = 0;
     let notReceived = 0;
 
-    const byState = new Map<string, { total: number, received: number }>();
+    const byState = new Map<string, { total: number; received: number }>();
 
     for (const ec of ecGeralData) {
       if (!ec.origem) continue;
-      
+
       const estado = ec.origem.replace('Crea-', '').toUpperCase();
       if (!byState.has(estado)) {
         byState.set(estado, { total: 0, received: 0 });
       }
-      
+
       const stateObj = byState.get(estado)!;
       stateObj.total++;
 
-      const isMatch = repassesSet.has(normalizeString(ec.denominacao)) || 
-                      (ec.sigla && repassesSet.has(normalizeString(ec.sigla)));
+      const isMatch = repassesSet.has(normalizeString(ec.denominacao)) || (ec.sigla && repassesSet.has(normalizeString(ec.sigla)));
 
       if (isMatch) {
         receivedAny++;
@@ -48,9 +58,9 @@ export function InsightsECGeral() {
         total: data.total,
         received: data.received,
         notReceived: data.total - data.received,
-        percent: data.total > 0 ? (data.received / data.total) * 100 : 0
+        percent: data.total > 0 ? (data.received / data.total) * 100 : 0,
       }))
-      .filter(s => s.state && s.state.length === 2) // only valid state
+      .filter(s => s.state && s.state.length === 2)
       .sort((a, b) => b.total - a.total);
 
     const typeCount = new Map<string, number>();
@@ -70,7 +80,7 @@ export function InsightsECGeral() {
       receivedAny,
       notReceived,
       stateData,
-      typeData
+      typeData,
     };
   }, [appData]);
 
@@ -83,7 +93,6 @@ export function InsightsECGeral() {
         </div>
       </div>
 
-      {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col justify-center">
           <h3 className="text-slate-500 font-medium text-sm mb-2">Total de Registros (EC Geral)</h3>
@@ -99,77 +108,18 @@ export function InsightsECGeral() {
         </div>
       </div>
 
-      {/* Graficos Principais */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold text-[#003865] mb-6">Cobertura por Estado (Top 10)</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.stateData.slice(0, 10)} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" />
-                <YAxis dataKey="state" type="category" width={40} />
-                <Tooltip 
-                  cursor={{fill: 'transparent'}}
-                  contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
-                />
-                <Legend />
-                <Bar dataKey="received" stackId="a" name="Com Repasse" fill="#008f4c" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="notReceived" stackId="a" name="Sem Repasse" fill="#d4a017" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Suspense fallback={<ChartPanelFallback className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm" />}>
+          <InsightsECGeralCoverageCard stateData={stats.stateData} />
+        </Suspense>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold text-[#003865] mb-6">Proporção Geral: Receberam vs Não Receberam</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Receberam Repasse', value: stats.receivedAny },
-                    { name: 'Sem Repasse', value: stats.notReceived }
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={80}
-                  outerRadius={120}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  <Cell fill="#008f4c" />
-                  <Cell fill="#d4a017" />
-                </Pie>
-                <Tooltip 
-                  contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
-                  formatter={(value: number, name: string) => [`${value} entidades (${((value/stats.total)*100).toFixed(1)}%)`, name]}
-                />
-                <Legend verticalAlign="bottom" height={36} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <Suspense fallback={<ChartPanelFallback className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm" />}>
+          <InsightsECGeralProportionCard total={stats.total} receivedAny={stats.receivedAny} notReceived={stats.notReceived} />
+        </Suspense>
 
-        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm lg:col-span-2">
-          <h3 className="text-lg font-bold text-[#003865] mb-6">Tipos de Registros na Base (EC Geral)</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.typeData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip 
-                  cursor={{fill: 'transparent'}}
-                  contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
-                />
-                <Bar dataKey="value" name="Quantidade" fill="#003865" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
+        <Suspense fallback={<ChartPanelFallback className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm lg:col-span-2" />}>
+          <InsightsECGeralTypesCard typeData={stats.typeData} />
+        </Suspense>
       </div>
     </div>
   );
