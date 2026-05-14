@@ -35,3 +35,15 @@
   - Corrigido o loader de medias_BR para reconhecer os cabeÃ§alhos reais exportados do CSV.
   - Ajustado o parser numÃ©rico para tratar percentuais com `%`, restaurando os valores das seis dimensÃµes da mÃ©dia nacional.
   - Validado o painel com o carregamento correto das notas e mantidos `lint` e `build` em estado verde.
+## Registro automÃ¡tico - 14/05/2026, 09:20
+
+- **OtimizaÃ§Ã£o do chunk de visualizaÃ§Ã£o e internalizaÃ§Ã£o do mapa do Brasil**:
+  - Internalizado o GeoJSON dos estados do Brasil em `public/maps`, removendo a dependÃªncia de runtime em `raw.githubusercontent.com`.
+  - Criado helper compartilhado para carregamento do mapa nacional e aplicado nos blocos de visÃ£o geral e Infra-BR.
+  - Separado o antigo chunk `visualization` em `maps`, `viz-core` e `charts`, eliminando o aviso de chunk circular do build.
+  - Reduzido o bloco de mapas para cerca de 19 kB e baixado o chunk de grÃ¡ficos para cerca de 527 kB.
+## Registro automático - 14/05/2026, 09:51
+
+- **Protocolo de avaliação antes de PR ou continuação local**:
+  - Registrado no AGENTS.md o critério obrigatório de avaliar coesão, impacto estrutural, risco de regressão, validação executada e pendência residual antes de decidir entre continuar localmente ou sincronizar no GitHub.
+  - Definida a regra de recomendar PR primeiro quando o bloco já estiver validado e a próxima frente aumentar a complexidade ou mudar outra área estrutural.

@@ -64,7 +64,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               theme={theme}
               mapProjection={metrics.mapProjection}
               geoData={state.geoData}
-              geoUrl="https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson"
+              geoUrl={state.geoUrl}
               selectedState={state.selectedState}
               setSelectedState={state.setSelectedState}
               setSelectedInfraDimension={state.setSelectedInfraDimension}

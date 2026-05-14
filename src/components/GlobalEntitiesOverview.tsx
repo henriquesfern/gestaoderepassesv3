@@ -3,8 +3,7 @@ import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps
 import { geoMercator, geoCentroid } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
-
-const geoUrl = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson";
+import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
 
 const UF_TO_REGION: Record<string, string> = {
   AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
@@ -33,7 +32,7 @@ export function GlobalEntitiesOverview() {
   } | null>(null);
 
   useEffect(() => {
-    fetch(geoUrl).then(res => res.json()).then(data => setGeoData(data));
+    loadBrazilStatesGeoJson().then(data => setGeoData(data));
   }, []);
 
   const aggregatedData = useMemo(() => {
@@ -113,7 +112,7 @@ export function GlobalEntitiesOverview() {
             height={1000}
             style={{ width: "100%", height: "100%", maxHeight: "100%" }}
           >
-            <Geographies geography={geoData || geoUrl}>
+            <Geographies geography={geoData || BRAZIL_STATES_GEOJSON_URL}>
               {({ geographies }) =>
                 geographies.map(geo => {
                   const ufSigla = geo.properties.sigla;

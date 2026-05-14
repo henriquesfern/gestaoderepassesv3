@@ -4,9 +4,8 @@ import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
 import { getStateSigla } from '../data/regions';
 import { getCityCoords } from '../data/municipalities';
+import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
 import { EntidadeSelecionada } from '../types';
-
-const geoUrl = "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson";
 
 export const UF_TO_REGION: Record<string, string> = {
   AC: 'Norte', AP: 'Norte', AM: 'Norte', PA: 'Norte', RO: 'Norte', RR: 'Norte', TO: 'Norte',
@@ -33,7 +32,7 @@ export function useOverviewMetrics(
   const [geoData, setGeoData] = useState<any>(null);
 
   useEffect(() => {
-    fetch(geoUrl).then(res => res.json()).then(data => setGeoData(data));
+    loadBrazilStatesGeoJson().then(data => setGeoData(data));
   }, []);
 
   const clearFilters = () => {
@@ -397,7 +396,8 @@ export function useOverviewMetrics(
       selectedInfraDimension, setSelectedInfraDimension,
       selectedInfraComponent, setSelectedInfraComponent,
       mapTooltip, setMapTooltip,
-      geoData, setGeoData
+      geoData, setGeoData,
+      geoUrl: BRAZIL_STATES_GEOJSON_URL
     },
     metrics: {
       filteredData, kpis, regionData, stateData, stateBreakdownData, evolucaoData,
