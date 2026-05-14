@@ -29,3 +29,9 @@
   - Tornado o parser principal assíncrono, carregando CSVs estáticos por fetch em vez de embutir bases grandes em módulos TypeScript.
   - Movido o consumo de Infra-BR para o appData do DataProvider, removendo imports síncronos dos blocos pesados em vários componentes e hooks.
   - Reduzido o chunk parser para cerca de 38 kB e eliminado o antigo bloco gigante de infraBR_parser do bundle.
+## Registro automÃ¡tico - 14/05/2026, 00:00
+
+- **Hotfix dos cards de Infra-BR na VisÃ£o Geral Corrente**:
+  - Corrigido o loader de medias_BR para reconhecer os cabeÃ§alhos reais exportados do CSV.
+  - Ajustado o parser numÃ©rico para tratar percentuais com `%`, restaurando os valores das seis dimensÃµes da mÃ©dia nacional.
+  - Validado o painel com o carregamento correto das notas e mantidos `lint` e `build` em estado verde.
