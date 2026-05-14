@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { EDITAIS_CONTEXT } from '../../api/_lib/editais-context.ts';
+import { EDITAIS_CONTEXT } from '../../api/_lib/editais-context.js';
 
 export async function askGemini(messages: any[], userText: string, contextData: any) {
   const apiKey = process.env.GEMINI_API_KEY;

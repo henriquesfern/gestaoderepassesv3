@@ -17,3 +17,8 @@
 - **Hotfix da IA em runtime na Vercel**:
   - Movido o artefato editais-context para api/_lib para garantir empacotamento junto da função serverless.
   - Ajustados os imports da rota /api/ai e do gerador de contexto para eliminar o ERR_MODULE_NOT_FOUND em produção.
+## Registro automático - 13/05/2026, 21:16
+
+- **Hotfix de compatibilidade do contexto normativo na Vercel**:
+  - Convertido o artefato editais-context para arquivo JavaScript em api/_lib para compatibilidade direta com o runtime serverless.
+  - Atualizados os imports da rota /api/ai e do gerador de contexto para usar o caminho explícito em .js.
