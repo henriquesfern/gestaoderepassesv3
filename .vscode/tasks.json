@@ -1,0 +1,62 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Projeto: diagnóstico local",
+      "type": "shell",
+      "command": "npm run dev:doctor",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Projeto: UI rápida local",
+      "type": "shell",
+      "command": "npm run dev:ui",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Projeto: Vercel local",
+      "type": "shell",
+      "command": "npm run dev:vercel",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Projeto: puxar env da Vercel",
+      "type": "shell",
+      "command": "npm run dev:env:pull",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Projeto: preview local do build",
+      "type": "shell",
+      "command": "npm run dev:preview",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Projeto: validar antes de PR",
+      "type": "shell",
+      "command": "npm run dev:check",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

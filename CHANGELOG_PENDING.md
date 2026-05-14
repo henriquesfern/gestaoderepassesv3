@@ -53,3 +53,9 @@
   - Desacoplei painéis de gráficos pesados em componentes assíncronos nas visões Insights, ECGeral, Financeira, Fiscal e Infra-BR, reduzindo o carregamento inicial do bloco de visualização.
   - Removi o chunk manual único de recharts no Vite e deixei o bundler separar mapas, infraestrutura de visualização e cartões de gráficos por demanda.
   - Validei a nova arquitetura com lint e build, sem retorno do aviso anterior de chunk de gráficos acima de 500 kB.
+## Registro automático - 14/05/2026, 13:25
+
+- **Estrutura local de desenvolvimento no VS Code**:
+  - Adicionei scripts dedicados para UI rápida, simulação local da Vercel, preview do build, checagem pré-PR e diagnóstico do ambiente local.
+  - Criei tarefas do VS Code para rodar os fluxos principais sem precisar decorar comandos no terminal.
+  - Documentei em detalhe o uso do ambiente local no guia docs/operacao/ambiente-local-vscode.md e atualizei o README com o novo fluxo recomendado.
