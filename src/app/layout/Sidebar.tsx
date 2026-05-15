@@ -1,8 +1,9 @@
 import type React from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { appTheme } from './theme';
-import { menuItems, sectionBreakAfter, type TabId } from '../navigation/tabs';
+import { isPresentationTabHidden, menuItems, sectionBreakAfter, type TabId } from '../navigation/tabs';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,9 +12,15 @@ function cn(...inputs: ClassValue[]) {
 interface SidebarProps {
   activeTab: TabId;
   onSelectTab: (id: TabId) => void;
+  presentationMode: boolean;
+  onTogglePresentationMode: () => void;
 }
 
-export function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
+export function Sidebar({ activeTab, onSelectTab, presentationMode, onTogglePresentationMode }: SidebarProps) {
+  const visibleMenuItems = presentationMode
+    ? menuItems.filter((item) => !isPresentationTabHidden(item.id))
+    : menuItems;
+
   const renderMenuItem = (id: TabId, label: string, Icon: React.ElementType, depth: number = 0) => (
     <button
       key={id}
@@ -38,7 +45,7 @@ export function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-0.5 pb-4 px-3">
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <div key={item.id}>
             {renderMenuItem(item.id, item.label, item.icon, item.depth)}
             {sectionBreakAfter.includes(item.id) && <div className="my-2 border-t border-white/10 mx-2"></div>}
@@ -46,9 +53,26 @@ export function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="p-4 mt-auto text-xs opacity-70 text-center border-t border-white/10 pt-4 shrink-0">
-        Base de Dados Oficial<br />
-        Fomento e Patrocínio
+      <div className="p-4 mt-auto border-t border-white/10 pt-4 shrink-0">
+        <div className="flex items-center justify-center gap-3">
+          <div className="text-xs opacity-70 text-center">
+            Base de Dados Oficial<br />
+            Fomento e Patrocínio
+          </div>
+          <button
+            type="button"
+            onClick={onTogglePresentationMode}
+            title={presentationMode ? 'Mostrar menu completo' : 'Ativar menu de apresentação'}
+            aria-label={presentationMode ? 'Mostrar menu completo' : 'Ativar menu de apresentação'}
+            aria-pressed={presentationMode}
+            className={cn(
+              'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 transition-colors',
+              presentationMode ? 'bg-white/15 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'
+            )}
+          >
+            {presentationMode ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
       </div>
     </aside>
   );

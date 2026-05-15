@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -6,7 +6,7 @@ import { FloatingControls } from './shared';
 import { useData } from './context/DataContext';
 import { Sidebar } from './app/layout/Sidebar';
 import { appTheme } from './app/layout/theme';
-import { getHeaderTitle, type TabId } from './app/navigation/tabs';
+import { getHeaderTitle, getPresentationFallbackTab, isPresentationTabHidden, type TabId } from './app/navigation/tabs';
 import { TabContent } from './app/router/TabContent';
 
 function cn(...inputs: ClassValue[]) {
@@ -15,8 +15,20 @@ function cn(...inputs: ClassValue[]) {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [presentationMode, setPresentationMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('presentationMode') === 'true';
+  });
   const { appData } = useData();
   console.log('Workflow V3: Carregando dados validados...');
+
+  useEffect(() => {
+    window.localStorage.setItem('presentationMode', String(presentationMode));
+
+    if (presentationMode && isPresentationTabHidden(activeTab)) {
+      setActiveTab(getPresentationFallbackTab());
+    }
+  }, [activeTab, presentationMode]);
 
   return (
     <div className={cn('relative min-h-screen flex h-screen overflow-hidden font-sans', appTheme.colors.bg, appTheme.colors.text)}>
@@ -26,7 +38,12 @@ export default function App() {
         </div>
       </div>
 
-      <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        presentationMode={presentationMode}
+        onTogglePresentationMode={() => setPresentationMode((current) => !current)}
+      />
 
       <main className="flex-1 flex flex-col h-full overflow-hidden relative">
         <header className="h-16 flex items-center px-8 border-b border-slate-200 bg-white/80 backdrop-blur-sm z-10 shrink-0 shadow-sm">

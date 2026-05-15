@@ -116,6 +116,18 @@ Quando, durante uma conversa ou avaliação, algum ponto for classificado como *
 - O item registrado deve informar status, origem, contexto, criticidade estimada e próxima ação sugerida.
 - Itens do `ROADMAP.md` não substituem o `CHANGELOG_PENDING.md`; quando houver alteração construtiva em arquivo, o changelog pendente local continua obrigatório.
 
+## Protocolo de Validação Visual em Prévia Web
+
+Quando a alteração afetar interface, navegação, layout, interação visual, menu lateral, abas, gráficos ou experiência de uso, o agente DEVE validar a mudança também por prévia web/local antes de considerar o bloco pronto para PR.
+
+### Regras obrigatórias
+
+- Executar as validações técnicas cabíveis, como `npm.cmd run dev:check`, antes ou junto da validação visual.
+- Iniciar a prévia local do app quando necessário e informar a URL usada, normalmente `http://localhost:3000`.
+- Conferir visualmente se a tela carrega, se a interação alterada aparece, se não há sobreposição evidente e se o fluxo principal continua navegável.
+- Encerrar processos locais iniciados apenas para teste quando eles não forem mais necessários.
+- Registrar no resumo da entrega quais validações visuais foram feitas e qualquer limitação observada.
+
 ## Protocolo de Avaliação Antes de Continuar ou Sincronizar
 
 Antes de decidir entre seguir com novas alterações locais ou abrir PR do bloco atual, o agente DEVE fazer uma avaliação explícita do estado do trabalho e apresentar a recomendação ao usuário.
