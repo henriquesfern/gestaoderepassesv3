@@ -20,11 +20,11 @@ Este documento centraliza melhorias futuras, próximos passos, ideias em avalia�
 
 ### Padronizar modelo canônico de dados em Português-BR
 
-- **Status**: Em aberto, dependente da conclusão da Fase 0 + Fase 1 da governança de dados.
+- **Status**: Em avaliação para início da Fase 2.
 - **Origem**: Conversa de 15/05/2026 sobre normalização dos dados de Infra-BR, fomento, patrocínio e entidades.
 - **Contexto**: A futura Fase 2 deve padronizar nomes de tabelas, campos e schemas usando identificadores em Português-BR, preservando clareza de domínio para o projeto. Exemplos desejados: `infra_componentes` em vez de `infra_components`, `entidades` em vez de `entities`, `projetos` em vez de `projects` e `repasses` em vez de `grants`.
 - **Criticidade estimada**: Nível 3, pois a padronização pode atingir contratos internos, adapters, schemas, hooks e componentes consumidores.
-- **Próxima ação sugerida**: Após o inventário e a definição das fontes oficiais, propor um dicionário canônico em pt-BR com mapeamento entre colunas brutas, campos normalizados e consumidores no app.
+- **Próxima ação sugerida**: Usar `docs/dados/dicionario-canonico-pt-br.md` como base e, antes de alterar o runtime, aprovar uma primeira entrega técnica pequena com tipos canônicos e validadores de apoio.
 
 ## Em Avaliação
 
