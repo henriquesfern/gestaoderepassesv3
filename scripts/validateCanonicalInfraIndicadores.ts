@@ -8,10 +8,12 @@ import {
   infraDimensaoCanonicaSchema,
   infraEstadoCanonicoSchema,
   infraIndicadorCanonicoSchema,
+  infraValorComponenteCanonicoSchema,
   infraValorDimensaoCanonicoSchema,
   normalizarInfraEstrutura,
   normalizarInfraEstados,
   normalizarInfraIndicadores,
+  normalizarInfraValoresComponentes,
   normalizarInfraValoresDimensoes,
 } from '../src/data/canonico';
 
@@ -19,6 +21,12 @@ const estados = normalizarInfraEstados(infraBRData);
 const estrutura = normalizarInfraEstrutura(dimensoesData, componentesData);
 const valoresDimensoes = normalizarInfraValoresDimensoes(
   dimensoesData,
+  estrutura.infra_dimensoes.map((dimensao) => dimensao.dimensao_id),
+  estados.infra_estados.map((estado) => estado.uf),
+);
+const valoresComponentes = normalizarInfraValoresComponentes(
+  componentesData,
+  estrutura.infra_componentes.map((componente) => componente.componente_id),
   estrutura.infra_dimensoes.map((dimensao) => dimensao.dimensao_id),
   estados.infra_estados.map((estado) => estado.uf),
 );
@@ -80,6 +88,44 @@ if (valoresDimensoes.classes_invalidas.length > 0) {
   );
 }
 
+if (valoresComponentes.ufs_invalidas.length > 0) {
+  throw new Error(`UFs invalidas nos valores por componente: ${valoresComponentes.ufs_invalidas.join(', ')}`);
+}
+
+if (valoresComponentes.estados_sem_cadastro.length > 0) {
+  throw new Error(
+    `Valores por componente sem estado cadastrado: ${valoresComponentes.estados_sem_cadastro.join(', ')}`,
+  );
+}
+
+if (valoresComponentes.componentes_sem_cadastro.length > 0) {
+  throw new Error(
+    `Valores por componente sem componente cadastrado: ${valoresComponentes.componentes_sem_cadastro.join(', ')}`,
+  );
+}
+
+if (valoresComponentes.dimensoes_sem_cadastro.length > 0) {
+  throw new Error(
+    `Valores por componente sem dimensao cadastrada: ${valoresComponentes.dimensoes_sem_cadastro.join(', ')}`,
+  );
+}
+
+if (valoresComponentes.pares_duplicados.length > 0) {
+  throw new Error(`Pares UF/componente duplicados: ${valoresComponentes.pares_duplicados.join(', ')}`);
+}
+
+if (valoresComponentes.rankings_invalidos.length > 0) {
+  throw new Error(
+    `Rankings invalidos nos valores por componente: ${valoresComponentes.rankings_invalidos.join(', ')}`,
+  );
+}
+
+if (valoresComponentes.classes_invalidas.length > 0) {
+  throw new Error(
+    `Classes de cor invalidas nos valores por componente: ${valoresComponentes.classes_invalidas.join(', ')}`,
+  );
+}
+
 if (indicadores.indicadores_duplicados.length > 0) {
   throw new Error(
     `Indicadores duplicados no detalhamento Infra-BR: ${indicadores.indicadores_duplicados.join(', ')}`,
@@ -108,10 +154,14 @@ valoresDimensoes.infra_valores_dimensoes.forEach((valorDimensao) => {
   infraValorDimensaoCanonicoSchema.parse(valorDimensao);
 });
 
+valoresComponentes.infra_valores_componentes.forEach((valorComponente) => {
+  infraValorComponenteCanonicoSchema.parse(valorComponente);
+});
+
 indicadores.infra_indicadores.forEach((indicador) => {
   infraIndicadorCanonicoSchema.parse(indicador);
 });
 
 console.log(
-  `Infra-BR canonico validado: ${estados.infra_estados.length} estados, ${estrutura.infra_dimensoes.length} dimensoes, ${valoresDimensoes.infra_valores_dimensoes.length} valores por dimensao, ${estrutura.infra_componentes.length} componentes e ${indicadores.total_indicadores} indicadores.`,
+  `Infra-BR canonico validado: ${estados.infra_estados.length} estados, ${estrutura.infra_dimensoes.length} dimensoes, ${valoresDimensoes.infra_valores_dimensoes.length} valores por dimensao, ${estrutura.infra_componentes.length} componentes, ${valoresComponentes.infra_valores_componentes.length} valores por componente e ${indicadores.total_indicadores} indicadores.`,
 );
