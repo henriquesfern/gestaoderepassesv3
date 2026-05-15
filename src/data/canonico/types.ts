@@ -128,6 +128,8 @@ export interface InfraIndicadorCanonico {
   indicador_id: string;
   componente_id: string;
   nome_indicador: string;
+  ano?: number;
+  indicador_negativado?: boolean;
   descricao?: string;
   fonte?: string;
   unidade?: string;

@@ -142,6 +142,8 @@ export const infraIndicadorCanonicoSchema = z.object({
   indicador_id: textoObrigatorioSchema,
   componente_id: textoObrigatorioSchema,
   nome_indicador: textoObrigatorioSchema,
+  ano: anoCanonicoSchema.optional(),
+  indicador_negativado: z.boolean().optional(),
   descricao: textoOpcionalSchema,
   fonte: textoOpcionalSchema,
   unidade: textoOpcionalSchema,
