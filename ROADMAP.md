@@ -1,35 +1,53 @@
-# Roadmap de Desenvolvimento
+# Roadmap e Melhorias Futuras
 
-Este documento centraliza o planejamento detalhado, as ações propostas e o histórico de execuções futuras, garantindo que o contexto não se perca durante recarregamentos de sessão do assistente.
+Este documento centraliza melhorias futuras, próximos passos, ideias em avaliação e registros de planejamento que ainda não pertencem ao `CHANGELOG.md` nem ao `CHANGELOG_PENDING.md`.
 
-## Estado Atual
-- **Ação A:** Concluída (Centralização de Tipos/Interfaces).
-- **Ação B:** Concluída (Refatoração do Parser - Separation of Concerns).
-- **Ação C:** Concluída (Fragmentação de Monolitos de Interface e Separação de Regras).
-- **Ação D:** Concluída (Fragmentação dos Monolitos de Tabelas).
-- **Ação E:** Concluída (Refatoração de Insights - InfraBRInsights.tsx).
+## Papel dos Arquivos de Registro
 
-## Planejamento e Execução
+- `CHANGELOG_PENDING.md`: registra entregas locais ainda não sincronizadas com GitHub/PR. É temporário e não versionado.
+- `CHANGELOG.md`: registra evolução já entregue e consolidada.
+- `ROADMAP.md`: registra demandas futuras, hipóteses de melhoria, próximos passos e decisões de planejamento ainda não executadas.
 
-A sequencia estabelecida para as próximas ações é:
-- **Ação F:** Concluída (Evolução em UX/UI nas Visualizações e Acessibilidade).
-- **Ação G:** Concluída (Refatoração Dinâmica com Contexto Global).
+## Em Aberto
 
-## Análise de Manutenções Críticas (Novas Evoluções Tecnológicas e UX/UI)
+### Refinar ranqueamento dos normativos na IA
 
-Após o sucesso do nosso fluxo refatorativo (A, B e C), o código ficou mais seguro de intervir. Realizei uma nova varredura e constatei que ainda possuímos excelentes pontos de melhoria, seja na arquitetura UI ou na parte técnica. Seguem os passos propostos:
+- **Status**: Em aberto, sem pendência ativa.
+- **Origem**: Conversa de 15/05/2026.
+- **Contexto**: A integração atual dos editais e normativos com a IA foi considerada adequada após testes de uso real. No futuro, o ranqueamento dos trechos poderá ser refinado se surgirem evidências de respostas pouco precisas ou seleção documental insuficiente.
+- **Criticidade estimada**: Nível 2, caso envolva apenas calibragem local de pesos, metadados e seleção de chunks.
+- **Próxima ação sugerida**: Coletar exemplos reais de perguntas e respostas, avaliar quais documentos foram recuperados e ajustar pesos por tipo, ano, errata, palavras-chave e prioridade documental.
 
-- **Ação D (Protocolo Nível 2): Fragmentação dos Monolitos de Tabelas (Directory.tsx e DirectoryECGeral.tsx)**
-  - O componente de Diretório concentra ainda ~650 linhas atreladas à UI da tabela nativa e à lógica combinada de filtros (map, reduce, states).
-  - *Sugestão*: Isolar a lógica de ordenação e paginação/filtros em um hook `useDirectoryFilters.ts` e componentizar cabeçalhos e linhas (ex: `DirectoryRow.tsx`, `DirectoryFilters.tsx`) dentro de `src/components/directory/`.
-  
-- **Ação E (Protocolo Nível 2): Refatoração de Insights (InfraBRInsights.tsx)**
-  - Com ~520 linhas, este painel renderiza gráficos avançados (`recharts`: Scatter e Bar) junto aos seletores de estado e agrupamento Infra-BR. 
-  - *Sugestão*: Separar as regras matemáticas em `useInfraBRMetrics.ts` e exportar subcomponentes (`ScatterView.tsx`, `BarView.tsx`) para o diretório `src/components/infrabr/`.
-  
-- **Ação F (Protocolo Nível 1): Evolução em UX/UI nas Visualizações e Acessibilidade**
-  - Melhorias passivas e visuais: Aplicar `sticky header` e controles flutuantes mais evidentes nas tabelas extensas. Utilizar motion/transitions suaves para animações de linha expandida nas tabelas longas (usando a lib `motion` instalada) e ajustes de contraste aprimorados.
-  
-- **Ação G (Protocolo Nível 3): Refatoração Dinâmica com Contexto Global (Opcional - Arquitetura de Dados)**
-  - Atualmente, as massas de dados parciais são todas resolvidas nativamente nos primeiros imports (em `src/data/parser.ts`), subindo para a memória virtual do browser logo no boot. 
-  - *Sugestão*: Transição para uma camada leve de *React Context* (`DataContext.tsx`) onde os hooks farão o acesso global. *Por ser Nível 3, precisará de planejamento cuidadoso.*
+## Em Avaliação
+
+Não há itens em avaliação neste momento.
+
+## Priorizado
+
+Não há itens priorizados para execução imediata neste momento.
+
+## Concluído
+
+### Ações estruturais anteriores
+
+- **Ação A**: Concluída. Centralização de tipos/interfaces.
+- **Ação B**: Concluída. Refatoração do parser com separação de responsabilidades.
+- **Ação C**: Concluída. Fragmentação de monolitos de interface e separação de regras.
+- **Ação D**: Concluída. Fragmentação dos monolitos de tabelas.
+- **Ação E**: Concluída. Refatoração de insights em `InfraBRInsights.tsx`.
+- **Ação F**: Concluída. Evolução em UX/UI nas visualizações e acessibilidade.
+- **Ação G**: Concluída. Refatoração dinâmica com contexto global.
+
+## Modelo Para Novos Registros
+
+Use este padrão quando uma melhoria futura, próximo passo ou hipótese técnica precisar ser preservada:
+
+```md
+### Título objetivo da melhoria
+
+- **Status**: Em aberto | Em avaliação | Priorizado | Concluído.
+- **Origem**: Conversa, PR, issue, teste ou observação que gerou o item.
+- **Contexto**: Por que o item existe e qual problema ou oportunidade representa.
+- **Criticidade estimada**: Nível 1, 2, 3 ou 4, conforme o protocolo do `AGENTS.md`.
+- **Próxima ação sugerida**: Primeiro passo seguro para transformar o item em trabalho executável.
+```
