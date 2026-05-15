@@ -18,13 +18,27 @@ Este documento centraliza melhorias futuras, próximos passos, ideias em avalia�
 - **Criticidade estimada**: Nível 2, caso envolva apenas calibragem local de pesos, metadados e seleção de chunks.
 - **Próxima ação sugerida**: Coletar exemplos reais de perguntas e respostas, avaliar quais documentos foram recuperados e ajustar pesos por tipo, ano, errata, palavras-chave e prioridade documental.
 
+### Padronizar modelo canônico de dados em Português-BR
+
+- **Status**: Em aberto, dependente da conclusão da Fase 0 + Fase 1 da governança de dados.
+- **Origem**: Conversa de 15/05/2026 sobre normalização dos dados de Infra-BR, fomento, patrocínio e entidades.
+- **Contexto**: A futura Fase 2 deve padronizar nomes de tabelas, campos e schemas usando identificadores em Português-BR, preservando clareza de domínio para o projeto. Exemplos desejados: `infra_componentes` em vez de `infra_components`, `entidades` em vez de `entities`, `projetos` em vez de `projects` e `repasses` em vez de `grants`.
+- **Criticidade estimada**: Nível 3, pois a padronização pode atingir contratos internos, adapters, schemas, hooks e componentes consumidores.
+- **Próxima ação sugerida**: Após o inventário e a definição das fontes oficiais, propor um dicionário canônico em pt-BR com mapeamento entre colunas brutas, campos normalizados e consumidores no app.
+
 ## Em Avaliação
 
 Não há itens em avaliação neste momento.
 
 ## Priorizado
 
-Não há itens priorizados para execução imediata neste momento.
+### Governança inicial da camada de dados
+
+- **Status**: Priorizado para execução em Fase 0 + Fase 1.
+- **Origem**: Conversa de 15/05/2026 sobre estrutura e performance dos datasets em `src/data` e `public/data`.
+- **Contexto**: A camada atual combina CSVs estáticos, arquivos TypeScript com dados embutidos, adapters, schema, loaders runtime e pipeline legado. Antes de normalizar nomes e relacionamentos, é necessário registrar inventário, consumidores, chaves e fonte oficial de cada dataset.
+- **Criticidade estimada**: Nível 2 para inventário e documentação; pode evoluir para Nível 3 se a etapa seguinte alterar contratos de dados consumidos pelo app.
+- **Próxima ação sugerida**: Versionar o inventário inicial em `docs/dados/inventario-camada-dados.md`, confirmar as fontes oficiais e só então planejar a Fase 2 de normalização canônica.
 
 ## Concluído
 
