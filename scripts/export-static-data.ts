@@ -31,12 +31,12 @@ async function main() {
     writeExportedCsv('fomento2026.csv', fomento2026CSV),
     writeExportedCsv('patrocinio2025.csv', patrocinioCSV),
     copyStaticCsv('GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv'),
-    copyStaticCsv('infra-br.csv'),
-    copyStaticCsv('medias_BR.csv'),
-    copyStaticCsv('dimensoes_0100.csv'),
-    copyStaticCsv('componentes_0100.csv'),
-    copyStaticCsv('indicadores_0100.csv'),
-    copyStaticCsv('detalhamentoindicadores.csv'),
+    copyStaticCsv('infra_br_estados.csv'),
+    copyStaticCsv('infra_br_medias_brasil.csv'),
+    copyStaticCsv('infra_br_dimensoes.csv'),
+    copyStaticCsv('infra_br_componentes.csv'),
+    copyStaticCsv('infra_br_indicadores.csv'),
+    copyStaticCsv('infra_br_detalhamento_indicadores.csv'),
   ]);
 
   console.log('Datasets estáticos exportados para public/data.');

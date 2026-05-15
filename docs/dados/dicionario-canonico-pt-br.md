@@ -34,11 +34,11 @@ Este documento registra a proposta inicial da Fase 2 da governança de dados: pa
 | `programas` | Tipos e ciclos de apoio | Fomento, patrocínio | Exemplos: fomento 2026, fomento 2025, patrocínio 2025 |
 | `estados` | Unidade federativa e região | `regions.ts`, datasets de origem | Deve unificar nome completo, `uf` e região |
 | `fontes_dados` | Controle de origem dos arquivos | `public/data`, `src/data`, scripts | Deve registrar fonte oficial, derivado, espelho ou legado |
-| `infra_estados` | Nota Infra-BR por UF | `infra-br.csv` | Relaciona `uf` e `state_id` |
-| `infra_dimensoes` | Notas por dimensão Infra-BR | `dimensoes_0100.csv` | Relaciona `uf` e `dimensao_id` |
-| `infra_componentes` | Notas por componente Infra-BR | `componentes_0100.csv` | Relaciona `componente_id` e `dimensao_id` |
-| `infra_indicadores` | Indicadores Infra-BR por UF | `indicadores_0100.csv` | Relaciona `indicador_id`, `componente_id` e `dimensao_id` |
-| `infra_detalhes_indicadores` | Metadados dos indicadores | `detalhamentoindicadores.csv` | Inclui cálculo, unidade e interpretação |
+| `infra_estados` | Nota Infra-BR por UF | `infra_br_estados.csv` | Relaciona `uf` e `state_id` |
+| `infra_dimensoes` | Notas por dimensão Infra-BR | `infra_br_dimensoes.csv` | Relaciona `uf` e `dimensao_id` |
+| `infra_componentes` | Notas por componente Infra-BR | `infra_br_componentes.csv` | Relaciona `componente_id` e `dimensao_id` |
+| `infra_indicadores` | Indicadores Infra-BR por UF | `infra_br_indicadores.csv` | Relaciona `indicador_id`, `componente_id` e `dimensao_id` |
+| `infra_detalhes_indicadores` | Metadados dos indicadores Infra-BR | `infra_br_detalhamento_indicadores.csv` | Inclui cálculo, unidade e interpretação |
 | `aderencias_infra` | Relação entre projetos e Infra-BR | Fomento 2026 enriquecido | Deve sair de campos de ranking, scores e termos detectados |
 
 ## Campos Canônicos Transversais

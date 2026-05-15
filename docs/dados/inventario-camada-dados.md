@@ -34,12 +34,12 @@ Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/par
 | Entidades CDEN | `src/data/cden.ts` | Nenhum espelho identificado | `cnpj` |
 | Entidades precursoras | `src/data/precursoras.ts` | Nenhum espelho identificado | `cnpj` |
 | EC Geral | `src/data/ECGeral.ts` | Nenhum espelho identificado | `cnpj`, nome normalizado |
-| Infra-BR estados | `public/data/infra-br.csv` | `src/data/infra-br.csv`, `src/data/infra-br.ts` | `uf`, `state_id` |
-| Infra-BR médias nacionais | `public/data/medias_BR.csv` | `src/data/medias_BR.csv`, `src/data/medias_BR.ts` | `dimensao` |
-| Infra-BR dimensões | `public/data/dimensoes_0100.csv` | `src/data/dimensoes_0100.csv`, `src/data/dimensoes_0100.ts` | `uf`, `dimension_id` |
-| Infra-BR componentes | `public/data/componentes_0100.csv` | `src/data/componentes_0100.csv`, `src/data/componentes_0100.ts` | `uf`, `component_id`, `dimension_id` |
-| Infra-BR indicadores | `public/data/indicadores_0100.csv` | `src/data/indicadores_0100.csv`, `src/data/indicadores_0100.ts` | `uf`, `indicator_id`, `component_id`, `dimension_id`, `ano` |
-| Detalhamento de indicadores | `public/data/detalhamentoindicadores.csv` | `src/data/detalhamentoindicadores.csv`, `src/data/detalhamentoindicadores.ts` | `id`, `indicador`, `ano` |
+| Infra-BR estados | `public/data/infra_br_estados.csv` | `src/data/infra_br_estados.csv`, `src/data/infra_br_estados.ts` | `uf`, `state_id` |
+| Infra-BR médias nacionais | `public/data/infra_br_medias_brasil.csv` | `src/data/infra_br_medias_brasil.csv`, `src/data/infra_br_medias_brasil.ts` | `dimensao` |
+| Infra-BR dimensões | `public/data/infra_br_dimensoes.csv` | `src/data/infra_br_dimensoes.csv`, `src/data/infra_br_dimensoes.ts` | `uf`, `dimension_id` |
+| Infra-BR componentes | `public/data/infra_br_componentes.csv` | `src/data/infra_br_componentes.csv`, `src/data/infra_br_componentes.ts` | `uf`, `component_id`, `dimension_id` |
+| Infra-BR indicadores | `public/data/infra_br_indicadores.csv` | `src/data/infra_br_indicadores.csv`, `src/data/infra_br_indicadores.ts` | `uf`, `indicator_id`, `component_id`, `dimension_id`, `ano` |
+| Infra-BR detalhamento de indicadores | `public/data/infra_br_detalhamento_indicadores.csv` | `src/data/infra_br_detalhamento_indicadores.csv`, `src/data/infra_br_detalhamento_indicadores.ts` | `id`, `indicador`, `ano` |
 
 ## Consumidores Principais
 
