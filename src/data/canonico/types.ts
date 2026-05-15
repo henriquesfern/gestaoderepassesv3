@@ -134,6 +134,17 @@ export interface InfraComponenteCanonico {
   descricao?: string;
 }
 
+export interface InfraValorComponenteCanonico {
+  valor_componente_id: string;
+  componente_id: string;
+  dimensao_id: string;
+  uf: UnidadeFederativa;
+  estado_id?: string;
+  valor: number;
+  ranking?: number;
+  cor_classe?: string;
+}
+
 export interface InfraIndicadorCanonico {
   indicador_id: string;
   componente_id: string;
@@ -177,6 +188,7 @@ export interface ModeloCanonicoDados {
   infra_dimensoes: InfraDimensaoCanonica[];
   infra_valores_dimensoes: InfraValorDimensaoCanonico[];
   infra_componentes: InfraComponenteCanonico[];
+  infra_valores_componentes: InfraValorComponenteCanonico[];
   infra_indicadores: InfraIndicadorCanonico[];
   infra_detalhes_indicadores: InfraDetalheIndicadorCanonico[];
   aderencias_infra: AderenciaInfraCanonica[];

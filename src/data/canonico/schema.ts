@@ -148,6 +148,17 @@ export const infraComponenteCanonicoSchema = z.object({
   descricao: textoOpcionalSchema,
 });
 
+export const infraValorComponenteCanonicoSchema = z.object({
+  valor_componente_id: textoObrigatorioSchema,
+  componente_id: textoObrigatorioSchema,
+  dimensao_id: textoObrigatorioSchema,
+  uf: ufSchema,
+  estado_id: textoOpcionalSchema,
+  valor: z.number().finite(),
+  ranking: z.number().int().positive().optional(),
+  cor_classe: textoOpcionalSchema,
+});
+
 export const infraIndicadorCanonicoSchema = z.object({
   indicador_id: textoObrigatorioSchema,
   componente_id: textoObrigatorioSchema,
@@ -191,6 +202,7 @@ export const modeloCanonicoDadosSchema = z.object({
   infra_dimensoes: z.array(infraDimensaoCanonicaSchema),
   infra_valores_dimensoes: z.array(infraValorDimensaoCanonicoSchema),
   infra_componentes: z.array(infraComponenteCanonicoSchema),
+  infra_valores_componentes: z.array(infraValorComponenteCanonicoSchema),
   infra_indicadores: z.array(infraIndicadorCanonicoSchema),
   infra_detalhes_indicadores: z.array(infraDetalheIndicadorCanonicoSchema),
   aderencias_infra: z.array(aderenciaInfraCanonicaSchema),
