@@ -25,6 +25,7 @@
     "data:export-static": "tsx scripts/export-static-data.ts",
     "data:validate-canonical-infra": "tsx scripts/validateCanonicalInfraIndicadores.ts",
     "data:validate-canonical-infra-adapter": "tsx scripts/validateCanonicalInfraAdapter.ts",
+    "data:validate-canonical-infra-equivalence": "tsx scripts/validateCanonicalInfraEquivalence.ts",
     "changelog:status": "tsx scripts/changelog.ts status",
     "changelog:reset": "tsx scripts/changelog.ts reset",
     "changelog:add": "tsx scripts/changelog.ts add",

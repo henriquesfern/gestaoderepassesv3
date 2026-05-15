@@ -57,6 +57,10 @@ function textoOuIndefinido(value: unknown): string | undefined {
 }
 
 function numeroOuZero(value: unknown): number {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : 0;
+  }
+
   const normalized = String(value ?? '')
     .trim()
     .replace(/\u00A0/g, '')
