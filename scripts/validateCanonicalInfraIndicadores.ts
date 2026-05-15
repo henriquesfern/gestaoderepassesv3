@@ -1,28 +1,48 @@
+import { componentesData } from '../src/data/componentes_0100';
 import { detalhamentoData } from '../src/data/detalhamentoindicadores';
+import { dimensoesData } from '../src/data/dimensoes_0100';
 import { indicadoresData } from '../src/data/indicadores_0100';
 import {
+  infraComponenteCanonicoSchema,
+  infraDimensaoCanonicaSchema,
   infraIndicadorCanonicoSchema,
+  normalizarInfraEstrutura,
   normalizarInfraIndicadores,
 } from '../src/data/canonico';
 
-const resultado = normalizarInfraIndicadores(detalhamentoData, indicadoresData);
+const estrutura = normalizarInfraEstrutura(dimensoesData, componentesData);
+const indicadores = normalizarInfraIndicadores(detalhamentoData, indicadoresData);
 
-if (resultado.indicadores_duplicados.length > 0) {
+if (estrutura.componentes_sem_dimensao.length > 0) {
   throw new Error(
-    `Indicadores duplicados no detalhamento Infra-BR: ${resultado.indicadores_duplicados.join(', ')}`,
+    `Componentes sem relacionamento com dimensao: ${estrutura.componentes_sem_dimensao.join(', ')}`,
   );
 }
 
-if (resultado.indicadores_sem_relacao.length > 0) {
+if (indicadores.indicadores_duplicados.length > 0) {
   throw new Error(
-    `Indicadores sem relacionamento com componente: ${resultado.indicadores_sem_relacao.join(', ')}`,
+    `Indicadores duplicados no detalhamento Infra-BR: ${indicadores.indicadores_duplicados.join(', ')}`,
   );
 }
 
-resultado.infra_indicadores.forEach((indicador) => {
+if (indicadores.indicadores_sem_relacao.length > 0) {
+  throw new Error(
+    `Indicadores sem relacionamento com componente: ${indicadores.indicadores_sem_relacao.join(', ')}`,
+  );
+}
+
+estrutura.infra_dimensoes.forEach((dimensao) => {
+  infraDimensaoCanonicaSchema.parse(dimensao);
+});
+
+estrutura.infra_componentes.forEach((componente) => {
+  infraComponenteCanonicoSchema.parse(componente);
+});
+
+indicadores.infra_indicadores.forEach((indicador) => {
   infraIndicadorCanonicoSchema.parse(indicador);
 });
 
 console.log(
-  `Infra-BR canônico validado: ${resultado.total_indicadores} indicadores a partir de ${resultado.total_linhas_origem} linhas de detalhamento.`,
+  `Infra-BR canônico validado: ${estrutura.infra_dimensoes.length} dimensões, ${estrutura.infra_componentes.length} componentes e ${indicadores.total_indicadores} indicadores.`,
 );
