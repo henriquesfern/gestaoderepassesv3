@@ -5,11 +5,13 @@ import { infraBRData } from '../src/data/infra_br_estados';
 import { indicadoresData } from '../src/data/infra_br_indicadores';
 import {
   infraComponenteCanonicoSchema,
+  infraDetalheIndicadorCanonicoSchema,
   infraDimensaoCanonicaSchema,
   infraEstadoCanonicoSchema,
   infraIndicadorCanonicoSchema,
   infraValorComponenteCanonicoSchema,
   infraValorDimensaoCanonicoSchema,
+  normalizarInfraDetalhesIndicadores,
   normalizarInfraEstrutura,
   normalizarInfraEstados,
   normalizarInfraIndicadores,
@@ -31,6 +33,11 @@ const valoresComponentes = normalizarInfraValoresComponentes(
   estados.infra_estados.map((estado) => estado.uf),
 );
 const indicadores = normalizarInfraIndicadores(detalhamentoData, indicadoresData);
+const detalhesIndicadores = normalizarInfraDetalhesIndicadores(
+  indicadoresData,
+  indicadores.infra_indicadores.map((indicador) => indicador.indicador_id),
+  estados.infra_estados.map((estado) => estado.uf),
+);
 
 if (estados.ufs_invalidas.length > 0) {
   throw new Error(`UFs invalidas no Infra-BR estados: ${estados.ufs_invalidas.join(', ')}`);
@@ -138,6 +145,38 @@ if (indicadores.indicadores_sem_relacao.length > 0) {
   );
 }
 
+if (detalhesIndicadores.ufs_invalidas.length > 0) {
+  throw new Error(`UFs invalidas nos detalhes por indicador: ${detalhesIndicadores.ufs_invalidas.join(', ')}`);
+}
+
+if (detalhesIndicadores.estados_sem_cadastro.length > 0) {
+  throw new Error(
+    `Detalhes por indicador sem estado cadastrado: ${detalhesIndicadores.estados_sem_cadastro.join(', ')}`,
+  );
+}
+
+if (detalhesIndicadores.indicadores_sem_cadastro.length > 0) {
+  throw new Error(
+    `Detalhes por indicador sem indicador cadastrado: ${detalhesIndicadores.indicadores_sem_cadastro.join(', ')}`,
+  );
+}
+
+if (detalhesIndicadores.pares_duplicados.length > 0) {
+  throw new Error(`Pares UF/indicador duplicados: ${detalhesIndicadores.pares_duplicados.join(', ')}`);
+}
+
+if (detalhesIndicadores.rankings_invalidos.length > 0) {
+  throw new Error(
+    `Rankings invalidos nos detalhes por indicador: ${detalhesIndicadores.rankings_invalidos.join(', ')}`,
+  );
+}
+
+if (detalhesIndicadores.classes_invalidas.length > 0) {
+  throw new Error(
+    `Classes de cor invalidas nos detalhes por indicador: ${detalhesIndicadores.classes_invalidas.join(', ')}`,
+  );
+}
+
 estados.infra_estados.forEach((estado) => {
   infraEstadoCanonicoSchema.parse(estado);
 });
@@ -162,6 +201,10 @@ indicadores.infra_indicadores.forEach((indicador) => {
   infraIndicadorCanonicoSchema.parse(indicador);
 });
 
+detalhesIndicadores.infra_detalhes_indicadores.forEach((detalheIndicador) => {
+  infraDetalheIndicadorCanonicoSchema.parse(detalheIndicador);
+});
+
 console.log(
-  `Infra-BR canonico validado: ${estados.infra_estados.length} estados, ${estrutura.infra_dimensoes.length} dimensoes, ${valoresDimensoes.infra_valores_dimensoes.length} valores por dimensao, ${estrutura.infra_componentes.length} componentes, ${valoresComponentes.infra_valores_componentes.length} valores por componente e ${indicadores.total_indicadores} indicadores.`,
+  `Infra-BR canonico validado: ${estados.infra_estados.length} estados, ${estrutura.infra_dimensoes.length} dimensoes, ${valoresDimensoes.infra_valores_dimensoes.length} valores por dimensao, ${estrutura.infra_componentes.length} componentes, ${valoresComponentes.infra_valores_componentes.length} valores por componente, ${indicadores.total_indicadores} indicadores e ${detalhesIndicadores.infra_detalhes_indicadores.length} detalhes por indicador.`,
 );
