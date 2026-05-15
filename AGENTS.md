@@ -104,6 +104,18 @@ Quando o usuário pedir para avaliar, analisar, estudar possibilidades, comparar
 
 Comandos de leitura e inspeção são permitidos quando necessários para avaliar corretamente a situação.
 
+## Protocolo de Registro de Melhorias Futuras
+
+Quando, durante uma conversa ou avaliação, algum ponto for classificado como **melhoria futura**, **próximo passo**, **pendência não ativa**, **refinamento posterior** ou hipótese técnica a ser preservada, o agente DEVE propor o registro no `ROADMAP.md`.
+
+### Regras obrigatórias
+
+- O `ROADMAP.md` é o registro oficial de demandas futuras, ideias em avaliação e próximos passos ainda não executados.
+- O agente NÃO deve alterar o `ROADMAP.md` automaticamente quando a solicitação do usuário for apenas de avaliação ou análise.
+- O registro só deve ser feito após confirmação explícita do usuário.
+- O item registrado deve informar status, origem, contexto, criticidade estimada e próxima ação sugerida.
+- Itens do `ROADMAP.md` não substituem o `CHANGELOG_PENDING.md`; quando houver alteração construtiva em arquivo, o changelog pendente local continua obrigatório.
+
 ## Protocolo de Avaliação Antes de Continuar ou Sincronizar
 
 Antes de decidir entre seguir com novas alterações locais ou abrir PR do bloco atual, o agente DEVE fazer uma avaliação explícita do estado do trabalho e apresentar a recomendação ao usuário.
