@@ -74,12 +74,12 @@ export async function loadInfraRuntimeData(): Promise<InfraRuntimeData> {
     indicadoresText,
     detalhamentoText,
   ] = await Promise.all([
-    fetchStaticText('infra-br.csv'),
-    fetchStaticText('medias_BR.csv'),
-    fetchStaticText('dimensoes_0100.csv'),
-    fetchStaticText('componentes_0100.csv'),
-    fetchStaticText('indicadores_0100.csv'),
-    fetchStaticText('detalhamentoindicadores.csv'),
+    fetchStaticText('infra_br_estados.csv'),
+    fetchStaticText('infra_br_medias_brasil.csv'),
+    fetchStaticText('infra_br_dimensoes.csv'),
+    fetchStaticText('infra_br_componentes.csv'),
+    fetchStaticText('infra_br_indicadores.csv'),
+    fetchStaticText('infra_br_detalhamento_indicadores.csv'),
   ]);
 
   const infraEstados = parseCsvRows<CsvRow>(infraEstadosText).map((row) => ({

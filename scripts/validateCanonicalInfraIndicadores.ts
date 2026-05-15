@@ -1,7 +1,7 @@
-import { componentesData } from '../src/data/componentes_0100';
-import { detalhamentoData } from '../src/data/detalhamentoindicadores';
-import { dimensoesData } from '../src/data/dimensoes_0100';
-import { indicadoresData } from '../src/data/indicadores_0100';
+import { componentesData } from '../src/data/infra_br_componentes';
+import { detalhamentoData } from '../src/data/infra_br_detalhamento_indicadores';
+import { dimensoesData } from '../src/data/infra_br_dimensoes';
+import { indicadoresData } from '../src/data/infra_br_indicadores';
 import {
   infraComponenteCanonicoSchema,
   infraDimensaoCanonicaSchema,

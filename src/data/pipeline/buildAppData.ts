@@ -1,4 +1,4 @@
-import { infraData } from '../infraBR_parser';
+import { infraData } from '../infra_br_parser';
 import { ingestRawData } from './ingest';
 import { transformData } from './transform';
 
