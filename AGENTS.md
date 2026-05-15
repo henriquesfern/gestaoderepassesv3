@@ -146,6 +146,21 @@ Antes de decidir entre seguir com novas alterações locais ou abrir PR do bloco
 - Se o bloco atual ainda está incompleto, depende diretamente de uma continuação imediata pequena ou ficaria artificialmente fragmentado, o agente PODE recomendar **seguir localmente antes da PR**.
 - O agente DEVE sempre expor essa avaliação em pt-BR antes de sugerir o próximo passo quando houver dúvida razoável sobre continuar ou sincronizar.
 
+## Protocolo de Fechamento de Fases e Blocos de Planejamento
+
+Ao finalizar uma fase, subfase, inventário, avaliação técnica estruturada ou bloco de planejamento, o agente DEVE encerrar a resposta com uma recomendação explícita do próximo passo.
+
+### Recomendações esperadas
+
+O agente DEVE indicar uma das opções abaixo, conforme o estado do trabalho:
+
+- **continuar para a próxima fase** quando o bloco atual estiver apenas preparando uma sequência já clara e o risco permanecer controlado;
+- **fazer nova avaliação de possibilidades** quando houver mais de um caminho técnico relevante, riscos abertos ou impacto estrutural ainda incerto;
+- **executar a rotina do GitHub** quando o bloco atual estiver coeso, validado e pronto para versionamento antes de iniciar nova frente;
+- **pausar para decisão do usuário** quando a próxima etapa for Nível 3 ou Nível 4 e exigir permissão explícita.
+
+Essa recomendação não substitui o protocolo de avaliação antes de continuar ou sincronizar; ela complementa o fechamento para evitar perda de contexto entre fases.
+
 ## Protocolo de Criticidade de Ações e Prevenção de Falhas
 
 Para evitar perdas de estrutura, alterações drásticas e quebras do sistema, todas as ações devem ser avaliadas sob a ótica de **4 níveis de criticidade**. Dependendo do nível, o agente DEVE seguir o protocolo adequado ANTES de executar as modificações.
