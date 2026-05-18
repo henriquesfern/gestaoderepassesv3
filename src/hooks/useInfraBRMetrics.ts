@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../context/DataContext';
+import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 
 export const stateSiglaToName: Record<string, string> = {
   'AC': 'Acre', 'AL': 'Alagoas', 'AM': 'Amazonas', 'AP': 'Amapá', 'BA': 'Bahia', 'CE': 'Ceará',
@@ -14,7 +15,8 @@ export const nameToSigla = Object.fromEntries(Object.entries(stateSiglaToName).m
 
 export function useInfraBRMetrics() {
   const { appData } = useData();
-  const infraData = appData.infraBR;
+  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
+  const infraData = infraBRSelecionado.data;
   const [selectedState, setSelectedState] = useState<string>('SP');
   const [selectedDimension, setSelectedDimension] = useState<string>('SANEAMENTO BÁSICO');
 
@@ -72,7 +74,7 @@ export function useInfraBRMetrics() {
         sizeScore: repasse > 0 ? (repasse / state.rank) : 0, 
       };
     }).sort((a, b) => b.repasse - a.repasse);
-  }, [stateRepasse]);
+  }, [infraData, stateRepasse]);
 
   const avgInfraBR = useMemo(() => {
     if (correlationData.length === 0) return 0;
@@ -95,7 +97,7 @@ export function useInfraBRMetrics() {
         fullMark: 100
       };
     });
-  }, [selectedState]);
+  }, [infraData, selectedState]);
 
   const componentData = useMemo(() => {
     return infraData.componentes
@@ -105,11 +107,11 @@ export function useInfraBRMetrics() {
         value: c.value
       }))
       .sort((a,b) => b.value - a.value);
-  }, [selectedState, selectedDimension]);
+  }, [infraData, selectedState, selectedDimension]);
 
   const availableDimensions = useMemo(() => {
     return Array.from(new Set(infraData.dimensoes.map(d => d.dimension_name))).sort();
-  }, []);
+  }, [infraData]);
 
   return {
     state: {
@@ -118,6 +120,8 @@ export function useInfraBRMetrics() {
     },
     metrics: {
       infraData,
+      infraBROrigem: infraBRSelecionado.origem,
+      infraBRDivergencias: infraBRSelecionado.divergencias,
       stateRepasse,
       stateRepasseBreakdown,
       correlationData,
