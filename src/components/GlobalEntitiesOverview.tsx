@@ -3,6 +3,7 @@ import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps
 import { geoMercator, geoCentroid } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
+import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
 
 const UF_TO_REGION: Record<string, string> = {
@@ -15,6 +16,8 @@ const UF_TO_REGION: Record<string, string> = {
 
 export function GlobalEntitiesOverview() {
   const { appData } = useData();
+  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
+  const infraData = infraBRSelecionado.data;
   const [geoData, setGeoData] = useState<any>(null);
   const [tooltip, setTooltip] = useState<{
     content: string;
@@ -129,7 +132,7 @@ export function GlobalEntitiesOverview() {
                   const entidadesSize = stateData?.ENTIDADES?.size || 0;
                   
                   const rankIndex = sortedStateData.findIndex(s => s[0] === stateName) + 1;
-                  const infraState = appData.infraBR.infraEstados.find(s => s.sigla_uf === ufSigla);
+                  const infraState = infraData.infraEstados.find(s => s.sigla_uf === ufSigla);
                   
                   const stateProp = totalGlobalRepasse > 0 ? ((val / totalGlobalRepasse) * 100).toFixed(1) + '%' : '0%';
                   const regionProp = totalGlobalRepasse > 0 ? ((regionVal / totalGlobalRepasse) * 100).toFixed(1) + '%' : '0%';
