@@ -3,7 +3,7 @@ import { AlertCircle, Bot, Send, Sparkles, Trash2 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useData } from '../context/DataContext';
-import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
+import { construirContextoIAInfraBR, selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 
 type ChatMessage = {
   role: 'user' | 'model';
@@ -82,6 +82,12 @@ export function AIAssistant() {
       const topPatrocinio2025 = [...appData.patrocinioHistorico]
         .sort((a, b) => b.VALOR_REPASSE - a.VALOR_REPASSE)
         .slice(0, 120);
+      const contextoIAInfraBR = construirContextoIAInfraBR({
+        pergunta: userText,
+        infraData: infraBRSelecionado.data,
+        origem: infraBRSelecionado.origem,
+        divergencias: infraBRSelecionado.divergencias,
+      });
 
       const contextData = {
         resumo: {
@@ -112,7 +118,8 @@ export function AIAssistant() {
           UF: d.sigla_uf,
           Nota: d.infra_br,
           Rank: d.rank
-        }))
+        })),
+        infraBR_contexto_ia: contextoIAInfraBR
       };
 
       const response = await fetch('/api/ai', {
