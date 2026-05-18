@@ -1,12 +1,20 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
+import dotenv from "dotenv";
+import aiHandler from "./api/ai";
+
+dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json({ limit: '10mb' }));
+  app.all('/api/ai', (req, res) => {
+    void aiHandler(req, res);
+  });
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
