@@ -20,7 +20,7 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ### Consolidar a migracao gradual do consumo Infra-BR canonico
 
-- **Status**: Em aberto, com loader canonico paralelo em validacao.
+- **Status**: Em aberto, com fonte principal canonica em validacao controlada.
 - **Origem**: Revisao posterior aos PRs de ampliacao do consumo canonico Infra-BR em 18/05/2026.
 - **Contexto**: Os principais pontos de consumo em runtime ja selecionam dados Infra-BR por `selecionarInfraBRParaConsumo`, mantendo fallback legado. A varredura atual nao identificou usos diretos de `appData.infraBR` fora desse seletor em componentes e hooks consumidores.
 - **Criticidade estimada**: Nivel 3, pois a proxima consolidacao pode alterar o ponto de entrada dos dados e reduzir dependencias do fluxo legado.
@@ -28,7 +28,7 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
   - **Opcao 1 - Manter o fluxo atual por mais um ciclo**: preservar o seletor canonico com fallback legado ate haver mais validacao de uso real.
   - **Opcao 2 - Criar loader canonico paralelo**: criar um loader que entregue `InfraRuntimeData` a partir da legacy view canonica e validar equivalencia contra o loader legado, ainda sem trocar o app.
   - **Opcao 3 - Trocar a fonte principal agora**: fazer `buildAppData`/`parseData` entregarem o modelo canonico como fonte principal, com maior risco por atingir a camada de entrada dos dados.
-- **Proxima acao sugerida**: Validar o loader canonico paralelo em bloco proprio e, somente depois, avaliar se a fonte principal do app pode ser trocada de forma controlada.
+- **Proxima acao sugerida**: Validar visualmente a tela Infra-BR e pontos consumidores apos a troca controlada da fonte principal, mantendo os validadores de equivalencia ativos antes de remover fluxos legados.
 
 ## Em Avaliacao
 
