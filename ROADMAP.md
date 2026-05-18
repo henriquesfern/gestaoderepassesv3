@@ -18,13 +18,17 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 2, caso envolva apenas calibragem local de pesos, metadados e selecao de chunks.
 - **Proxima acao sugerida**: Coletar exemplos reais de perguntas e respostas, avaliar quais documentos foram recuperados e ajustar pesos por tipo, ano, errata, palavras-chave e prioridade documental.
 
-### Criar adapter de consumo do modelo canonico Infra-BR
+### Ampliar consumo canonico Infra-BR para outros pontos da aplicacao
 
-- **Status**: Em aberto, recomendado como proxima frente tecnica.
-- **Origem**: Fechamento da Fase 2 funcional do Infra-BR em 15/05/2026.
-- **Contexto**: A camada canonica Infra-BR ja cobre cadastros e valores por UF para estados, dimensoes, componentes e indicadores. Antes de migrar hooks e componentes, deve ser criado um adapter de compatibilidade que exponha o modelo canonico completo sem quebrar os contratos atuais da UI.
+- **Status**: Em aberto, com primeira ampliacao priorizada.
+- **Origem**: Avaliacao posterior ao uso gradual da legacy view canonica no `useInfraBRMetrics`, validado visualmente em 18/05/2026.
+- **Contexto**: A legacy view canonica ja esta integrada ao caminho principal da tela Infra-BR com fallback para o legado. Ainda restam usos diretos de `appData.infraBR` em pontos de Overview, assistente de IA, diretorio e visoes globais.
 - **Criticidade estimada**: Nivel 3, pois pode atingir loaders, adapters, hooks e componentes consumidores.
-- **Proxima acao sugerida**: Implementar um primeiro adapter de leitura em paralelo, validando equivalencia com a estrutura atual antes de alterar qualquer fluxo runtime.
+- **Opcoes avaliadas**:
+  - **Opcao 1 - `useOverviewMetrics` + `OverviewMap`**: melhor proximo bloco, por centralizar boa parte do consumo visual do Overview e permitir uso do seletor canonico com fallback, sem alterar parser global.
+  - **Opcao 2 - `AIAssistant`**: viavel em bloco posterior, mas com validacao menos objetiva por afetar contexto enviado a IA.
+  - **Opcao 3 - `DirectoryRow`**: deixar para depois, pois impacta arvore visual e cores de aderencia em listas expansivas.
+- **Proxima acao sugerida**: Executar a Opcao 1 em bloco pequeno, usando `selecionarInfraBRParaConsumo` no `useOverviewMetrics` e passando a fonte selecionada ao `OverviewMap`.
 
 ## Em Avaliacao
 
