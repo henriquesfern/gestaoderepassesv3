@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { geoMercator } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
+import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 import { getStateSigla } from '../data/regions';
 import { getCityCoords } from '../data/municipalities';
 import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
@@ -23,7 +24,8 @@ export function useOverviewMetrics(
   colorScaleEnd: string
 ) {
   const { appData } = useData();
-  const infraData = appData.infraBR;
+  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
+  const infraData = infraBRSelecionado.data;
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [selectedInfraDimension, setSelectedInfraDimension] = useState<string | null>(null);
@@ -261,7 +263,7 @@ export function useOverviewMetrics(
         }))
         .sort((a, b) => b.value - a.value);
     }
-  }, [selectedState, selectedInfraDimension, selectedInfraComponent]);
+  }, [infraData, selectedState, selectedInfraDimension, selectedInfraComponent]);
 
   const grupoData = useMemo(() => {
     const dataToUse = selectedState
@@ -324,7 +326,7 @@ export function useOverviewMetrics(
       }
     });
     return counts;
-  }, [filteredData]);
+  }, [filteredData, infraData]);
 
   const cityMarkers = useMemo(() => {
     if (!selectedState) return [];
@@ -403,7 +405,10 @@ export function useOverviewMetrics(
       filteredData, kpis, regionData, stateData, stateBreakdownData, evolucaoData,
       stateEntitiesCount, stateAdherenceData, sortedStateData, totalGlobalRepasse,
       maxStateValue, stateColorScale, getStateColor, infraChartData, grupoData,
-      infraBRAdherenceTotals, cityMarkers, mapProjection
+      infraBRAdherenceTotals, cityMarkers, mapProjection,
+      infraData,
+      infraBROrigem: infraBRSelecionado.origem,
+      infraBRDivergencias: infraBRSelecionado.divergencias
     },
     helpers: {
       clearFilters, getComponentsForDimension, getIndicatorsForComponent, getIndicatorDetails

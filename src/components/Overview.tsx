@@ -73,7 +73,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               stateData={metrics.stateData}
               stateBreakdownData={metrics.stateBreakdownData}
               sortedStateData={metrics.sortedStateData}
-              infraData={appData.infraBR}
+              infraData={metrics.infraData}
               totalGlobalRepasse={metrics.totalGlobalRepasse}
               maxStateValue={metrics.maxStateValue}
               getStateColor={metrics.getStateColor}
