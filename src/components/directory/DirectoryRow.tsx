@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn, getDimensionColor, getColorForChild, getSegmentColor, buildTree } from './DirectoryUtils';
 import { InfraBRProgressBar } from './InfraBRProgressBar';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatCNPJ } from '../../utils/sanitizers';
 import { useData } from '../../context/DataContext';
+import { selecionarInfraBRParaConsumo } from '../../data/canonico/adapters';
 
 export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
   const { appData } = useData();
+  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
+  const infraData = infraBRSelecionado.data;
   const hasAnexoInfo = Boolean(item.OBJETIVO_COMPLETO || item.AREA_ABRANGENCIA || item.OBJETIVO_ESPECIFICO_COMPLETO || item.PUBLICO_ALVO || item.RANKING_ADERENCIA_INFRABR);
 
   return (
@@ -174,7 +177,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                       item.RANKING_ADERENCIA_INFRABR || '',
                       item.RANKING_COMPONENTES || '',
                       item.RANKING_INDICADORES || '',
-                      appData.infraBR
+                      infraData
                     ).map((dim, dIdx) => (
                       <div key={dIdx} className="flex flex-col gap-2">
                         <div className={cn("inline-flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-fit", getDimensionColor(dim.name))}>
@@ -188,7 +191,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                               <div key={cIdx} className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-2">
                                   <span className="text-slate-300 text-xs">└─&gt;</span>
-                                  <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm", getColorForChild(comp.name, appData.infraBR))}>
+                                  <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm", getColorForChild(comp.name, infraData))}>
                                     <span className="text-[11px] font-semibold leading-tight">{comp.name}</span>
                                   </div>
                                 </div>
@@ -198,7 +201,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                                     {comp.indicators.map((ind, iIdx) => (
                                       <div key={iIdx} className="flex items-center gap-2">
                                         <span className="text-slate-300 text-xs">└─&gt;</span>
-                                        <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm bg-white/60", getColorForChild(ind.name, appData.infraBR))}>
+                                        <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm bg-white/60", getColorForChild(ind.name, infraData))}>
                                           <span className="text-[10px] font-medium leading-tight">{ind.name}</span>
                                         </div>
                                       </div>
