@@ -1,4 +1,4 @@
-import { infraData } from '../infra_br_parser';
+import { loadInfraBRCanonicoRuntimeData } from '../canonico/adapters';
 import { ingestRawData } from './ingest';
 import { transformData } from './transform';
 
@@ -8,6 +8,6 @@ export function buildAppData() {
 
   return {
     ...transformed,
-    infraBR: infraData
+    infraBR: loadInfraBRCanonicoRuntimeData()
   };
 }

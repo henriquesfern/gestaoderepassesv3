@@ -2,10 +2,11 @@ import Papa from 'papaparse';
 import { cdenCSV } from './cden';
 import { precursorasCSV } from './precursoras';
 import { gestaofomento26 } from './gestaofomento26';
-import { fetchStaticText, loadInfraRuntimeData, parseCsvRows } from './runtime-loaders';
+import { fetchStaticText, parseCsvRows } from './runtime-loaders';
 
 import { EntidadeCDEN, EntidadePrecursora } from '../types';
 import { adaptFomento2025, adaptFomento2026, adaptPatrocinio2025 } from './adapters';
+import { loadInfraBRCanonicoRuntimeData } from './canonico/adapters';
 import type { RawFomento2025Row, RawFomento2026Row, RawPatrocinio2025Row, GestaoFomento26Row } from './types';
 
 export const parseData = async () => {
@@ -17,14 +18,13 @@ export const parseData = async () => {
     fomento2026Text,
     patrocinio2025Text,
     newFomentoText,
-    infraData,
   ] = await Promise.all([
     fetchStaticText('fomento2025.csv'),
     fetchStaticText('fomento2026.csv'),
     fetchStaticText('patrocinio2025.csv'),
     fetchStaticText('GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv'),
-    loadInfraRuntimeData(),
   ]);
+  const infraData = loadInfraBRCanonicoRuntimeData();
 
   const fomentoRaw = parseCsvRows<RawFomento2025Row>(fomento2025Text);
   const fomento2026Raw = parseCsvRows<RawFomento2026Row>(fomento2026Text);
