@@ -1,7 +1,8 @@
-import { carregarInfraBRLegacyViewCanonica } from '../src/data/canonico/adapters';
+import { carregarInfraBRLegacyViewCanonica, selecionarInfraBRParaConsumo } from '../src/data/canonico/adapters';
 import { infraData } from '../src/data/infra_br_parser';
 
 const legacyView = carregarInfraBRLegacyViewCanonica();
+const consumoSelecionado = selecionarInfraBRParaConsumo(infraData);
 
 function assertEqual<T>(contexto: string, atual: T, esperado: T): void {
   if (atual !== esperado) {
@@ -25,6 +26,8 @@ assertEqual('Total de dimensoes', legacyView.dimensoes.length, infraData.dimenso
 assertEqual('Total de componentes', legacyView.componentes.length, infraData.componentes.length);
 assertEqual('Total de indicadores', legacyView.indicadores.length, infraData.indicadores.length);
 assertEqual('Total de detalhamento', legacyView.detalhamento.length, infraData.detalhamento.length);
+assertEqual('Origem selecionada para consumo gradual', consumoSelecionado.origem, 'canonica');
+assertEqual('Divergencias no consumo gradual', consumoSelecionado.divergencias.length, 0);
 
 const estadosCanonicos = indexarPor(legacyView.infraEstados, (estado) => estado.sigla_uf);
 const dimensoesCanonicas = indexarPor(
