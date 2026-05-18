@@ -18,17 +18,13 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 2, caso envolva apenas calibragem local de pesos, metadados e selecao de chunks.
 - **Proxima acao sugerida**: Coletar exemplos reais de perguntas e respostas, avaliar quais documentos foram recuperados e ajustar pesos por tipo, ano, errata, palavras-chave e prioridade documental.
 
-### Ampliar consumo canonico Infra-BR para outros pontos da aplicacao
+### Consolidar a migracao gradual do consumo Infra-BR canonico
 
-- **Status**: Em aberto, com primeira ampliacao priorizada.
-- **Origem**: Avaliacao posterior ao uso gradual da legacy view canonica no `useInfraBRMetrics`, validado visualmente em 18/05/2026.
-- **Contexto**: A legacy view canonica ja esta integrada ao caminho principal da tela Infra-BR com fallback para o legado. Ainda restam usos diretos de `appData.infraBR` em pontos de Overview, assistente de IA, diretorio e visoes globais.
-- **Criticidade estimada**: Nivel 3, pois pode atingir loaders, adapters, hooks e componentes consumidores.
-- **Opcoes avaliadas**:
-  - **Opcao 1 - `useOverviewMetrics` + `OverviewMap`**: melhor proximo bloco, por centralizar boa parte do consumo visual do Overview e permitir uso do seletor canonico com fallback, sem alterar parser global.
-  - **Opcao 2 - `AIAssistant`**: viavel em bloco posterior, mas com validacao menos objetiva por afetar contexto enviado a IA.
-  - **Opcao 3 - `DirectoryRow`**: deixar para depois, pois impacta arvore visual e cores de aderencia em listas expansivas.
-- **Proxima acao sugerida**: Executar a Opcao 1 em bloco pequeno, usando `selecionarInfraBRParaConsumo` no `useOverviewMetrics` e passando a fonte selecionada ao `OverviewMap`.
+- **Status**: Em aberto, sem pendencia ativa.
+- **Origem**: Revisao posterior aos PRs de ampliacao do consumo canonico Infra-BR em 18/05/2026.
+- **Contexto**: Os principais pontos de consumo em runtime ja selecionam dados Infra-BR por `selecionarInfraBRParaConsumo`, mantendo fallback legado. A varredura atual nao identificou usos diretos de `appData.infraBR` fora desse seletor em componentes e hooks consumidores.
+- **Criticidade estimada**: Nivel 3, pois a proxima consolidacao pode alterar o ponto de entrada dos dados e reduzir dependencias do fluxo legado.
+- **Proxima acao sugerida**: Avaliar, em bloco separado, se o fallback legado ainda deve permanecer como estrategia de seguranca ou se ja e possivel planejar a substituicao do parser legado por um loader canonico controlado.
 
 ## Em Avaliacao
 
@@ -56,6 +52,15 @@ Nao ha itens priorizados pendentes neste momento.
 - **Criticidade estimada**: Nivel 3, executado em blocos pequenos e validados.
 - **Resultado**: A validacao `npm run data:validate-canonical-infra` confirma 27 estados, 6 dimensoes, 162 valores por dimensao, 20 componentes, 540 valores por componente, 67 indicadores e 1.809 detalhes por indicador.
 - **Proxima acao sugerida**: Criar adapter de consumo do modelo canonico completo, mantendo compatibilidade com a UI atual.
+
+### Ampliacao gradual do consumo canonico Infra-BR
+
+- **Status**: Concluido.
+- **Origem**: Avaliacao posterior ao uso gradual da legacy view canonica no `useInfraBRMetrics`, validado visualmente em 18/05/2026.
+- **Contexto**: A legacy view canonica foi ampliada em blocos pequenos para Overview, assistente de IA, diretorio e mapa global, sempre por meio de `selecionarInfraBRParaConsumo` e com fallback legado preservado.
+- **Criticidade estimada**: Nivel 3, executado em PRs pequenos e sequenciais.
+- **Resultado**: Os principais consumidores de runtime deixam de acessar diretamente a estrutura Infra-BR bruta e passam a depender do seletor canonico gradual.
+- **Proxima acao sugerida**: Manter o fallback legado por enquanto e avaliar, em etapa propria, a consolidacao do loader canonico como fonte principal.
 
 ### Acoes estruturais anteriores
 
