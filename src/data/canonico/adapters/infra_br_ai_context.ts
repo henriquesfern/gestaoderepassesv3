@@ -21,9 +21,19 @@ type ContextoIAInfraBRUF = {
   indicadores: ContextoIAInfraBRItem[];
 };
 
+type NivelRecorteInfraBR = 'geral' | 'dimensao' | 'componente' | 'indicador';
+
+type SelecaoContextoInfraBR = {
+  nivel: NivelRecorteInfraBR;
+  dimensoesIds: Set<string>;
+  componentesIds: Set<string>;
+  indicadoresIds: Set<string>;
+};
+
 export interface ContextoIAInfraBR {
   origem: 'canonica';
   divergencias: string[];
+  nivel_recorte: NivelRecorteInfraBR;
   cobertura: {
     estados: number;
     dimensoes: number;
@@ -133,7 +143,9 @@ function detectarUFs(pergunta: string, estados: InfraRuntimeData['infraEstados']
     .filter(([uf, aliases]) => {
       if (!ufsDisponiveis.has(uf)) return false;
       const siglaEncontrada = contemTermo(perguntaNormalizada, uf.toLowerCase());
-      const nomeEncontrado = aliases.some((alias) => contemTermo(perguntaNormalizada, alias));
+      const nomeEncontrado = uf === 'PA'
+        ? /\bpará\b/i.test(pergunta)
+        : aliases.some((alias) => contemTermo(perguntaNormalizada, alias));
       return siglaEncontrada || nomeEncontrado;
     })
     .map(([uf]) => uf);
@@ -156,33 +168,116 @@ function nomesUnicos(valores: string[]): string[] {
   return Array.from(new Set(valores.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
-function selecionarNomesRelevantes(nomes: string[], pergunta: string, limite: number): Set<string> {
+function selecionarIdsRelevantes<T>(
+  itens: T[],
+  pergunta: string,
+  limite: number,
+  obterId: (item: T) => string,
+  obterNome: (item: T) => string,
+  scoreMinimo = 1,
+): Set<string> {
   const perguntaNormalizada = normalizarTexto(pergunta);
   const tokens = extrairTokens(pergunta);
-  const pontuados = nomes
-    .map((nome) => ({ nome, score: pontuarNome(nome, perguntaNormalizada, tokens) }))
-    .filter((item) => item.score > 0)
+  const pontuadosPorId = new Map<string, { id: string; nome: string; score: number }>();
+
+  for (const item of itens) {
+    const id = obterId(item);
+    const nome = obterNome(item);
+    const score = pontuarNome(nome, perguntaNormalizada, tokens);
+    const atual = pontuadosPorId.get(id);
+
+    if (score >= scoreMinimo && (!atual || score > atual.score)) {
+      pontuadosPorId.set(id, { id, nome, score });
+    }
+  }
+
+  return new Set([...pontuadosPorId.values()]
     .sort((a, b) => b.score - a.score || a.nome.localeCompare(b.nome, 'pt-BR'))
     .slice(0, limite)
-    .map((item) => item.nome);
+    .map((item) => item.id));
+}
 
-  return new Set(pontuados);
+function montarSelecaoContextoInfraBR(
+  infraData: InfraRuntimeData,
+  pergunta: string,
+): SelecaoContextoInfraBR {
+  const perguntaNormalizada = normalizarTexto(pergunta);
+  const mencionaDimensao = contemTermo(perguntaNormalizada, 'dimensao') || contemTermo(perguntaNormalizada, 'dimensoes');
+  const mencionaComponente = contemTermo(perguntaNormalizada, 'componente') || contemTermo(perguntaNormalizada, 'componentes');
+  const mencionaIndicador = contemTermo(perguntaNormalizada, 'indicador') || contemTermo(perguntaNormalizada, 'indicadores');
+  const dimensoesIds = selecionarIdsRelevantes(
+    infraData.dimensoes,
+    pergunta,
+    6,
+    (item) => item.dimension_id,
+    (item) => item.dimension_name,
+  );
+  const componentesIdsSemDimensao = selecionarIdsRelevantes(
+    infraData.componentes,
+    pergunta,
+    8,
+    (item) => item.component_id,
+    (item) => item.component_name,
+  );
+  const indicadoresIdsSemEscopo = selecionarIdsRelevantes(
+    infraData.indicadores,
+    pergunta,
+    12,
+    (item) => item.indicator_id,
+    (item) => item.indicator_name,
+    100,
+  );
+  const componentesIds = new Set([...componentesIdsSemDimensao].filter((componenteId) => {
+    if (dimensoesIds.size === 0) return true;
+    return infraData.componentes.some((item) => (
+      item.component_id === componenteId &&
+      dimensoesIds.has(item.dimension_id)
+    ));
+  }));
+  const indicadoresIds = new Set([...indicadoresIdsSemEscopo].filter((indicadorId) => {
+    if (componentesIds.size > 0) {
+      return infraData.indicadores.some((item) => (
+        item.indicator_id === indicadorId &&
+        componentesIds.has(item.component_id)
+      ));
+    }
+
+    if (dimensoesIds.size > 0) {
+      return infraData.indicadores.some((item) => (
+        item.indicator_id === indicadorId &&
+        dimensoesIds.has(item.dimension_id)
+      ));
+    }
+
+    return true;
+  }));
+
+  if (indicadoresIds.size > 0 && (mencionaIndicador || (componentesIds.size === 0 && dimensoesIds.size === 0))) {
+    return { nivel: 'indicador', dimensoesIds, componentesIds, indicadoresIds };
+  }
+
+  if (componentesIds.size > 0) {
+    return { nivel: 'componente', dimensoesIds, componentesIds, indicadoresIds };
+  }
+
+  if (dimensoesIds.size > 0) {
+    return { nivel: 'dimensao', dimensoesIds, componentesIds, indicadoresIds };
+  }
+
+  return { nivel: 'geral', dimensoesIds, componentesIds, indicadoresIds };
 }
 
 function montarRecorteUF(
   infraData: InfraRuntimeData,
   uf: string,
-  dimensoesRelevantes: Set<string>,
-  componentesRelevantes: Set<string>,
-  indicadoresRelevantes: Set<string>,
+  selecao: SelecaoContextoInfraBR,
 ): ContextoIAInfraBRUF | null {
   const estado = infraData.infraEstados.find((item) => item.sigla_uf === uf);
   if (!estado) return null;
 
-  const deveFiltrar = dimensoesRelevantes.size > 0 || componentesRelevantes.size > 0 || indicadoresRelevantes.size > 0;
   const dimensoes = infraData.dimensoes
     .filter((item) => item.sigla_uf === uf)
-    .filter((item) => !deveFiltrar || dimensoesRelevantes.has(item.dimension_name))
+    .filter((item) => selecao.nivel === 'dimensao' && selecao.dimensoesIds.has(item.dimension_id))
     .map((item) => ({
       id: item.dimension_id,
       nome: item.dimension_name,
@@ -192,17 +287,7 @@ function montarRecorteUF(
 
   const componentes = infraData.componentes
     .filter((item) => item.sigla_uf === uf)
-    .filter((item) => {
-      if (!deveFiltrar) return true;
-      if (componentesRelevantes.size > 0) return componentesRelevantes.has(item.component_name);
-      if (indicadoresRelevantes.size > 0) {
-        return infraData.indicadores.some((indicador) => (
-          indicador.component_name === item.component_name &&
-          indicadoresRelevantes.has(indicador.indicator_name)
-        ));
-      }
-      return dimensoesRelevantes.has(item.dimension_name);
-    })
+    .filter((item) => selecao.nivel === 'componente' && selecao.componentesIds.has(item.component_id))
     .map((item) => ({
       id: item.component_id,
       nome: item.component_name,
@@ -213,16 +298,7 @@ function montarRecorteUF(
 
   const indicadores = infraData.indicadores
     .filter((item) => item.sigla_uf === uf)
-    .filter((item) => {
-      if (!deveFiltrar) return true;
-      if (componentesRelevantes.size > 0) {
-        return componentesRelevantes.has(item.component_name) && (
-          indicadoresRelevantes.size === 0 || indicadoresRelevantes.has(item.indicator_name)
-        );
-      }
-      if (indicadoresRelevantes.size > 0) return indicadoresRelevantes.has(item.indicator_name);
-      return dimensoesRelevantes.has(item.dimension_name);
-    })
+    .filter((item) => selecao.nivel === 'indicador' && selecao.indicadoresIds.has(item.indicator_id))
     .map((item) => ({
       id: item.indicator_id,
       nome: item.indicator_name,
@@ -255,9 +331,7 @@ export function construirContextoIAInfraBR(params: {
   const dimensoesNomes = nomesUnicos(infraData.dimensoes.map((item) => item.dimension_name));
   const componentesNomes = nomesUnicos(infraData.componentes.map((item) => item.component_name));
   const indicadoresNomes = nomesUnicos(infraData.indicadores.map((item) => item.indicator_name));
-  const dimensoesRelevantes = selecionarNomesRelevantes(dimensoesNomes, pergunta, 6);
-  const componentesRelevantes = selecionarNomesRelevantes(componentesNomes, pergunta, 8);
-  const indicadoresRelevantes = selecionarNomesRelevantes(indicadoresNomes, pergunta, 12);
+  const selecao = montarSelecaoContextoInfraBR(infraData, pergunta);
   const ufsParaRecorte = ufsDetectadas.length > 0
     ? ufsDetectadas
     : infraData.infraEstados
@@ -267,12 +341,13 @@ export function construirContextoIAInfraBR(params: {
       .map((estado) => estado.sigla_uf);
 
   const recortes = ufsParaRecorte
-    .map((uf) => montarRecorteUF(infraData, uf, dimensoesRelevantes, componentesRelevantes, indicadoresRelevantes))
+    .map((uf) => montarRecorteUF(infraData, uf, selecao))
     .filter((item): item is ContextoIAInfraBRUF => Boolean(item));
 
   return {
     origem,
     divergencias,
+    nivel_recorte: selecao.nivel,
     cobertura: {
       estados: infraData.infraEstados.length,
       dimensoes: dimensoesNomes.length,
@@ -311,7 +386,7 @@ export function construirContextoIAInfraBR(params: {
     },
     recortes_por_uf: recortes,
     observacoes: [
-      'Use a cadeia dimensao -> componente -> indicador para responder perguntas sobre notas Infra-BR.',
+      'Responda somente no nivel solicitado em nivel_recorte; nao amplie dimensao para componentes nem componente para indicadores sem pedido explicito.',
       'Quando houver UF na pergunta, priorize o recorte da respectiva UF.',
       'Nao confunda termos parecidos: por exemplo, PORTOS e AEROPORTOS sao componentes diferentes.',
     ],
