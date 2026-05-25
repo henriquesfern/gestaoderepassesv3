@@ -3,7 +3,6 @@ import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps
 import { geoMercator, geoCentroid } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
-import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
 
 const UF_TO_REGION: Record<string, string> = {
@@ -16,8 +15,7 @@ const UF_TO_REGION: Record<string, string> = {
 
 export function GlobalEntitiesOverview() {
   const { appData } = useData();
-  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
-  const infraData = infraBRSelecionado.data;
+  const infraData = appData.infraBR;
   const [geoData, setGeoData] = useState<any>(null);
   const [tooltip, setTooltip] = useState<{
     content: string;
