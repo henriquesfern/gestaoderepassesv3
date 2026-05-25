@@ -3,7 +3,7 @@ import { AlertCircle, Bot, Send, Sparkles, Trash2 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useData } from '../context/DataContext';
-import { construirContextoIAInfraBR, selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
+import { construirContextoIAInfraBR } from '../data/canonico/adapters';
 
 type ChatMessage = {
   role: 'user' | 'model';
@@ -27,7 +27,7 @@ function normalizeModelMessage(text: string): string {
 
 export function AIAssistant() {
   const { appData } = useData();
-  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
+  const infraData = appData.infraBR;
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     const saved = sessionStorage.getItem('ai_chat_history');
@@ -84,9 +84,9 @@ export function AIAssistant() {
         .slice(0, 120);
       const contextoIAInfraBR = construirContextoIAInfraBR({
         pergunta: userText,
-        infraData: infraBRSelecionado.data,
-        origem: infraBRSelecionado.origem,
-        divergencias: infraBRSelecionado.divergencias,
+        infraData,
+        origem: 'canonica',
+        divergencias: [],
       });
 
       const contextData = {
@@ -114,7 +114,7 @@ export function AIAssistant() {
           Repasse: d.VALOR_REPASSE,
           Projeto: d.OBJETIVO
         })),
-        infraBR_estados: infraBRSelecionado.data.infraEstados.slice(0, 27).map((d) => ({
+        infraBR_estados: infraData.infraEstados.slice(0, 27).map((d) => ({
           UF: d.sigla_uf,
           Nota: d.infra_br,
           Rank: d.rank
