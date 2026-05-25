@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import { useData } from '../context/DataContext';
-import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 
 export const stateSiglaToName: Record<string, string> = {
   'AC': 'Acre', 'AL': 'Alagoas', 'AM': 'Amazonas', 'AP': 'Amapá', 'BA': 'Bahia', 'CE': 'Ceará',
@@ -15,8 +14,7 @@ export const nameToSigla = Object.fromEntries(Object.entries(stateSiglaToName).m
 
 export function useInfraBRMetrics() {
   const { appData } = useData();
-  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
-  const infraData = infraBRSelecionado.data;
+  const infraData = appData.infraBR;
   const [selectedState, setSelectedState] = useState<string>('SP');
   const [selectedDimension, setSelectedDimension] = useState<string>('SANEAMENTO BÁSICO');
 
@@ -120,8 +118,6 @@ export function useInfraBRMetrics() {
     },
     metrics: {
       infraData,
-      infraBROrigem: infraBRSelecionado.origem,
-      infraBRDivergencias: infraBRSelecionado.divergencias,
       stateRepasse,
       stateRepasseBreakdown,
       correlationData,
