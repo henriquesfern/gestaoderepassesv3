@@ -2,7 +2,6 @@ import { useMemo, useState, useEffect } from 'react';
 import { geoMercator } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
-import { selecionarInfraBRParaConsumo } from '../data/canonico/adapters';
 import { getStateSigla } from '../data/regions';
 import { getCityCoords } from '../data/municipalities';
 import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
@@ -24,8 +23,7 @@ export function useOverviewMetrics(
   colorScaleEnd: string
 ) {
   const { appData } = useData();
-  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
-  const infraData = infraBRSelecionado.data;
+  const infraData = appData.infraBR;
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [selectedInfraDimension, setSelectedInfraDimension] = useState<string | null>(null);
@@ -406,9 +404,7 @@ export function useOverviewMetrics(
       stateEntitiesCount, stateAdherenceData, sortedStateData, totalGlobalRepasse,
       maxStateValue, stateColorScale, getStateColor, infraChartData, grupoData,
       infraBRAdherenceTotals, cityMarkers, mapProjection,
-      infraData,
-      infraBROrigem: infraBRSelecionado.origem,
-      infraBRDivergencias: infraBRSelecionado.divergencias
+      infraData
     },
     helpers: {
       clearFilters, getComponentsForDimension, getIndicatorsForComponent, getIndicatorDetails
