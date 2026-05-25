@@ -1,16 +1,14 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn, getDimensionColor, getColorForChild, getSegmentColor, buildTree } from './DirectoryUtils';
 import { InfraBRProgressBar } from './InfraBRProgressBar';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatCNPJ } from '../../utils/sanitizers';
 import { useData } from '../../context/DataContext';
-import { selecionarInfraBRParaConsumo } from '../../data/canonico/adapters';
 
 export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
   const { appData } = useData();
-  const infraBRSelecionado = useMemo(() => selecionarInfraBRParaConsumo(appData.infraBR), [appData.infraBR]);
-  const infraData = infraBRSelecionado.data;
+  const infraData = appData.infraBR;
   const hasAnexoInfo = Boolean(item.OBJETIVO_COMPLETO || item.AREA_ABRANGENCIA || item.OBJETIVO_ESPECIFICO_COMPLETO || item.PUBLICO_ALVO || item.RANKING_ADERENCIA_INFRABR);
 
   return (
