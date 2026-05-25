@@ -1,5 +1,4 @@
 import type { InfraRuntimeData } from '../../runtime-loaders';
-import type { OrigemConsumoInfraBR } from './infra_br_consumo';
 
 type ContextoIAInfraBRItem = {
   id?: string;
@@ -23,7 +22,7 @@ type ContextoIAInfraBRUF = {
 };
 
 export interface ContextoIAInfraBR {
-  origem: OrigemConsumoInfraBR;
+  origem: 'canonica';
   divergencias: string[];
   cobertura: {
     estados: number;
@@ -248,7 +247,7 @@ function montarRecorteUF(
 export function construirContextoIAInfraBR(params: {
   pergunta: string;
   infraData: InfraRuntimeData;
-  origem: OrigemConsumoInfraBR;
+  origem: 'canonica';
   divergencias: string[];
 }): ContextoIAInfraBR {
   const { pergunta, infraData, origem, divergencias } = params;

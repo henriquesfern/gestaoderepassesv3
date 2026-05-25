@@ -1,13 +1,4 @@
 import type { InfraRuntimeData } from '../../runtime-loaders';
-import { carregarInfraBRLegacyViewCanonica } from './infra_br_legacy_view';
-
-export type OrigemConsumoInfraBR = 'canonica' | 'legada';
-
-export interface ConsumoInfraBRSelecionado {
-  data: InfraRuntimeData;
-  origem: OrigemConsumoInfraBR;
-  divergencias: string[];
-}
 
 function compararTotal(
   divergencias: string[],
@@ -34,33 +25,4 @@ export function compararResumoInfraBRCanonicoLegado(
   compararTotal(divergencias, 'detalhamento', canonico.detalhamento.length, legado.detalhamento.length);
 
   return divergencias;
-}
-
-export function selecionarInfraBRParaConsumo(legado: InfraRuntimeData): ConsumoInfraBRSelecionado {
-  try {
-    const canonico = carregarInfraBRLegacyViewCanonica();
-    const divergencias = compararResumoInfraBRCanonicoLegado(canonico, legado);
-
-    if (divergencias.length === 0) {
-      return {
-        data: canonico,
-        origem: 'canonica',
-        divergencias,
-      };
-    }
-
-    return {
-      data: legado,
-      origem: 'legada',
-      divergencias,
-    };
-  } catch (erro) {
-    const mensagem = erro instanceof Error ? erro.message : String(erro);
-
-    return {
-      data: legado,
-      origem: 'legada',
-      divergencias: [`Falha ao carregar legacy view canonica: ${mensagem}`],
-    };
-  }
 }

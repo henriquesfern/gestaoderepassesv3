@@ -18,18 +18,6 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 2, caso envolva apenas calibragem local de pesos, metadados e selecao de chunks.
 - **Proxima acao sugerida**: Coletar exemplos reais de perguntas e respostas, avaliar quais documentos foram recuperados e ajustar pesos por tipo, ano, errata, palavras-chave e prioridade documental.
 
-### Consolidar a migracao gradual do consumo Infra-BR canonico
-
-- **Status**: Em aberto, com fonte principal canonica em validacao controlada.
-- **Origem**: Revisao posterior aos PRs de ampliacao do consumo canonico Infra-BR em 18/05/2026.
-- **Contexto**: A fonte principal do Infra-BR ja e canonica em `parseData` e `buildAppData`. A reducao da camada de transicao com `selecionarInfraBRParaConsumo` foi iniciada pelos consumidores visuais de menor risco (`DirectoryRow` e `GlobalEntitiesOverview`), mantendo hooks principais, IA, validadores e fallback legado preservados.
-- **Criticidade estimada**: Nivel 3, pois a proxima consolidacao pode alterar o ponto de entrada dos dados e reduzir dependencias do fluxo legado.
-- **Opcoes avaliadas**:
-  - **Opcao 1 - Manter o fluxo atual por mais um ciclo**: preservar o seletor canonico com fallback legado ate haver mais validacao de uso real.
-  - **Opcao 2 - Criar loader canonico paralelo**: criar um loader que entregue `InfraRuntimeData` a partir da legacy view canonica e validar equivalencia contra o loader legado, ainda sem trocar o app.
-  - **Opcao 3 - Trocar a fonte principal agora**: fazer `buildAppData`/`parseData` entregarem o modelo canonico como fonte principal, com maior risco por atingir a camada de entrada dos dados.
-- **Proxima acao sugerida**: Apos validar o bloco visual minimo, sincronizar via GitHub antes de avançar para a proxima reducao controlada em hooks ou IA.
-
 ## Em Avaliacao
 
 Nao ha itens em avaliacao neste momento.
@@ -65,6 +53,15 @@ Nao ha itens priorizados pendentes neste momento.
 - **Criticidade estimada**: Nivel 3, executado em PRs pequenos e sequenciais.
 - **Resultado**: Os principais consumidores de runtime deixam de acessar diretamente a estrutura Infra-BR bruta e passam a depender do seletor canonico gradual.
 - **Proxima acao sugerida**: Manter o fallback legado por enquanto e avaliar, em etapa propria, a consolidacao do loader canonico como fonte principal.
+
+### Consolidacao final do consumo runtime Infra-BR canonico
+
+- **Status**: Concluido para consumidores runtime; pendente apenas acompanhamento de uso real.
+- **Origem**: Revisao posterior aos PRs de ampliacao do consumo canonico Infra-BR em 18/05/2026.
+- **Contexto**: A fonte principal do Infra-BR ja e canonica em `parseData` e `buildAppData`. A reducao da camada de transicao foi concluida nos consumidores runtime (`DirectoryRow`, `GlobalEntitiesOverview`, hooks de insights e overview, e assistente de IA), preservando validadores de equivalencia canonica contra o legado.
+- **Criticidade estimada**: Nivel 3, pois a consolidacao alterou dependencias do fluxo legado em blocos pequenos e validados.
+- **Resultado**: `selecionarInfraBRParaConsumo` deixou de ser usado em runtime; o consumo do app passa por `appData.infraBR`, alimentado pelo loader canonico.
+- **Proxima acao sugerida**: Acompanhar uso real e manter os validadores de equivalencia enquanto houver necessidade de comparar a legacy view canonica com a fonte legada.
 
 ### Acoes estruturais anteriores
 
