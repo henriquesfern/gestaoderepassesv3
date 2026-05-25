@@ -10,13 +10,7 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ## Em Aberto
 
-### Refinar ranqueamento dos normativos na IA
-
-- **Status**: Em aberto, sem pendencia ativa.
-- **Origem**: Conversa de 15/05/2026.
-- **Contexto**: A integracao atual dos editais e normativos com a IA foi considerada adequada apos testes de uso real. No futuro, o ranqueamento dos trechos podera ser refinado se surgirem evidencias de respostas pouco precisas ou selecao documental insuficiente.
-- **Criticidade estimada**: Nivel 2, caso envolva apenas calibragem local de pesos, metadados e selecao de chunks.
-- **Proxima acao sugerida**: Coletar exemplos reais de perguntas e respostas, avaliar quais documentos foram recuperados e ajustar pesos por tipo, ano, errata, palavras-chave e prioridade documental.
+Nao ha itens em aberto neste momento.
 
 ## Em Avaliacao
 
@@ -27,6 +21,14 @@ Nao ha itens em avaliacao neste momento.
 Nao ha itens priorizados pendentes neste momento.
 
 ## Concluido
+
+### Refinar ranqueamento dos normativos na IA
+
+- **Status**: Concluido.
+- **Origem**: Conversa de 15/05/2026.
+- **Contexto**: A integracao dos editais e normativos com a IA foi refinada apos avaliacao de exemplos reais de recuperacao documental, priorizando correspondencias explicitas em titulo, arquivo e identificadores normativos.
+- **Criticidade estimada**: Nivel 2, pois envolveu calibragem local de pesos em `api/ai.ts`, sem alterar parser de PDFs nem indice gerado.
+- **Resultado**: Perguntas com identificadores explicitos, como Decisao Normativa 122, Lei 14.133 e numero de portaria, passam a favorecer o documento diretamente citado antes dos boosts genericos por tipo documental.
 
 ### Governanca inicial da camada de dados
 

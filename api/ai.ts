@@ -89,7 +89,15 @@ function tokenizeSearchText(value: string) {
     .filter((token) => !stopWords.has(token));
 }
 
+function countTokenMatches(searchable: string, questionTokens: string[], weight: number) {
+  return questionTokens.reduce((total, token) => {
+    return searchable.includes(token) ? total + weight : total;
+  }, 0);
+}
+
 function scoreDocument(document: NormativoDocument, normalizedQuestion: string, questionTokens: string[]) {
+  const normalizedTitle = normalizeSearchText(document.titulo);
+  const normalizedFileName = normalizeSearchText(document.arquivo);
   const searchable = normalizeSearchText([
     document.arquivo,
     document.tipo,
@@ -101,17 +109,22 @@ function scoreDocument(document: NormativoDocument, normalizedQuestion: string, 
 
   let score = document.prioridade || 0;
 
+  score += countTokenMatches(`${normalizedTitle} ${normalizedFileName}`, questionTokens, 35);
+  score += countTokenMatches(searchable, questionTokens, 8);
+
   if (document.ano && normalizedQuestion.includes(String(document.ano))) score += 120;
   if (document.tipo === 'fomento' && normalizedQuestion.includes('fomento')) score += 120;
   if (document.tipo === 'patrocinio' && normalizedQuestion.includes('patrocinio')) score += 120;
   if (document.tipo === 'lei' && (normalizedQuestion.includes('lei') || normalizedQuestion.includes('14133'))) score += 80;
   if (document.tipo === 'portaria' && normalizedQuestion.includes('portaria')) score += 80;
-  if (document.tipo === 'decisao_normativa' && (normalizedQuestion.includes('decisao') || normalizedQuestion.includes('normativa') || normalizedQuestion.includes('122'))) score += 90;
+  if (document.tipo === 'decisao_normativa' && (normalizedQuestion.includes('decisao') || normalizedQuestion.includes('normativa'))) score += 90;
   if (document.titulo.toLowerCase().includes('errata') && normalizedQuestion.includes('errata')) score += 100;
-  if (normalizedQuestion.includes('edital') && normalizeSearchText(document.titulo).includes('edital')) score += 60;
-
-  for (const token of questionTokens) {
-    if (searchable.includes(token)) score += 8;
+  if (normalizedQuestion.includes('edital') && normalizedTitle.includes('edital')) score += 60;
+  if (normalizedQuestion.includes('122') && (normalizedTitle.includes('122') || normalizedFileName.includes('122'))) score += 180;
+  if (normalizedQuestion.includes('14133') && (normalizedTitle.includes('14133') || normalizedFileName.includes('14133'))) score += 180;
+  if (document.tipo === 'portaria' && /\bportaria\s+\d+/i.test(normalizedQuestion)) {
+    const requestedPortaria = normalizedQuestion.match(/portaria\s+(\d+)/)?.[1];
+    if (requestedPortaria && (normalizedTitle.includes(requestedPortaria) || normalizedFileName.includes(requestedPortaria))) score += 160;
   }
 
   return score;
