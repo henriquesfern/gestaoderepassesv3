@@ -28,6 +28,7 @@
     "data:validate-canonical-infra-equivalence": "tsx scripts/validateCanonicalInfraEquivalence.ts",
     "data:validate-canonical-infra-legacy-view": "tsx scripts/validateCanonicalInfraLegacyView.ts",
     "data:validate-canonical-infra-runtime-loader": "tsx scripts/validateCanonicalInfraRuntimeLoader.ts",
+    "data:validate-dados-vivos": "tsx scripts/validateDadosVivos.ts",
     "changelog:status": "tsx scripts/changelog.ts status",
     "changelog:reset": "tsx scripts/changelog.ts reset",
     "changelog:add": "tsx scripts/changelog.ts add",
