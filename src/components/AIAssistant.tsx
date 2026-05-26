@@ -25,6 +25,18 @@ function normalizeModelMessage(text: string): string {
     .trim();
 }
 
+function normalizeQueryForIntent(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function isExplicitInfraBRQuestion(text: string): boolean {
+  const normalized = normalizeQueryForIntent(text);
+  return /\binfra\s*-?\s*br\b/.test(normalized) || /\binfrabr\b/.test(normalized);
+}
+
 export function AIAssistant() {
   const { appData } = useData();
   const infraData = appData.infraBR;
@@ -88,27 +100,29 @@ export function AIAssistant() {
         origem: 'canonica',
         divergencias: [],
       });
+      const perguntaInfraBR = isExplicitInfraBRQuestion(userText);
 
       const contextData = {
+        dominio_preferencial: perguntaInfraBR ? 'infra_br' : 'geral',
         resumo: {
           totalFomento2026: appData.fomento2026.length,
           totalFomento2025: appData.fomentoHistorico.length,
           totalPatrocinio2025: appData.patrocinioHistorico.length
         },
-        fomento2026_top: topFomento2026.map((d) => ({
+        fomento2026_top: perguntaInfraBR ? [] : topFomento2026.map((d) => ({
           Entidade: d.ENTIDADE,
           UF: d.ESTADO,
           Repasse: d.VALOR_REPASSE,
           Objetivo: d.OBJETIVO,
           RankingInfraBR: d.RANKING_ADERENCIA_INFRABR
         })),
-        fomento2025_top: topFomento2025.map((d) => ({
+        fomento2025_top: perguntaInfraBR ? [] : topFomento2025.map((d) => ({
           Entidade: d.ENTIDADE,
           UF: d.ESTADO,
           Repasse: d.VALOR_REPASSE,
           Objetivo: d.OBJETIVO
         })),
-        patrocinio2025_top: topPatrocinio2025.map((d) => ({
+        patrocinio2025_top: perguntaInfraBR ? [] : topPatrocinio2025.map((d) => ({
           Entidade: d.ENTIDADE,
           UF: d.ESTADO,
           Repasse: d.VALOR_REPASSE,

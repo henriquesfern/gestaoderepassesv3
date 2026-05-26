@@ -142,6 +142,10 @@ function contemAlgumTermo(textoNormalizado: string, termos: string[]): boolean {
   return termos.some((termo) => contemTermo(textoNormalizado, termo));
 }
 
+function contemParaAcentuado(texto: string): boolean {
+  return /(^|[^A-Za-z\u00c0-\u017f])par\u00e1([^A-Za-z\u00c0-\u017f]|$)/i.test(texto);
+}
+
 function detectarUFs(pergunta: string, estados: InfraRuntimeData['infraEstados']): string[] {
   const perguntaNormalizada = normalizarTexto(pergunta);
   const ufsDisponiveis = new Set(estados.map((estado) => estado.sigla_uf));
@@ -151,7 +155,7 @@ function detectarUFs(pergunta: string, estados: InfraRuntimeData['infraEstados']
       if (!ufsDisponiveis.has(uf)) return false;
       const siglaEncontrada = contemTermo(perguntaNormalizada, uf.toLowerCase());
       const nomeEncontrado = uf === 'PA'
-        ? /\bpará\b/i.test(pergunta)
+        ? contemParaAcentuado(pergunta)
         : aliases.some((alias) => contemTermo(perguntaNormalizada, alias));
       return siglaEncontrada || nomeEncontrado;
     })
@@ -208,6 +212,25 @@ function detectarModoResposta(perguntaNormalizada: string): ModoRespostaInfraBR 
   const perguntaSobreComponentesExistentes = contemTermo(perguntaNormalizada, 'componentes') && contemTermo(perguntaNormalizada, 'existem');
   const perguntaSobreIndicadoresExistentes = contemTermo(perguntaNormalizada, 'indicadores') && contemTermo(perguntaNormalizada, 'existem');
   const perguntaSobreDimensoesExistentes = contemTermo(perguntaNormalizada, 'dimensoes') && contemTermo(perguntaNormalizada, 'existem');
+  const perguntaSobreCatalogoDimensoes = contemTermo(perguntaNormalizada, 'dimensoes') && contemAlgumTermo(perguntaNormalizada, [
+    'quais',
+    'liste',
+    'listar',
+    'catalogo',
+    'disponiveis',
+  ]);
+  const perguntaSobreCatalogoComponentes = contemTermo(perguntaNormalizada, 'componentes') && contemAlgumTermo(perguntaNormalizada, [
+    'quais',
+    'liste',
+    'listar',
+    'disponiveis',
+  ]);
+  const perguntaSobreCatalogoIndicadores = contemTermo(perguntaNormalizada, 'indicadores') && contemAlgumTermo(perguntaNormalizada, [
+    'quais',
+    'liste',
+    'listar',
+    'disponiveis',
+  ]);
 
   if (contemAlgumTermo(perguntaNormalizada, [
     'compare',
@@ -239,7 +262,7 @@ function detectarModoResposta(perguntaNormalizada: string): ModoRespostaInfraBR 
     return 'diagnostico';
   }
 
-  if (perguntaSobreComponentesExistentes || perguntaSobreIndicadoresExistentes || contemAlgumTermo(perguntaNormalizada, [
+  if (perguntaSobreComponentesExistentes || perguntaSobreIndicadoresExistentes || perguntaSobreCatalogoComponentes || perguntaSobreCatalogoIndicadores || contemAlgumTermo(perguntaNormalizada, [
     'compoe',
     'compoem',
     'composicao',
@@ -251,7 +274,7 @@ function detectarModoResposta(perguntaNormalizada: string): ModoRespostaInfraBR 
     return 'composicao';
   }
 
-  if (perguntaSobreDimensoesExistentes || contemAlgumTermo(perguntaNormalizada, [
+  if (perguntaSobreDimensoesExistentes || perguntaSobreCatalogoDimensoes || contemAlgumTermo(perguntaNormalizada, [
     'quais existem',
     'liste',
     'listar',
@@ -273,20 +296,38 @@ function montarSelecaoContextoInfraBR(
   const mencionaDimensao = contemTermo(perguntaNormalizada, 'dimensao') || contemTermo(perguntaNormalizada, 'dimensoes');
   const mencionaComponente = contemTermo(perguntaNormalizada, 'componente') || contemTermo(perguntaNormalizada, 'componentes');
   const mencionaIndicador = contemTermo(perguntaNormalizada, 'indicador') || contemTermo(perguntaNormalizada, 'indicadores');
-  const dimensoesIds = selecionarIdsRelevantes(
+  const perguntaPedeExtremo = contemAlgumTermo(perguntaNormalizada, [
+    'maior',
+    'menor',
+    'melhor',
+    'pior',
+    'alta',
+    'baixa',
+    'maiores',
+    'menores',
+    'melhores',
+    'piores',
+  ]);
+  const dimensoesIdsSelecionadas = selecionarIdsRelevantes(
     infraData.dimensoes,
     pergunta,
     6,
     (item) => item.dimension_id,
     (item) => item.dimension_name,
   );
-  const componentesIdsSemDimensao = selecionarIdsRelevantes(
+  const dimensoesIds = mencionaDimensao && (dimensoesIdsSelecionadas.size === 0 || perguntaPedeExtremo)
+    ? new Set(infraData.dimensoes.map((item) => item.dimension_id))
+    : dimensoesIdsSelecionadas;
+  const componentesIdsSemDimensaoSelecionados = selecionarIdsRelevantes(
     infraData.componentes,
     pergunta,
     8,
     (item) => item.component_id,
     (item) => item.component_name,
   );
+  const componentesIdsSemDimensao = mencionaComponente && componentesIdsSemDimensaoSelecionados.size === 0
+    ? new Set(infraData.componentes.map((item) => item.component_id))
+    : componentesIdsSemDimensaoSelecionados;
   const indicadoresIdsSemEscopo = selecionarIdsRelevantes(
     infraData.indicadores,
     pergunta,
@@ -366,6 +407,7 @@ function montarRecorteUF(
       selecao.dimensoesIds.has(item.dimension_id) &&
       selecao.modo !== 'catalogo'
     ))
+    .sort((a, b) => b.value - a.value || a.dimension_name.localeCompare(b.dimension_name, 'pt-BR'))
     .map((item) => ({
       id: item.dimension_id,
       nome: item.dimension_name,
@@ -471,7 +513,7 @@ export function construirContextoIAInfraBR(params: {
   const catalogoComponentes = usarCatalogoEstrutural
     ? itensUnicosPorId(
       infraData.componentes.filter((item) => {
-        if (selecao.nivel === 'dimensao') return selecao.dimensoesIds.has(item.dimension_id);
+        if (selecao.nivel === 'dimensao') return selecao.modo !== 'catalogo' && selecao.dimensoesIds.has(item.dimension_id);
         if (selecao.nivel === 'componente') return selecao.componentesIds.has(item.component_id);
         return selecao.modo === 'catalogo' && selecao.componentesIds.has(item.component_id);
       }),

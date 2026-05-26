@@ -243,10 +243,13 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    const serverContext = {
-      ...contextData,
-      normativos_contexto: buildNormativosContext(userText),
-    };
+    const perguntaInfraBR = contextData.dominio_preferencial === 'infra_br';
+    const serverContext = perguntaInfraBR
+      ? contextData
+      : {
+        ...contextData,
+        normativos_contexto: buildNormativosContext(userText),
+      };
 
     console.log('[api/ai] request', {
       messagesCount: messages.length,
