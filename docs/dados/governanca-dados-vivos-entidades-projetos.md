@@ -205,6 +205,8 @@ Papel: reduzir regras espalhadas no codigo e padronizar filtros, cores, grupos e
 - Definir schemas Zod para cada tabela alvo.
 - Definir politica de snapshots para nome/UF da entidade em cada projeto.
 
+Registro da fase: `docs/dados/inventario-fase-0-dados-vivos.md`.
+
 ### Fase 1 - Normalizacao Paralela
 
 - Criar normalizers que gerem `entidades`, `projetos_base`, `projetos_fomento`, `projetos_patrocinio`, `acompanhamento_projetos` e auxiliares em paralelo.
@@ -251,4 +253,4 @@ Papel: reduzir regras espalhadas no codigo e padronizar filtros, cores, grupos e
 
 ## Proxima Acao Recomendada
 
-Antes de alterar runtime, executar a Fase 0: inventario detalhado de campos por arquivo, matriz de origem/destino e proposta de chaves canonicas.
+Apos a Fase 0 documental, executar um bloco pequeno de Fase 1 paralela: criar schemas Zod e normalizers iniciais somente para `entidades` e `projetos_base`, sem trocar o runtime atual e com validacao de contagem, duplicidade de chaves e integridade de relacionamento.

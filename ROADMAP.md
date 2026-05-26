@@ -17,7 +17,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Contexto**: O app usa hoje varias fontes de entidades, projetos, acompanhamentos e classificacoes adaptadas para a visao final `EntidadeSelecionada`. A proxima evolucao deve separar cadastro estavel de entidades, base comum de projetos, dados especificos de Fomento, dados especificos de Patrocinio, acompanhamento vivo e tabelas auxiliares, preservando entrada gratuita por CSV, XLSX ou TXT.
 - **Criticidade estimada**: Nivel 3 para implementacao estrutural, pois podera afetar parsers, schemas, validadores, dados centrais e consumidores do app. A etapa atual e apenas documental e de criticidade Nivel 2.
 - **Registro tecnico inicial**: `docs/dados/governanca-dados-vivos-entidades-projetos.md`.
-- **Proxima acao sugerida**: Executar a Fase 0 com inventario detalhado de campos por arquivo, matriz origem/destino e proposta de chaves canonicas antes de qualquer alteracao de runtime.
+- **Registro da Fase 0**: `docs/dados/inventario-fase-0-dados-vivos.md`.
+- **Proxima acao sugerida**: Executar um bloco pequeno de Fase 1 paralela, criando schemas Zod e normalizers iniciais somente para `entidades` e `projetos_base`, sem trocar o runtime atual.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
