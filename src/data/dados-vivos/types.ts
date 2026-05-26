@@ -41,6 +41,33 @@ export interface ProjetoBaseDadosVivos {
   fonte_arquivo: FonteProjetoDadosVivos;
 }
 
+export interface ProjetoFomentoDadosVivos {
+  projeto_id: string;
+  objetivo_estrategico?: string;
+  objetivo_especifico?: string;
+  objetivo_completo?: string;
+  area_abrangencia?: string;
+  publico_alvo?: string;
+  texto_norm?: string;
+  linha_solicitada?: string;
+  resultado_classificacao?: string;
+  ranking_aderencia_infrabr?: string;
+  scores_dimensoes?: string;
+  dimensao_principal?: string;
+  termos_detectados?: string;
+}
+
+export interface ProjetoPatrocinioDadosVivos {
+  projeto_id: string;
+  tipo_patrocinio?: string;
+  tipo_publicacao?: string;
+  mes?: string;
+  evento_ou_projeto?: string;
+  cidade_realizacao?: string;
+  local_realizacao?: string;
+  fiscal_crea?: string;
+}
+
 export interface AlertaDadosVivos {
   nivel: 'aviso' | 'erro';
   codigo: string;
@@ -51,5 +78,7 @@ export interface AlertaDadosVivos {
 export interface ModeloDadosVivosParalelo {
   entidades: EntidadeDadosVivos[];
   projetos_base: ProjetoBaseDadosVivos[];
+  projetos_fomento: ProjetoFomentoDadosVivos[];
+  projetos_patrocinio: ProjetoPatrocinioDadosVivos[];
   alertas: AlertaDadosVivos[];
 }

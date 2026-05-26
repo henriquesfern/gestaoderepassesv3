@@ -46,6 +46,33 @@ export const projetoBaseDadosVivosSchema = z.object({
   fonte_arquivo: fonteProjetoDadosVivosSchema,
 });
 
+export const projetoFomentoDadosVivosSchema = z.object({
+  projeto_id: textoObrigatorioSchema,
+  objetivo_estrategico: textoOpcionalSchema,
+  objetivo_especifico: textoOpcionalSchema,
+  objetivo_completo: textoOpcionalSchema,
+  area_abrangencia: textoOpcionalSchema,
+  publico_alvo: textoOpcionalSchema,
+  texto_norm: textoOpcionalSchema,
+  linha_solicitada: textoOpcionalSchema,
+  resultado_classificacao: textoOpcionalSchema,
+  ranking_aderencia_infrabr: textoOpcionalSchema,
+  scores_dimensoes: textoOpcionalSchema,
+  dimensao_principal: textoOpcionalSchema,
+  termos_detectados: textoOpcionalSchema,
+});
+
+export const projetoPatrocinioDadosVivosSchema = z.object({
+  projeto_id: textoObrigatorioSchema,
+  tipo_patrocinio: textoOpcionalSchema,
+  tipo_publicacao: textoOpcionalSchema,
+  mes: textoOpcionalSchema,
+  evento_ou_projeto: textoOpcionalSchema,
+  cidade_realizacao: textoOpcionalSchema,
+  local_realizacao: textoOpcionalSchema,
+  fiscal_crea: textoOpcionalSchema,
+});
+
 export const alertaDadosVivosSchema = z.object({
   nivel: z.enum(['aviso', 'erro']),
   codigo: textoObrigatorioSchema,
@@ -56,5 +83,7 @@ export const alertaDadosVivosSchema = z.object({
 export const modeloDadosVivosParaleloSchema = z.object({
   entidades: z.array(entidadeDadosVivosSchema),
   projetos_base: z.array(projetoBaseDadosVivosSchema),
+  projetos_fomento: z.array(projetoFomentoDadosVivosSchema),
+  projetos_patrocinio: z.array(projetoPatrocinioDadosVivosSchema),
   alertas: z.array(alertaDadosVivosSchema),
 });

@@ -35,6 +35,8 @@ assertSemErros('VALIDACAO_DADOS_VIVOS', erros.length);
 console.log('Modelo paralelo de dados vivos validado com sucesso.');
 console.log(`Entidades: ${validado.entidades.length}`);
 console.log(`Projetos base: ${validado.projetos_base.length}`);
+console.log(`Projetos fomento: ${validado.projetos_fomento.length}`);
+console.log(`Projetos patrocinio: ${validado.projetos_patrocinio.length}`);
 
 for (const [fonte, total] of [...porFonte.entries()].sort()) {
   console.log(`- ${fonte}: ${total} projeto(s)`);
