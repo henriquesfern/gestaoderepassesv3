@@ -11,6 +11,8 @@ import type {
   FonteProjetoDadosVivos,
   ModeloDadosVivosParalelo,
   ProjetoBaseDadosVivos,
+  ProjetoFomentoDadosVivos,
+  ProjetoPatrocinioDadosVivos,
   TipoProjetoDadosVivos,
 } from './types';
 
@@ -239,6 +241,43 @@ function criarProjetoBase(params: {
   };
 }
 
+function criarProjetoFomento2026(row: CsvRow, projetoId: string): ProjetoFomentoDadosVivos {
+  return {
+    projeto_id: projetoId,
+    objetivo_estrategico: indefinidoSeVazio(row.OBJETIVO_ESTRATEGICO),
+    objetivo_especifico: indefinidoSeVazio(row.OBJETIVO_ESPECIFICO),
+    objetivo_completo: indefinidoSeVazio(row.OBJETIVO_COMPLETO),
+    area_abrangencia: indefinidoSeVazio(row.AREA_ABRANGENCIA),
+    publico_alvo: indefinidoSeVazio(row.PUBLICO_ALVO),
+    texto_norm: indefinidoSeVazio(row.TEXTO_NORM),
+    ranking_aderencia_infrabr: indefinidoSeVazio(row.RANKING_ADERENCIA_INFRABR),
+    scores_dimensoes: indefinidoSeVazio(row.SCORES),
+    dimensao_principal: indefinidoSeVazio(row.DIMENSAO_PRINCIPAL),
+    termos_detectados: indefinidoSeVazio(row.TERMOS_DETECTADOS),
+  };
+}
+
+function criarProjetoFomento2025(row: CsvRow, projetoId: string): ProjetoFomentoDadosVivos {
+  return {
+    projeto_id: projetoId,
+    linha_solicitada: indefinidoSeVazio(obterCampo(row, 'Linha Solicitada')),
+    resultado_classificacao: indefinidoSeVazio(obterCampo(row, 'Resultado 2 FASE')),
+  };
+}
+
+function criarProjetoPatrocinio2025(row: CsvRow, projetoId: string): ProjetoPatrocinioDadosVivos {
+  return {
+    projeto_id: projetoId,
+    tipo_patrocinio: indefinidoSeVazio(row.Tipo),
+    tipo_publicacao: indefinidoSeVazio(row.TipoPublicacao),
+    mes: indefinidoSeVazio(obterCampo(row, 'Mes')),
+    evento_ou_projeto: indefinidoSeVazio(row.Projeto),
+    cidade_realizacao: indefinidoSeVazio(row.Cidade),
+    local_realizacao: indefinidoSeVazio(row['Local Entidade']),
+    fiscal_crea: indefinidoSeVazio(row['Fiscal Crea']),
+  };
+}
+
 function carregarGrupos() {
   const cdenRows = parseCsv<CsvRow>(cdenCSV);
   const precursorasRows = parseCsv<CsvRow>(precursorasCSV);
@@ -271,14 +310,60 @@ function validarDuplicidades(projetos: ProjetoBaseDadosVivos[], alertas: AlertaD
 function validarRelacionamentos(
   entidades: Map<string, EntidadeDadosVivos>,
   projetos: ProjetoBaseDadosVivos[],
+  projetosFomento: ProjetoFomentoDadosVivos[],
+  projetosPatrocinio: ProjetoPatrocinioDadosVivos[],
   alertas: AlertaDadosVivos[],
 ): void {
+  const projetosBaseIds = new Set(projetos.map((projeto) => projeto.projeto_id));
+  const fomentoIds = new Set(projetosFomento.map((projeto) => projeto.projeto_id));
+  const patrocinioIds = new Set(projetosPatrocinio.map((projeto) => projeto.projeto_id));
+
   for (const projeto of projetos) {
     if (!entidades.has(projeto.cnpj_entidade)) {
       alertas.push({
         nivel: 'erro',
         codigo: 'PROJETO_SEM_ENTIDADE',
         mensagem: 'Projeto aponta para entidade inexistente.',
+        referencia: projeto.projeto_id,
+      });
+    }
+
+    if (projeto.tipo_projeto === 'fomento' && !fomentoIds.has(projeto.projeto_id)) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'FOMENTO_SEM_REGISTRO_ESPECIFICO',
+        mensagem: 'Projeto base de Fomento sem registro em projetos_fomento.',
+        referencia: projeto.projeto_id,
+      });
+    }
+
+    if (projeto.tipo_projeto === 'patrocinio' && !patrocinioIds.has(projeto.projeto_id)) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'PATROCINIO_SEM_REGISTRO_ESPECIFICO',
+        mensagem: 'Projeto base de Patrocinio sem registro em projetos_patrocinio.',
+        referencia: projeto.projeto_id,
+      });
+    }
+  }
+
+  for (const projeto of projetosFomento) {
+    if (!projetosBaseIds.has(projeto.projeto_id)) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'FOMENTO_SEM_PROJETO_BASE',
+        mensagem: 'Registro de Fomento sem projeto base correspondente.',
+        referencia: projeto.projeto_id,
+      });
+    }
+  }
+
+  for (const projeto of projetosPatrocinio) {
+    if (!projetosBaseIds.has(projeto.projeto_id)) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'PATROCINIO_SEM_PROJETO_BASE',
+        mensagem: 'Registro de Patrocinio sem projeto base correspondente.',
         referencia: projeto.projeto_id,
       });
     }
@@ -289,6 +374,8 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
   const alertas: AlertaDadosVivos[] = [];
   const entidades = new Map<string, EntidadeDadosVivos>();
   const projetos: ProjetoBaseDadosVivos[] = [];
+  const projetosFomento: ProjetoFomentoDadosVivos[] = [];
+  const projetosPatrocinio: ProjetoPatrocinioDadosVivos[] = [];
   const grupos = carregarGrupos();
 
   const fomento2026 = parseCsv<CsvRow>(fomento2026CSV);
@@ -307,8 +394,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
     const nome = indefinidoSeVazio(row.ENTIDADE);
     if (!cnpj || !nome) return;
 
-    projetos.push(
-      criarProjetoBase({
+    const projetoBase = criarProjetoBase({
         row,
         indice,
         tipo: 'fomento',
@@ -325,8 +411,10 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
         nota: obterCampo(row, 'MEDIA'),
         fiscal: row.FISCAL,
         alertas,
-      }),
-    );
+      });
+
+    projetos.push(projetoBase);
+    projetosFomento.push(criarProjetoFomento2026(row, projetoBase.projeto_id));
   });
 
   fomento2025.forEach((row, indice) => {
@@ -347,8 +435,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
     const nome = indefinidoSeVazio(obterCampo(row, 'Razao Social'));
     if (!cnpj || !nome) return;
 
-    projetos.push(
-      criarProjetoBase({
+    const projetoBase = criarProjetoBase({
         row,
         indice,
         tipo: 'fomento',
@@ -367,8 +454,10 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
         dataFim: row['DATA FIM'],
         status: obterCampo(row, 'Resultado 2 FASE'),
         alertas,
-      }),
-    );
+      });
+
+    projetos.push(projetoBase);
+    projetosFomento.push(criarProjetoFomento2025(row, projetoBase.projeto_id));
   });
 
   patrocinio2025.forEach((row, indice) => {
@@ -388,8 +477,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
     const nome = indefinidoSeVazio(row.Entidade);
     if (!cnpj || !nome) return;
 
-    projetos.push(
-      criarProjetoBase({
+    const projetoBase = criarProjetoBase({
         row,
         indice,
         tipo: 'patrocinio',
@@ -409,16 +497,20 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
         dataFim: row['Data Fim'],
         status: row.Tipo,
         alertas,
-      }),
-    );
+      });
+
+    projetos.push(projetoBase);
+    projetosPatrocinio.push(criarProjetoPatrocinio2025(row, projetoBase.projeto_id));
   });
 
   validarDuplicidades(projetos, alertas);
-  validarRelacionamentos(entidades, projetos, alertas);
+  validarRelacionamentos(entidades, projetos, projetosFomento, projetosPatrocinio, alertas);
 
   return {
     entidades: [...entidades.values()].sort((a, b) => a.cnpj_normalizado.localeCompare(b.cnpj_normalizado)),
     projetos_base: projetos,
+    projetos_fomento: projetosFomento,
+    projetos_patrocinio: projetosPatrocinio,
     alertas,
   };
 }
