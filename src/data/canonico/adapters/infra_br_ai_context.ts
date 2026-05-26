@@ -30,6 +30,7 @@ type SelecaoContextoInfraBR = {
   dimensoesIds: Set<string>;
   componentesIds: Set<string>;
   indicadoresIds: Set<string>;
+  incluirIndicadoresDoComponente: boolean;
 };
 
 export interface ContextoIAInfraBR {
@@ -360,20 +361,21 @@ function montarSelecaoContextoInfraBR(
 
     return true;
   }));
+  const incluirIndicadoresDoComponente = mencionaIndicador && componentesIds.size > 0;
 
   if (indicadoresIds.size > 0 && (mencionaIndicador || (componentesIds.size === 0 && dimensoesIds.size === 0))) {
-    return { nivel: 'indicador', modo, dimensoesIds, componentesIds, indicadoresIds };
+    return { nivel: 'indicador', modo, dimensoesIds, componentesIds, indicadoresIds, incluirIndicadoresDoComponente };
   }
 
   if (componentesIds.size > 0) {
-    return { nivel: 'componente', modo, dimensoesIds, componentesIds, indicadoresIds };
+    return { nivel: 'componente', modo, dimensoesIds, componentesIds, indicadoresIds, incluirIndicadoresDoComponente };
   }
 
   if (dimensoesIds.size > 0) {
-    return { nivel: 'dimensao', modo, dimensoesIds, componentesIds, indicadoresIds };
+    return { nivel: 'dimensao', modo, dimensoesIds, componentesIds, indicadoresIds, incluirIndicadoresDoComponente };
   }
 
-  return { nivel: 'geral', modo, dimensoesIds, componentesIds, indicadoresIds };
+  return { nivel: 'geral', modo, dimensoesIds, componentesIds, indicadoresIds, incluirIndicadoresDoComponente };
 }
 
 function itensUnicosPorId<T>(itens: T[], obterId: (item: T) => string): T[] {
@@ -439,7 +441,10 @@ function montarRecorteUF(
       if (selecao.modo === 'catalogo') return false;
       if (selecao.nivel === 'indicador') return selecao.indicadoresIds.has(item.indicator_id);
       if (selecao.nivel === 'componente') {
-        return ['composicao', 'diagnostico'].includes(selecao.modo) && selecao.componentesIds.has(item.component_id);
+        return (
+          ['composicao', 'diagnostico'].includes(selecao.modo) ||
+          selecao.incluirIndicadoresDoComponente
+        ) && selecao.componentesIds.has(item.component_id);
       }
       return false;
     })
