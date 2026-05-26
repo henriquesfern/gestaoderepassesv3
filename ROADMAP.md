@@ -10,6 +10,15 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ## Em Aberto
 
+### Governanca e automacao dos dados vivos de entidades e projetos
+
+- **Status**: Em aberto.
+- **Origem**: Conversa de 26/05/2026 sobre evolucao da estrutura de dados para projetos vivos de Fomento 2026 e futuros ciclos de Patrocinio 2026/2027.
+- **Contexto**: O app usa hoje varias fontes de entidades, projetos, acompanhamentos e classificacoes adaptadas para a visao final `EntidadeSelecionada`. A proxima evolucao deve separar cadastro estavel de entidades, base comum de projetos, dados especificos de Fomento, dados especificos de Patrocinio, acompanhamento vivo e tabelas auxiliares, preservando entrada gratuita por CSV, XLSX ou TXT.
+- **Criticidade estimada**: Nivel 3 para implementacao estrutural, pois podera afetar parsers, schemas, validadores, dados centrais e consumidores do app. A etapa atual e apenas documental e de criticidade Nivel 2.
+- **Registro tecnico inicial**: `docs/dados/governanca-dados-vivos-entidades-projetos.md`.
+- **Proxima acao sugerida**: Executar a Fase 0 com inventario detalhado de campos por arquivo, matriz origem/destino e proposta de chaves canonicas antes de qualquer alteracao de runtime.
+
 ### Acompanhamento futuro da consulta IA Infra-BR
 
 - **Status**: Em aberto.
