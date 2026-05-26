@@ -213,6 +213,8 @@ Registro da fase: `docs/dados/inventario-fase-0-dados-vivos.md`.
 - Nao substituir `EntidadeSelecionada` ainda.
 - Validar contagens, chaves duplicadas e joins.
 
+Status inicial: o primeiro bloco paralelo criou schemas, normalizers e validacao para `entidades` e `projetos_base` em `src/data/dados-vivos`, com script `npm.cmd run data:validate-dados-vivos`.
+
 ### Fase 2 - Adapter de Compatibilidade
 
 - Criar adapter que reconstrua a visao atual do app a partir do modelo novo.
@@ -253,4 +255,4 @@ Registro da fase: `docs/dados/inventario-fase-0-dados-vivos.md`.
 
 ## Proxima Acao Recomendada
 
-Apos a Fase 0 documental, executar um bloco pequeno de Fase 1 paralela: criar schemas Zod e normalizers iniciais somente para `entidades` e `projetos_base`, sem trocar o runtime atual e com validacao de contagem, duplicidade de chaves e integridade de relacionamento.
+Apos o primeiro bloco da Fase 1 paralela, ampliar o modelo em bloco pequeno para `projetos_fomento` e `projetos_patrocinio`, ainda sem trocar o runtime atual.

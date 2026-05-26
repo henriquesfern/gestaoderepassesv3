@@ -18,7 +18,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 3 para implementacao estrutural, pois podera afetar parsers, schemas, validadores, dados centrais e consumidores do app. A etapa atual e apenas documental e de criticidade Nivel 2.
 - **Registro tecnico inicial**: `docs/dados/governanca-dados-vivos-entidades-projetos.md`.
 - **Registro da Fase 0**: `docs/dados/inventario-fase-0-dados-vivos.md`.
-- **Proxima acao sugerida**: Executar um bloco pequeno de Fase 1 paralela, criando schemas Zod e normalizers iniciais somente para `entidades` e `projetos_base`, sem trocar o runtime atual.
+- **Status da Fase 1 paralela**: Primeiro bloco implementado com schemas, normalizers e validacao para `entidades` e `projetos_base`, sem troca de runtime.
+- **Proxima acao sugerida**: Ampliar o modelo paralelo para `projetos_fomento` e `projetos_patrocinio`, mantendo validacao independente antes de qualquer consumo pelo app.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
