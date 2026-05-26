@@ -2,10 +2,12 @@ import Papa from 'papaparse';
 import { cdenCSV } from '../cden';
 import { fomento2025CSV } from '../fomento2025';
 import { fomento2026CSV } from '../fomento2026';
+import { gestaofomento26 } from '../gestaofomento26';
 import { patrocinioCSV } from '../patrocinio2025';
 import { precursorasCSV } from '../precursoras';
 import { parseCurrency, parseNumberBR } from '../../utils/formatters';
 import type {
+  AcompanhamentoProjetoDadosVivos,
   AlertaDadosVivos,
   EntidadeDadosVivos,
   FonteProjetoDadosVivos,
@@ -21,6 +23,7 @@ type CsvRow = Record<string, string | number | undefined>;
 const FONTE_FOMENTO_2026 = 'fomento2026';
 const FONTE_FOMENTO_2025 = 'fomento2025';
 const FONTE_PATROCINIO_2025 = 'patrocinio2025';
+const FONTE_GESTAO_FOMENTO_2026 = 'gestaofomento26';
 
 function parseCsv<T extends CsvRow>(csv: string, delimiter?: string): T[] {
   return Papa.parse<T>(csv.trim(), {
@@ -108,6 +111,11 @@ function parseNumero(valor: unknown): number | undefined {
 function parseValor(valor: unknown): number {
   if (typeof valor === 'number') return Number.isFinite(valor) ? valor : 0;
   return parseCurrency(normalizarTexto(valor));
+}
+
+function parseValorOpcional(valor: unknown): number | undefined {
+  if (indefinidoSeVazio(valor) === undefined) return undefined;
+  return parseValor(valor);
 }
 
 function escolherAtual(atual: string | undefined, candidato: unknown): string | undefined {
@@ -278,6 +286,50 @@ function criarProjetoPatrocinio2025(row: CsvRow, projetoId: string): ProjetoPatr
   };
 }
 
+function criarAcompanhamentosFomento2026(
+  rows: CsvRow[],
+  projetos: ProjetoBaseDadosVivos[],
+  alertas: AlertaDadosVivos[],
+): AcompanhamentoProjetoDadosVivos[] {
+  const projetosFomento2026PorCnpj = new Map(
+    projetos
+      .filter((projeto) => projeto.tipo_projeto === 'fomento' && projeto.ciclo === '2026')
+      .map((projeto) => [projeto.cnpj_entidade, projeto]),
+  );
+
+  return rows.flatMap((row, indice) => {
+    const cnpj = normalizarCnpj(row.cnpj);
+    const projeto = projetosFomento2026PorCnpj.get(cnpj);
+
+    if (!cnpj || !projeto) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'ACOMPANHAMENTO_SEM_PROJETO_BASE',
+        mensagem: 'Registro de acompanhamento sem projeto base de Fomento 2026 correspondente.',
+        referencia: `${FONTE_GESTAO_FOMENTO_2026}:${cnpj || indice}`,
+      });
+      return [];
+    }
+
+    return [{
+      acompanhamento_id: `${FONTE_GESTAO_FOMENTO_2026}:${projeto.projeto_id}`,
+      projeto_id: projeto.projeto_id,
+      cnpj_entidade: cnpj,
+      status_execucao: indefinidoSeVazio(row.status),
+      inicio_execucao: indefinidoSeVazio(row.inicioexecucao),
+      fim_execucao: indefinidoSeVazio(row.fimexecucao),
+      termo: indefinidoSeVazio(row.termodefomento),
+      valor_primeiro_repasse: parseValorOpcional(row.primeirorepasse),
+      data_primeiro_repasse: indefinidoSeVazio(row.dataprimeirorepasse),
+      valor_segundo_repasse: parseValorOpcional(row.segundorepasse),
+      data_segundo_repasse: indefinidoSeVazio(row.datasegundorepasse),
+      fiscal_suplente: indefinidoSeVazio(row.fiscalsuplente),
+      situacao_final: indefinidoSeVazio(row.situacaofinal),
+      fonte_arquivo: FONTE_GESTAO_FOMENTO_2026,
+    }];
+  });
+}
+
 function carregarGrupos() {
   const cdenRows = parseCsv<CsvRow>(cdenCSV);
   const precursorasRows = parseCsv<CsvRow>(precursorasCSV);
@@ -312,6 +364,7 @@ function validarRelacionamentos(
   projetos: ProjetoBaseDadosVivos[],
   projetosFomento: ProjetoFomentoDadosVivos[],
   projetosPatrocinio: ProjetoPatrocinioDadosVivos[],
+  acompanhamentos: AcompanhamentoProjetoDadosVivos[],
   alertas: AlertaDadosVivos[],
 ): void {
   const projetosBaseIds = new Set(projetos.map((projeto) => projeto.projeto_id));
@@ -365,6 +418,17 @@ function validarRelacionamentos(
         codigo: 'PATROCINIO_SEM_PROJETO_BASE',
         mensagem: 'Registro de Patrocinio sem projeto base correspondente.',
         referencia: projeto.projeto_id,
+      });
+    }
+  }
+
+  for (const acompanhamento of acompanhamentos) {
+    if (!projetosBaseIds.has(acompanhamento.projeto_id)) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'ACOMPANHAMENTO_SEM_PROJETO_BASE',
+        mensagem: 'Registro de acompanhamento sem projeto base correspondente.',
+        referencia: acompanhamento.acompanhamento_id,
       });
     }
   }
@@ -504,13 +568,15 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
   });
 
   validarDuplicidades(projetos, alertas);
-  validarRelacionamentos(entidades, projetos, projetosFomento, projetosPatrocinio, alertas);
+  const acompanhamentos = criarAcompanhamentosFomento2026(gestaofomento26, projetos, alertas);
+  validarRelacionamentos(entidades, projetos, projetosFomento, projetosPatrocinio, acompanhamentos, alertas);
 
   return {
     entidades: [...entidades.values()].sort((a, b) => a.cnpj_normalizado.localeCompare(b.cnpj_normalizado)),
     projetos_base: projetos,
     projetos_fomento: projetosFomento,
     projetos_patrocinio: projetosPatrocinio,
+    acompanhamento_projetos: acompanhamentos,
     alertas,
   };
 }
