@@ -10,13 +10,17 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ## Em Aberto
 
-Nao ha itens em aberto neste momento.
+### Acompanhamento futuro da consulta IA Infra-BR
 
-## Em Avaliacao
+- **Status**: Em aberto.
+- **Origem**: Fechamento do ciclo de evolucao da consulta IA/Infra-BR em 26/05/2026, apos testes reais com perguntas diretas, comparativas e de aprofundamento por indicadores.
+- **Contexto**: A consulta da IA para Infra-BR foi evoluida para responder de forma mais direta em perguntas simples, preservar contexto ampliado quando solicitado e evitar contaminacao por fomento ou normativos em perguntas explicitamente Infra-BR. O assunto deve ser retomado futuramente apenas apos nova rodada de uso real, com exemplos concretos de falhas ou oportunidades de refinamento.
+- **Criticidade estimada**: Nivel 2, desde que os proximos ajustes continuem restritos ao roteamento e ao construtor de contexto da IA.
+- **Proxima acao sugerida**: Reunir novas perguntas e respostas reais em uma bateria de validacao antes de qualquer nova alteracao no codigo.
 
 ### Roteirizacao de intencao do contexto Infra-BR na IA
 
-- **Status**: Em avaliacao.
+- **Status**: Em aberto.
 - **Origem**: Testes de uso real da IA em 25/05/2026 com perguntas sobre dimensoes, componentes e indicadores do Infra-BR.
 - **Contexto**: A reducao do contexto Infra-BR por nivel de pergunta melhorou respostas diretas, mas a IA ainda precisa preservar capacidade de respostas complexas quando o usuario pedir comparacao, catalogo, composicao ou diagnostico. A proxima evolucao deve evitar excesso de contexto em perguntas simples sem impedir aprofundamento quando solicitado explicitamente.
 - **Criticidade estimada**: Nivel 2, caso a implementacao permaneça restrita ao construtor de contexto Infra-BR da IA e as validacoes sejam feitas com perguntas reais simples e complexas.
@@ -28,7 +32,12 @@ Nao ha itens em aberto neste momento.
   - **catalogo**: enviar apenas listas ou estrutura minima necessaria, sem notas desnecessarias.
   - **composicao**: enviar o item pai e seus filhos diretos, como dimensao -> componentes ou componente -> indicadores.
   - **diagnostico**: enviar o item solicitado e filhos diretos de forma controlada, permitindo explicar desempenho, pontos fortes e pontos fracos.
-- **Proxima acao sugerida**: Fazer avaliacao sem implementacao com uma bateria de 12 a 15 perguntas-teste representativas, definindo para cada uma o nivel do dado, o modo da resposta e o contexto esperado antes de alterar novamente o codigo.
+- **Resultado do ciclo atual**: A consulta IA/Infra-BR passou a distinguir nivel do dado e modo de resposta, reduzir excesso de contexto em perguntas simples, isolar perguntas explicitamente Infra-BR de fomento/normativos e abrir indicadores filhos quando solicitado.
+- **Proxima acao sugerida**: Antes de qualquer nova implementacao, montar uma bateria de perguntas reais que explicite o nivel esperado, o modo de resposta e o contexto necessario para cada caso.
+
+## Em Avaliacao
+
+Nao ha itens em avaliacao neste momento.
 
 ## Priorizado
 
