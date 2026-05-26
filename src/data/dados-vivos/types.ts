@@ -5,6 +5,8 @@ export type FonteProjetoDadosVivos =
   | 'fomento2025'
   | 'patrocinio2025';
 
+export type FonteAcompanhamentoDadosVivos = 'gestaofomento26';
+
 export interface EntidadeDadosVivos {
   entidade_id: string;
   cnpj_normalizado: string;
@@ -68,6 +70,23 @@ export interface ProjetoPatrocinioDadosVivos {
   fiscal_crea?: string;
 }
 
+export interface AcompanhamentoProjetoDadosVivos {
+  acompanhamento_id: string;
+  projeto_id: string;
+  cnpj_entidade: string;
+  status_execucao?: string;
+  inicio_execucao?: string;
+  fim_execucao?: string;
+  termo?: string;
+  valor_primeiro_repasse?: number;
+  data_primeiro_repasse?: string;
+  valor_segundo_repasse?: number;
+  data_segundo_repasse?: string;
+  fiscal_suplente?: string;
+  situacao_final?: string;
+  fonte_arquivo: FonteAcompanhamentoDadosVivos;
+}
+
 export interface AlertaDadosVivos {
   nivel: 'aviso' | 'erro';
   codigo: string;
@@ -80,5 +99,6 @@ export interface ModeloDadosVivosParalelo {
   projetos_base: ProjetoBaseDadosVivos[];
   projetos_fomento: ProjetoFomentoDadosVivos[];
   projetos_patrocinio: ProjetoPatrocinioDadosVivos[];
+  acompanhamento_projetos: AcompanhamentoProjetoDadosVivos[];
   alertas: AlertaDadosVivos[];
 }

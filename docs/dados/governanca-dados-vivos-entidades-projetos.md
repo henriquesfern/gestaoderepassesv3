@@ -213,7 +213,7 @@ Registro da fase: `docs/dados/inventario-fase-0-dados-vivos.md`.
 - Nao substituir `EntidadeSelecionada` ainda.
 - Validar contagens, chaves duplicadas e joins.
 
-Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entidades`, `projetos_base`, `projetos_fomento` e `projetos_patrocinio` em `src/data/dados-vivos`, com script `npm.cmd run data:validate-dados-vivos`.
+Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entidades`, `projetos_base`, `projetos_fomento`, `projetos_patrocinio` e `acompanhamento_projetos` em `src/data/dados-vivos`, com script `npm.cmd run data:validate-dados-vivos`.
 
 ### Fase 2 - Adapter de Compatibilidade
 
@@ -255,4 +255,4 @@ Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entid
 
 ## Proxima Acao Recomendada
 
-Apos ampliar a Fase 1 paralela para os dados especificos de Fomento e Patrocinio, executar um bloco pequeno para `acompanhamento_projetos` e validacao de integridade com os projetos base, ainda sem trocar o runtime atual.
+Apos ampliar a Fase 1 paralela para acompanhamento, executar um bloco pequeno para `classificacoes_infrabr_projeto`, usando os campos ja inventariados do Fomento 2026 e mantendo validacao independente antes de qualquer troca de runtime.

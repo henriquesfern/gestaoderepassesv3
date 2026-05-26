@@ -9,6 +9,7 @@ export const cnpjNormalizadoDadosVivosSchema = z
 
 export const tipoProjetoDadosVivosSchema = z.enum(['fomento', 'patrocinio']);
 export const fonteProjetoDadosVivosSchema = z.enum(['fomento2026', 'fomento2025', 'patrocinio2025']);
+export const fonteAcompanhamentoDadosVivosSchema = z.enum(['gestaofomento26']);
 
 export const entidadeDadosVivosSchema = z.object({
   entidade_id: textoObrigatorioSchema,
@@ -73,6 +74,23 @@ export const projetoPatrocinioDadosVivosSchema = z.object({
   fiscal_crea: textoOpcionalSchema,
 });
 
+export const acompanhamentoProjetoDadosVivosSchema = z.object({
+  acompanhamento_id: textoObrigatorioSchema,
+  projeto_id: textoObrigatorioSchema,
+  cnpj_entidade: cnpjNormalizadoDadosVivosSchema,
+  status_execucao: textoOpcionalSchema,
+  inicio_execucao: textoOpcionalSchema,
+  fim_execucao: textoOpcionalSchema,
+  termo: textoOpcionalSchema,
+  valor_primeiro_repasse: z.number().finite().min(0).optional(),
+  data_primeiro_repasse: textoOpcionalSchema,
+  valor_segundo_repasse: z.number().finite().min(0).optional(),
+  data_segundo_repasse: textoOpcionalSchema,
+  fiscal_suplente: textoOpcionalSchema,
+  situacao_final: textoOpcionalSchema,
+  fonte_arquivo: fonteAcompanhamentoDadosVivosSchema,
+});
+
 export const alertaDadosVivosSchema = z.object({
   nivel: z.enum(['aviso', 'erro']),
   codigo: textoObrigatorioSchema,
@@ -85,5 +103,6 @@ export const modeloDadosVivosParaleloSchema = z.object({
   projetos_base: z.array(projetoBaseDadosVivosSchema),
   projetos_fomento: z.array(projetoFomentoDadosVivosSchema),
   projetos_patrocinio: z.array(projetoPatrocinioDadosVivosSchema),
+  acompanhamento_projetos: z.array(acompanhamentoProjetoDadosVivosSchema),
   alertas: z.array(alertaDadosVivosSchema),
 });
