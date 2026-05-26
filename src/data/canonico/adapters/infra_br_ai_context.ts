@@ -22,9 +22,11 @@ type ContextoIAInfraBRUF = {
 };
 
 type NivelRecorteInfraBR = 'geral' | 'dimensao' | 'componente' | 'indicador';
+type ModoRespostaInfraBR = 'direta' | 'comparativa' | 'catalogo' | 'composicao' | 'diagnostico';
 
 type SelecaoContextoInfraBR = {
   nivel: NivelRecorteInfraBR;
+  modo: ModoRespostaInfraBR;
   dimensoesIds: Set<string>;
   componentesIds: Set<string>;
   indicadoresIds: Set<string>;
@@ -34,6 +36,7 @@ export interface ContextoIAInfraBR {
   origem: 'canonica';
   divergencias: string[];
   nivel_recorte: NivelRecorteInfraBR;
+  modo_resposta: ModoRespostaInfraBR;
   cobertura: {
     estados: number;
     dimensoes: number;
@@ -135,6 +138,10 @@ function contemTermo(textoNormalizado: string, termoNormalizado: string): boolea
   return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`).test(textoNormalizado);
 }
 
+function contemAlgumTermo(textoNormalizado: string, termos: string[]): boolean {
+  return termos.some((termo) => contemTermo(textoNormalizado, termo));
+}
+
 function detectarUFs(pergunta: string, estados: InfraRuntimeData['infraEstados']): string[] {
   const perguntaNormalizada = normalizarTexto(pergunta);
   const ufsDisponiveis = new Set(estados.map((estado) => estado.sigla_uf));
@@ -197,11 +204,72 @@ function selecionarIdsRelevantes<T>(
     .map((item) => item.id));
 }
 
+function detectarModoResposta(perguntaNormalizada: string): ModoRespostaInfraBR {
+  const perguntaSobreComponentesExistentes = contemTermo(perguntaNormalizada, 'componentes') && contemTermo(perguntaNormalizada, 'existem');
+  const perguntaSobreIndicadoresExistentes = contemTermo(perguntaNormalizada, 'indicadores') && contemTermo(perguntaNormalizada, 'existem');
+  const perguntaSobreDimensoesExistentes = contemTermo(perguntaNormalizada, 'dimensoes') && contemTermo(perguntaNormalizada, 'existem');
+
+  if (contemAlgumTermo(perguntaNormalizada, [
+    'compare',
+    'comparar',
+    'comparacao',
+    'ranking',
+    'rankear',
+    'melhores',
+    'piores',
+    'todos',
+    'todas',
+  ])) {
+    return 'comparativa';
+  }
+
+  if (contemAlgumTermo(perguntaNormalizada, [
+    'explique',
+    'explicar',
+    'porque',
+    'por que',
+    'diagnostico',
+    'desempenho',
+    'pontos fortes',
+    'pontos fracos',
+    'fraquezas',
+    'detalhe',
+    'detalhar',
+  ])) {
+    return 'diagnostico';
+  }
+
+  if (perguntaSobreComponentesExistentes || perguntaSobreIndicadoresExistentes || contemAlgumTermo(perguntaNormalizada, [
+    'compoe',
+    'compoem',
+    'composicao',
+    'integra',
+    'integram',
+    'faz parte',
+    'fazem parte',
+  ])) {
+    return 'composicao';
+  }
+
+  if (perguntaSobreDimensoesExistentes || contemAlgumTermo(perguntaNormalizada, [
+    'quais existem',
+    'liste',
+    'listar',
+    'catalogo',
+    'disponiveis',
+  ])) {
+    return 'catalogo';
+  }
+
+  return 'direta';
+}
+
 function montarSelecaoContextoInfraBR(
   infraData: InfraRuntimeData,
   pergunta: string,
 ): SelecaoContextoInfraBR {
   const perguntaNormalizada = normalizarTexto(pergunta);
+  const modo = detectarModoResposta(perguntaNormalizada);
   const mencionaDimensao = contemTermo(perguntaNormalizada, 'dimensao') || contemTermo(perguntaNormalizada, 'dimensoes');
   const mencionaComponente = contemTermo(perguntaNormalizada, 'componente') || contemTermo(perguntaNormalizada, 'componentes');
   const mencionaIndicador = contemTermo(perguntaNormalizada, 'indicador') || contemTermo(perguntaNormalizada, 'indicadores');
@@ -253,18 +321,34 @@ function montarSelecaoContextoInfraBR(
   }));
 
   if (indicadoresIds.size > 0 && (mencionaIndicador || (componentesIds.size === 0 && dimensoesIds.size === 0))) {
-    return { nivel: 'indicador', dimensoesIds, componentesIds, indicadoresIds };
+    return { nivel: 'indicador', modo, dimensoesIds, componentesIds, indicadoresIds };
   }
 
   if (componentesIds.size > 0) {
-    return { nivel: 'componente', dimensoesIds, componentesIds, indicadoresIds };
+    return { nivel: 'componente', modo, dimensoesIds, componentesIds, indicadoresIds };
   }
 
   if (dimensoesIds.size > 0) {
-    return { nivel: 'dimensao', dimensoesIds, componentesIds, indicadoresIds };
+    return { nivel: 'dimensao', modo, dimensoesIds, componentesIds, indicadoresIds };
   }
 
-  return { nivel: 'geral', dimensoesIds, componentesIds, indicadoresIds };
+  return { nivel: 'geral', modo, dimensoesIds, componentesIds, indicadoresIds };
+}
+
+function itensUnicosPorId<T>(itens: T[], obterId: (item: T) => string): T[] {
+  const vistos = new Set<string>();
+  const unicos: T[] = [];
+
+  for (const item of itens) {
+    const id = obterId(item);
+
+    if (!vistos.has(id)) {
+      vistos.add(id);
+      unicos.push(item);
+    }
+  }
+
+  return unicos;
 }
 
 function montarRecorteUF(
@@ -277,7 +361,11 @@ function montarRecorteUF(
 
   const dimensoes = infraData.dimensoes
     .filter((item) => item.sigla_uf === uf)
-    .filter((item) => selecao.nivel === 'dimensao' && selecao.dimensoesIds.has(item.dimension_id))
+    .filter((item) => (
+      selecao.nivel === 'dimensao' &&
+      selecao.dimensoesIds.has(item.dimension_id) &&
+      selecao.modo !== 'catalogo'
+    ))
     .map((item) => ({
       id: item.dimension_id,
       nome: item.dimension_name,
@@ -287,7 +375,14 @@ function montarRecorteUF(
 
   const componentes = infraData.componentes
     .filter((item) => item.sigla_uf === uf)
-    .filter((item) => selecao.nivel === 'componente' && selecao.componentesIds.has(item.component_id))
+    .filter((item) => {
+      if (selecao.modo === 'catalogo') return false;
+      if (selecao.nivel === 'componente') return selecao.componentesIds.has(item.component_id);
+      if (selecao.nivel === 'dimensao') {
+        return ['composicao', 'diagnostico'].includes(selecao.modo) && selecao.dimensoesIds.has(item.dimension_id);
+      }
+      return false;
+    })
     .map((item) => ({
       id: item.component_id,
       nome: item.component_name,
@@ -298,7 +393,14 @@ function montarRecorteUF(
 
   const indicadores = infraData.indicadores
     .filter((item) => item.sigla_uf === uf)
-    .filter((item) => selecao.nivel === 'indicador' && selecao.indicadoresIds.has(item.indicator_id))
+    .filter((item) => {
+      if (selecao.modo === 'catalogo') return false;
+      if (selecao.nivel === 'indicador') return selecao.indicadoresIds.has(item.indicator_id);
+      if (selecao.nivel === 'componente') {
+        return ['composicao', 'diagnostico'].includes(selecao.modo) && selecao.componentesIds.has(item.component_id);
+      }
+      return false;
+    })
     .map((item) => ({
       id: item.indicator_id,
       nome: item.indicator_name,
@@ -332,61 +434,101 @@ export function construirContextoIAInfraBR(params: {
   const componentesNomes = nomesUnicos(infraData.componentes.map((item) => item.component_name));
   const indicadoresNomes = nomesUnicos(infraData.indicadores.map((item) => item.indicator_name));
   const selecao = montarSelecaoContextoInfraBR(infraData, pergunta);
+  const usarTodosEstados = selecao.modo === 'comparativa' && ufsDetectadas.length === 0;
+  const usarCatalogoEstrutural = selecao.modo === 'catalogo' || (selecao.modo === 'composicao' && ufsDetectadas.length === 0);
+  const usarRecortes = !usarCatalogoEstrutural;
   const ufsParaRecorte = ufsDetectadas.length > 0
     ? ufsDetectadas
-    : infraData.infraEstados
+    : usarTodosEstados
+      ? infraData.infraEstados
+        .slice()
+        .sort((a, b) => a.rank - b.rank)
+        .map((estado) => estado.sigla_uf)
+      : infraData.infraEstados
       .slice()
       .sort((a, b) => a.rank - b.rank)
       .slice(0, 5)
       .map((estado) => estado.sigla_uf);
 
-  const recortes = ufsParaRecorte
-    .map((uf) => montarRecorteUF(infraData, uf, selecao))
-    .filter((item): item is ContextoIAInfraBRUF => Boolean(item));
+  const recortes = usarRecortes
+    ? ufsParaRecorte
+      .map((uf) => montarRecorteUF(infraData, uf, selecao))
+      .filter((item): item is ContextoIAInfraBRUF => Boolean(item))
+    : [];
+  const incluirEstadosResumo = selecao.modo === 'comparativa' && selecao.nivel === 'geral';
+  const catalogoDimensoes = usarCatalogoEstrutural
+    ? dimensoesNomes.filter((nome) => {
+      if (selecao.nivel === 'geral') return true;
+      if (selecao.nivel === 'dimensao') {
+        return infraData.dimensoes.some((item) => item.dimension_name === nome && selecao.dimensoesIds.has(item.dimension_id));
+      }
+      if (selecao.nivel === 'componente') {
+        return infraData.componentes.some((item) => item.dimension_name === nome && selecao.componentesIds.has(item.component_id));
+      }
+      return infraData.indicadores.some((item) => item.dimension_name === nome && selecao.indicadoresIds.has(item.indicator_id));
+    })
+    : [];
+  const catalogoComponentes = usarCatalogoEstrutural
+    ? itensUnicosPorId(
+      infraData.componentes.filter((item) => {
+        if (selecao.nivel === 'dimensao') return selecao.dimensoesIds.has(item.dimension_id);
+        if (selecao.nivel === 'componente') return selecao.componentesIds.has(item.component_id);
+        return selecao.modo === 'catalogo' && selecao.componentesIds.has(item.component_id);
+      }),
+      (item) => item.component_id,
+    ).map((item) => ({
+      id: item.component_id,
+      nome: item.component_name,
+      dimensao: item.dimension_name,
+    }))
+    : [];
+  const catalogoIndicadores = usarCatalogoEstrutural
+    ? itensUnicosPorId(
+      infraData.indicadores.filter((item) => {
+        if (selecao.nivel === 'componente') return selecao.componentesIds.has(item.component_id);
+        if (selecao.nivel === 'indicador') return selecao.indicadoresIds.has(item.indicator_id);
+        return false;
+      }),
+      (item) => item.indicator_id,
+    ).map((item) => ({
+      id: item.indicator_id,
+      nome: item.indicator_name,
+      dimensao: item.dimension_name,
+      componente: item.component_name,
+      descricao: item.descricao,
+      fonte: item.fonte,
+    }))
+    : [];
 
   return {
     origem,
     divergencias,
     nivel_recorte: selecao.nivel,
+    modo_resposta: selecao.modo,
     cobertura: {
       estados: infraData.infraEstados.length,
       dimensoes: dimensoesNomes.length,
       componentes: componentesNomes.length,
       indicadores: indicadoresNomes.length,
     },
-    estados_resumo: infraData.infraEstados
-      .slice()
-      .sort((a, b) => a.rank - b.rank)
-      .map((estado) => ({
-        uf: estado.sigla_uf,
-        nota_geral: estado.infra_br,
-        rank_geral: estado.rank,
-      })),
+    estados_resumo: incluirEstadosResumo
+      ? infraData.infraEstados
+        .slice()
+        .sort((a, b) => a.rank - b.rank)
+        .map((estado) => ({
+          uf: estado.sigla_uf,
+          nota_geral: estado.infra_br,
+          rank_geral: estado.rank,
+        }))
+      : [],
     catalogo: {
-      dimensoes: dimensoesNomes,
-      componentes: componentesNomes.map((nome) => {
-        const exemplo = infraData.componentes.find((item) => item.component_name === nome);
-        return {
-          id: exemplo?.component_id,
-          nome,
-          dimensao: exemplo?.dimension_name,
-        };
-      }),
-      indicadores: indicadoresNomes.map((nome) => {
-        const exemplo = infraData.indicadores.find((item) => item.indicator_name === nome);
-        return {
-          id: exemplo?.indicator_id,
-          nome,
-          dimensao: exemplo?.dimension_name,
-          componente: exemplo?.component_name,
-          descricao: exemplo?.descricao,
-          fonte: exemplo?.fonte,
-        };
-      }),
+      dimensoes: catalogoDimensoes,
+      componentes: catalogoComponentes,
+      indicadores: catalogoIndicadores,
     },
     recortes_por_uf: recortes,
     observacoes: [
-      'Responda somente no nivel solicitado em nivel_recorte; nao amplie dimensao para componentes nem componente para indicadores sem pedido explicito.',
+      'Responda somente no nivel solicitado em nivel_recorte e no modo indicado em modo_resposta.',
       'Quando houver UF na pergunta, priorize o recorte da respectiva UF.',
       'Nao confunda termos parecidos: por exemplo, PORTOS e AEROPORTOS sao componentes diferentes.',
     ],

@@ -114,11 +114,6 @@ export function AIAssistant() {
           Repasse: d.VALOR_REPASSE,
           Projeto: d.OBJETIVO
         })),
-        infraBR_estados: infraData.infraEstados.slice(0, 27).map((d) => ({
-          UF: d.sigla_uf,
-          Nota: d.infra_br,
-          Rank: d.rank
-        })),
         infraBR_contexto_ia: contextoIAInfraBR
       };
 
