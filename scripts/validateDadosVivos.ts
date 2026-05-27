@@ -38,6 +38,7 @@ console.log(`Projetos base: ${validado.projetos_base.length}`);
 console.log(`Projetos fomento: ${validado.projetos_fomento.length}`);
 console.log(`Projetos patrocinio: ${validado.projetos_patrocinio.length}`);
 console.log(`Acompanhamentos: ${validado.acompanhamento_projetos.length}`);
+console.log(`Classificacoes Infra-BR: ${validado.classificacoes_infrabr_projeto.length}`);
 
 for (const [fonte, total] of [...porFonte.entries()].sort()) {
   console.log(`- ${fonte}: ${total} projeto(s)`);

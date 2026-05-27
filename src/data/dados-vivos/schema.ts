@@ -10,6 +10,8 @@ export const cnpjNormalizadoDadosVivosSchema = z
 export const tipoProjetoDadosVivosSchema = z.enum(['fomento', 'patrocinio']);
 export const fonteProjetoDadosVivosSchema = z.enum(['fomento2026', 'fomento2025', 'patrocinio2025']);
 export const fonteAcompanhamentoDadosVivosSchema = z.enum(['gestaofomento26']);
+export const fonteClassificacaoInfraBRProjetoDadosVivosSchema = z.enum(['fomento2026']);
+export const nivelClassificacaoInfraBRProjetoDadosVivosSchema = z.enum(['dimensao', 'componente', 'indicador']);
 
 export const entidadeDadosVivosSchema = z.object({
   entidade_id: textoObrigatorioSchema,
@@ -91,6 +93,22 @@ export const acompanhamentoProjetoDadosVivosSchema = z.object({
   fonte_arquivo: fonteAcompanhamentoDadosVivosSchema,
 });
 
+export const classificacaoInfraBRProjetoDadosVivosSchema = z.object({
+  classificacao_id: textoObrigatorioSchema,
+  projeto_id: textoObrigatorioSchema,
+  nivel: nivelClassificacaoInfraBRProjetoDadosVivosSchema,
+  dimensao: textoObrigatorioSchema,
+  componente: textoOpcionalSchema,
+  indicador: textoOpcionalSchema,
+  ordem_ranking: z.number().int().positive().optional(),
+  score: z.number().finite().min(0).optional(),
+  is_dimensao_principal: z.boolean(),
+  termos_detectados: textoOpcionalSchema,
+  ranking_original: textoOpcionalSchema,
+  scores_original: textoOpcionalSchema,
+  fonte_arquivo: fonteClassificacaoInfraBRProjetoDadosVivosSchema,
+});
+
 export const alertaDadosVivosSchema = z.object({
   nivel: z.enum(['aviso', 'erro']),
   codigo: textoObrigatorioSchema,
@@ -104,5 +122,6 @@ export const modeloDadosVivosParaleloSchema = z.object({
   projetos_fomento: z.array(projetoFomentoDadosVivosSchema),
   projetos_patrocinio: z.array(projetoPatrocinioDadosVivosSchema),
   acompanhamento_projetos: z.array(acompanhamentoProjetoDadosVivosSchema),
+  classificacoes_infrabr_projeto: z.array(classificacaoInfraBRProjetoDadosVivosSchema),
   alertas: z.array(alertaDadosVivosSchema),
 });

@@ -9,6 +9,7 @@ import { parseCurrency, parseNumberBR } from '../../utils/formatters';
 import type {
   AcompanhamentoProjetoDadosVivos,
   AlertaDadosVivos,
+  ClassificacaoInfraBRProjetoDadosVivos,
   EntidadeDadosVivos,
   FonteProjetoDadosVivos,
   ModeloDadosVivosParalelo,
@@ -116,6 +117,12 @@ function parseValor(valor: unknown): number {
 function parseValorOpcional(valor: unknown): number | undefined {
   if (indefinidoSeVazio(valor) === undefined) return undefined;
   return parseValor(valor);
+}
+
+function normalizarDimensaoInfraBR(valor: unknown): string | undefined {
+  const texto = indefinidoSeVazio(valor);
+  if (!texto || chaveComparavel(texto) === 'naoclassificado') return undefined;
+  return texto.toUpperCase();
 }
 
 function escolherAtual(atual: string | undefined, candidato: unknown): string | undefined {
@@ -330,6 +337,79 @@ function criarAcompanhamentosFomento2026(
   });
 }
 
+function extrairScoresInfraBR(valor: unknown): Map<string, number> {
+  const texto = indefinidoSeVazio(valor);
+  const scores = new Map<string, number>();
+  if (!texto) return scores;
+
+  for (const parte of texto.split('|')) {
+    const [dimensaoBruta, scoreBruto] = parte.split(':');
+    const dimensao = normalizarDimensaoInfraBR(dimensaoBruta);
+    const score = parseNumero(scoreBruto);
+
+    if (dimensao && score !== undefined) {
+      scores.set(chaveComparavel(dimensao), score);
+    }
+  }
+
+  return scores;
+}
+
+function extrairRankingInfraBR(row: CsvRow): Array<{ ordem: number; dimensao: string }> {
+  const rankingOriginal = indefinidoSeVazio(row.RANKING_ADERENCIA_INFRABR);
+  const ranking = new Map<string, { ordem: number; dimensao: string }>();
+
+  if (rankingOriginal) {
+    for (const parte of rankingOriginal.split('|')) {
+      const match = normalizarTexto(parte).match(/^(\d+)[ºo]?\s*-\s*(.+)$/i);
+      const ordem = match ? Number(match[1]) : undefined;
+      const dimensao = normalizarDimensaoInfraBR(match ? match[2] : parte);
+
+      if (dimensao) {
+        ranking.set(chaveComparavel(dimensao), { ordem: ordem ?? ranking.size + 1, dimensao });
+      }
+    }
+  }
+
+  for (let indice = 1; indice <= 5; indice += 1) {
+    const dimensao = normalizarDimensaoInfraBR(row[`DIMENSAO_${indice}`]);
+    if (!dimensao) continue;
+
+    const chave = chaveComparavel(dimensao);
+    if (!ranking.has(chave)) {
+      ranking.set(chave, { ordem: indice, dimensao });
+    }
+  }
+
+  return [...ranking.values()].sort((a, b) => a.ordem - b.ordem);
+}
+
+function criarClassificacoesInfraBRFomento2026(
+  row: CsvRow,
+  projetoId: string,
+): ClassificacaoInfraBRProjetoDadosVivos[] {
+  const ranking = extrairRankingInfraBR(row);
+  const scores = extrairScoresInfraBR(row.SCORES);
+  const dimensaoPrincipal = normalizarDimensaoInfraBR(row.DIMENSAO_PRINCIPAL);
+  const termosDetectados = indefinidoSeVazio(row.TERMOS_DETECTADOS);
+  const rankingOriginal = indefinidoSeVazio(row.RANKING_ADERENCIA_INFRABR);
+  const scoresOriginal = indefinidoSeVazio(row.SCORES);
+
+  return ranking.map(({ ordem, dimensao }) => ({
+    classificacao_id: `fomento2026:${projetoId}:dimensao:${ordem}`,
+    projeto_id: projetoId,
+    nivel: 'dimensao',
+    dimensao,
+    ordem_ranking: ordem,
+    score: scores.get(chaveComparavel(dimensao)),
+    is_dimensao_principal: dimensaoPrincipal ? chaveComparavel(dimensao) === chaveComparavel(dimensaoPrincipal) : false,
+    termos_detectados: termosDetectados,
+    ranking_original: rankingOriginal,
+    scores_original: scoresOriginal,
+    fonte_arquivo: FONTE_FOMENTO_2026,
+  }));
+}
+
 function carregarGrupos() {
   const cdenRows = parseCsv<CsvRow>(cdenCSV);
   const precursorasRows = parseCsv<CsvRow>(precursorasCSV);
@@ -365,6 +445,7 @@ function validarRelacionamentos(
   projetosFomento: ProjetoFomentoDadosVivos[],
   projetosPatrocinio: ProjetoPatrocinioDadosVivos[],
   acompanhamentos: AcompanhamentoProjetoDadosVivos[],
+  classificacoesInfraBR: ClassificacaoInfraBRProjetoDadosVivos[],
   alertas: AlertaDadosVivos[],
 ): void {
   const projetosBaseIds = new Set(projetos.map((projeto) => projeto.projeto_id));
@@ -432,6 +513,17 @@ function validarRelacionamentos(
       });
     }
   }
+
+  for (const classificacao of classificacoesInfraBR) {
+    if (!projetosBaseIds.has(classificacao.projeto_id)) {
+      alertas.push({
+        nivel: 'erro',
+        codigo: 'CLASSIFICACAO_INFRABR_SEM_PROJETO_BASE',
+        mensagem: 'Classificacao Infra-BR sem projeto base correspondente.',
+        referencia: classificacao.classificacao_id,
+      });
+    }
+  }
 }
 
 export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
@@ -440,6 +532,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
   const projetos: ProjetoBaseDadosVivos[] = [];
   const projetosFomento: ProjetoFomentoDadosVivos[] = [];
   const projetosPatrocinio: ProjetoPatrocinioDadosVivos[] = [];
+  const classificacoesInfraBR: ClassificacaoInfraBRProjetoDadosVivos[] = [];
   const grupos = carregarGrupos();
 
   const fomento2026 = parseCsv<CsvRow>(fomento2026CSV);
@@ -479,6 +572,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
 
     projetos.push(projetoBase);
     projetosFomento.push(criarProjetoFomento2026(row, projetoBase.projeto_id));
+    classificacoesInfraBR.push(...criarClassificacoesInfraBRFomento2026(row, projetoBase.projeto_id));
   });
 
   fomento2025.forEach((row, indice) => {
@@ -569,7 +663,15 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
 
   validarDuplicidades(projetos, alertas);
   const acompanhamentos = criarAcompanhamentosFomento2026(gestaofomento26, projetos, alertas);
-  validarRelacionamentos(entidades, projetos, projetosFomento, projetosPatrocinio, acompanhamentos, alertas);
+  validarRelacionamentos(
+    entidades,
+    projetos,
+    projetosFomento,
+    projetosPatrocinio,
+    acompanhamentos,
+    classificacoesInfraBR,
+    alertas,
+  );
 
   return {
     entidades: [...entidades.values()].sort((a, b) => a.cnpj_normalizado.localeCompare(b.cnpj_normalizado)),
@@ -577,6 +679,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
     projetos_fomento: projetosFomento,
     projetos_patrocinio: projetosPatrocinio,
     acompanhamento_projetos: acompanhamentos,
+    classificacoes_infrabr_projeto: classificacoesInfraBR,
     alertas,
   };
 }
