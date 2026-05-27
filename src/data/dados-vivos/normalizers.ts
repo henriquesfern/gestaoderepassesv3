@@ -297,10 +297,21 @@ function criarProjetoFomento2026(row: CsvRow, projetoId: string, rowValidado?: C
   };
 }
 
+function traduzirLinhaSolicitadaFomentoHistorico(valor: unknown): string | undefined {
+  const linha = indefinidoSeVazio(valor);
+
+  if (linha === '1') return 'Atividade principal do Sistema Confea/Crea';
+  if (linha === '2') return 'Transparência, Legalidade e Legitimidade do Sistema Confea/Crea';
+  if (linha === '3') return 'Papel do Sistema Confea/Crea';
+  if (linha) return 'Outros';
+
+  return undefined;
+}
+
 function criarProjetoFomento2025(row: CsvRow, projetoId: string): ProjetoFomentoDadosVivos {
   return {
     projeto_id: projetoId,
-    linha_solicitada: indefinidoSeVazio(obterCampo(row, 'Linha Solicitada')),
+    linha_solicitada: traduzirLinhaSolicitadaFomentoHistorico(obterCampo(row, 'Linha Solicitada')),
     resultado_classificacao: indefinidoSeVazio(obterCampo(row, 'Resultado 2 FASE')),
   };
 }
