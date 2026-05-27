@@ -213,7 +213,7 @@ Registro da fase: `docs/dados/inventario-fase-0-dados-vivos.md`.
 - Nao substituir `EntidadeSelecionada` ainda.
 - Validar contagens, chaves duplicadas e joins.
 
-Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entidades`, `projetos_base`, `projetos_fomento`, `projetos_patrocinio` e `acompanhamento_projetos` em `src/data/dados-vivos`, com script `npm.cmd run data:validate-dados-vivos`.
+Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entidades`, `projetos_base`, `projetos_fomento`, `projetos_patrocinio`, `acompanhamento_projetos` e `classificacoes_infrabr_projeto` em `src/data/dados-vivos`, com script `npm.cmd run data:validate-dados-vivos`.
 
 ### Fase 2 - Adapter de Compatibilidade
 
@@ -240,6 +240,7 @@ Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entid
 - Projeto deve ter chave estavel.
 - Projeto deve apontar para entidade existente ou gerar alerta de entidade nova.
 - Acompanhamento deve apontar para projeto existente.
+- Classificacao Infra-BR deve apontar para projeto existente.
 - `tipo_projeto` deve controlar qual tabela especifica e obrigatoria.
 - Campos especificos de Fomento nao devem vazar para Patrocinio, e vice-versa.
 - Datas e valores devem ser parseados com padrao unico.
@@ -255,4 +256,4 @@ Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entid
 
 ## Proxima Acao Recomendada
 
-Apos ampliar a Fase 1 paralela para acompanhamento, executar um bloco pequeno para `classificacoes_infrabr_projeto`, usando os campos ja inventariados do Fomento 2026 e mantendo validacao independente antes de qualquer troca de runtime.
+Apos concluir as principais tabelas paralelas da Fase 1, executar uma avaliacao de fechamento para decidir entre iniciar o adapter de compatibilidade da Fase 2 ou adicionar primeiro tabelas auxiliares menores, como `grupos_entidade`, `ufs_regioes`, `status_projeto` e `ciclos`.

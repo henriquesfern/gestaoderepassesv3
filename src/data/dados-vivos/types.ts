@@ -7,6 +7,13 @@ export type FonteProjetoDadosVivos =
 
 export type FonteAcompanhamentoDadosVivos = 'gestaofomento26';
 
+export type FonteClassificacaoInfraBRProjetoDadosVivos = 'fomento2026';
+
+export type NivelClassificacaoInfraBRProjetoDadosVivos =
+  | 'dimensao'
+  | 'componente'
+  | 'indicador';
+
 export interface EntidadeDadosVivos {
   entidade_id: string;
   cnpj_normalizado: string;
@@ -87,6 +94,22 @@ export interface AcompanhamentoProjetoDadosVivos {
   fonte_arquivo: FonteAcompanhamentoDadosVivos;
 }
 
+export interface ClassificacaoInfraBRProjetoDadosVivos {
+  classificacao_id: string;
+  projeto_id: string;
+  nivel: NivelClassificacaoInfraBRProjetoDadosVivos;
+  dimensao: string;
+  componente?: string;
+  indicador?: string;
+  ordem_ranking?: number;
+  score?: number;
+  is_dimensao_principal: boolean;
+  termos_detectados?: string;
+  ranking_original?: string;
+  scores_original?: string;
+  fonte_arquivo: FonteClassificacaoInfraBRProjetoDadosVivos;
+}
+
 export interface AlertaDadosVivos {
   nivel: 'aviso' | 'erro';
   codigo: string;
@@ -100,5 +123,6 @@ export interface ModeloDadosVivosParalelo {
   projetos_fomento: ProjetoFomentoDadosVivos[];
   projetos_patrocinio: ProjetoPatrocinioDadosVivos[];
   acompanhamento_projetos: AcompanhamentoProjetoDadosVivos[];
+  classificacoes_infrabr_projeto: ClassificacaoInfraBRProjetoDadosVivos[];
   alertas: AlertaDadosVivos[];
 }
