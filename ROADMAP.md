@@ -25,7 +25,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status do Fomento historico**: Codigos de linha solicitada do Fomento 2025 foram normalizados para os rotulos legados equivalentes no modelo paralelo.
 - **Status das datas do Fomento historico**: Datas ausentes do Fomento 2025 foram compatibilizadas no adapter legado com `-`, preservando o modelo paralelo normalizado.
 - **Status do Patrocinio historico**: Categorias do Patrocinio 2025 foram formatadas no adapter de compatibilidade conforme a regra legada, usando `TipoPublicacao` para publicacoes e capitalizacao amigavel.
-- **Proxima acao sugerida**: Avaliar as divergencias observacionais restantes do Fomento 2026/Infra-BR para separar enriquecimento desejado de normalizacoes textuais e criterios de comparacao antes de qualquer troca de runtime.
+- **Status das fontes validadas do Fomento 2026**: O CSV validado do Fomento 2026 foi alinhado entre `public/data`, `src/data` e a fonte embutida `newFomentoData.ts`, reduzindo divergencias observacionais do adapter de 362 para 45.
+- **Proxima acao sugerida**: Avaliar as 45 divergencias observacionais restantes do Fomento 2026 para separar diferencas de classificacao Infra-BR, preenchimento textual e criterios de comparacao antes de qualquer troca de runtime.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
