@@ -162,6 +162,19 @@ function adaptarProjetoFomento(params: {
   };
 }
 
+function capitalizarCategoriaPatrocinio(valor: string): string {
+  if (!valor) return '';
+  return `${valor.charAt(0).toUpperCase()}${valor.slice(1).toLowerCase()}`;
+}
+
+function categoriaPatrocinioHistorico(patrocinio?: ProjetoPatrocinioDadosVivos, statusGeral?: string): string {
+  const tipo = patrocinio?.tipo_patrocinio ?? statusGeral ?? '';
+  const tipoPublicacao = patrocinio?.tipo_publicacao ?? '';
+  const categoria = tipo === 'PUBLICAÇÃO' && tipoPublicacao ? tipoPublicacao : tipo;
+
+  return capitalizarCategoriaPatrocinio(categoria);
+}
+
 function adaptarProjetoPatrocinio(params: {
   projeto: ProjetoBaseDadosVivos;
   entidade?: EntidadeDadosVivos;
@@ -169,7 +182,7 @@ function adaptarProjetoPatrocinio(params: {
 }): EntidadeSelecionada {
   const { projeto, entidade, patrocinio } = params;
   const estado = projeto.estado_snapshot ?? entidade?.estado ?? '';
-  const categoria = patrocinio?.tipo_publicacao ?? patrocinio?.tipo_patrocinio ?? projeto.status_geral ?? '';
+  const categoria = categoriaPatrocinioHistorico(patrocinio, projeto.status_geral);
   const titulo = projeto.titulo_ou_objeto_resumido ?? patrocinio?.evento_ou_projeto ?? categoria;
   const objetivo = titulo.length > 35 ? `${titulo.substring(0, 35)}...` : titulo;
 

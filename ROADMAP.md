@@ -23,7 +23,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status do enriquecimento Infra-BR**: `classificacoes_infrabr_projeto` passou a carregar dimensoes, componentes e indicadores validados do Fomento 2026, incluindo rankings, scores e termos detectados por nivel, ainda sem troca de runtime.
 - **Status dos controles de Fomento 2026**: Votos, controle de orcamento e controle de projeto foram incorporados ao registro especifico de Fomento 2026 no modelo paralelo e ao adapter de compatibilidade.
 - **Status do Fomento historico**: Codigos de linha solicitada do Fomento 2025 foram normalizados para os rotulos legados equivalentes no modelo paralelo.
-- **Proxima acao sugerida**: Avaliar as divergencias observacionais restantes para separar diferencas desejadas por enriquecimento de dados, normalizacoes textuais e lacunas de Patrocinio, antes de qualquer troca de runtime.
+- **Status do Patrocinio historico**: Categorias do Patrocinio 2025 foram formatadas no adapter de compatibilidade conforme a regra legada, usando `TipoPublicacao` para publicacoes e capitalizacao amigavel.
+- **Proxima acao sugerida**: Avaliar as divergencias observacionais restantes para separar diferencas desejadas por enriquecimento de dados, normalizacoes textuais e criterios de comparacao antes de qualquer troca de runtime.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
