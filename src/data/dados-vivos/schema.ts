@@ -51,6 +51,9 @@ export const projetoBaseDadosVivosSchema = z.object({
 
 export const projetoFomentoDadosVivosSchema = z.object({
   projeto_id: textoObrigatorioSchema,
+  votos: z.number().int().min(0).optional(),
+  controle_orcamento: z.number().finite().min(0).optional(),
+  controle_projeto: z.number().finite().min(0).optional(),
   objetivo_estrategico: textoOpcionalSchema,
   objetivo_especifico: textoOpcionalSchema,
   objetivo_completo: textoOpcionalSchema,

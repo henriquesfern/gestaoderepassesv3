@@ -52,6 +52,9 @@ export interface ProjetoBaseDadosVivos {
 
 export interface ProjetoFomentoDadosVivos {
   projeto_id: string;
+  votos?: number;
+  controle_orcamento?: number;
+  controle_projeto?: number;
   objetivo_estrategico?: string;
   objetivo_especifico?: string;
   objetivo_completo?: string;
