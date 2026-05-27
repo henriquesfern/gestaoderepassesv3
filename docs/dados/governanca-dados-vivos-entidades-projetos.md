@@ -221,6 +221,8 @@ Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entid
 - Comparar com a saida atual de `parseData`.
 - Manter consumidores sem alteracao.
 
+Status: adapter inicial criado em `src/data/dados-vivos/adapter.ts`, com validacao por `npm.cmd run data:validate-dados-vivos-adapter`. A validacao compara as listas legadas `fomento2026`, `fomentoHistorico` e `patrocinioHistorico` por `CNPJ + SEI`, cobrindo contagens, chaves e campos criticos sem trocar o runtime atual.
+
 ### Fase 3 - Consumo Gradual
 
 - Migrar consumidores por blocos pequenos.
@@ -256,4 +258,4 @@ Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entid
 
 ## Proxima Acao Recomendada
 
-Apos concluir as principais tabelas paralelas da Fase 1, executar uma avaliacao de fechamento para decidir entre iniciar o adapter de compatibilidade da Fase 2 ou adicionar primeiro tabelas auxiliares menores, como `grupos_entidade`, `ufs_regioes`, `status_projeto` e `ciclos`.
+Apos validar o adapter inicial da Fase 2, executar uma avaliacao curta para decidir entre aprofundar a equivalencia campo a campo do adapter ou criar tabelas auxiliares menores, como `grupos_entidade`, `ufs_regioes`, `status_projeto` e `ciclos`, antes de qualquer troca de runtime.
