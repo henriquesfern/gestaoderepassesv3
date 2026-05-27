@@ -275,6 +275,9 @@ function criarProjetoBase(params: {
 function criarProjetoFomento2026(row: CsvRow, projetoId: string, rowValidado?: CsvRow): ProjetoFomentoDadosVivos {
   return {
     projeto_id: projetoId,
+    votos: parseNumero(row.VOTOS),
+    controle_orcamento: parseValorOpcional(obterCampo(row, 'CONTROLEORÇAMENTO')),
+    controle_projeto: parseValorOpcional(row.CONTROLEPROJETO),
     objetivo_estrategico: indefinidoSeVazio(row.OBJETIVO_ESTRATEGICO),
     objetivo_especifico: indefinidoSeVazio(row.OBJETIVO_ESPECIFICO),
     objetivo_completo: indefinidoSeVazio(row.OBJETIVO_COMPLETO),

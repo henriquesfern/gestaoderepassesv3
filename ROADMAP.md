@@ -21,7 +21,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status da Fase 1 paralela**: Schemas, normalizers e validacao implementados para `entidades`, `projetos_base`, `projetos_fomento`, `projetos_patrocinio`, `acompanhamento_projetos` e `classificacoes_infrabr_projeto`, sem troca de runtime.
 - **Status da Fase 2 paralela**: Adapter inicial de compatibilidade criado para reconstruir `fomento2026`, `fomentoHistorico` e `patrocinioHistorico` a partir do modelo de dados vivos, com validacao critica e observacional por `npm.cmd run data:validate-dados-vivos-adapter`.
 - **Status do enriquecimento Infra-BR**: `classificacoes_infrabr_projeto` passou a carregar dimensoes, componentes e indicadores validados do Fomento 2026, incluindo rankings, scores e termos detectados por nivel, ainda sem troca de runtime.
-- **Proxima acao sugerida**: Avaliar as divergencias observacionais restantes para separar diferencas desejadas por enriquecimento de dados, campos financeiros/de controle ainda nao modelados e lacunas historicas de Fomento/Patrocinio, antes de qualquer troca de runtime.
+- **Status dos controles de Fomento 2026**: Votos, controle de orcamento e controle de projeto foram incorporados ao registro especifico de Fomento 2026 no modelo paralelo e ao adapter de compatibilidade.
+- **Proxima acao sugerida**: Avaliar as divergencias observacionais restantes para separar diferencas desejadas por enriquecimento de dados, normalizacoes textuais e lacunas historicas de Fomento/Patrocinio, antes de qualquer troca de runtime.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
