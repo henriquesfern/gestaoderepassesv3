@@ -175,6 +175,10 @@ function categoriaPatrocinioHistorico(patrocinio?: ProjetoPatrocinioDadosVivos, 
   return capitalizarCategoriaPatrocinio(categoria);
 }
 
+function dataFomentoHistorico(valor?: string): string {
+  return valor ?? '-';
+}
+
 function adaptarProjetoPatrocinio(params: {
   projeto: ProjetoBaseDadosVivos;
   entidade?: EntidadeDadosVivos;
@@ -233,7 +237,11 @@ export function criarDadosVivosLegacyView(modelo: ModeloDadosVivosParalelo): Dad
       if (projeto.ciclo === '2026') {
         fomento2026.push(item);
       } else {
-        fomentoHistorico.push(item);
+        fomentoHistorico.push({
+          ...item,
+          DATA_INICIO: dataFomentoHistorico(projeto.data_inicio_prevista),
+          DATA_FIM: dataFomentoHistorico(projeto.data_fim_prevista),
+        });
       }
     }
 
