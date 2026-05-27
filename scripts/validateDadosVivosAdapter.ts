@@ -5,8 +5,11 @@ import { parseData } from '../src/data/parser';
 import { carregarDadosVivosLegacyView } from '../src/data/dados-vivos';
 
 type ListaLegada = 'fomento2026' | 'fomentoHistorico' | 'patrocinioHistorico';
+type SeveridadeDivergencia = 'critica' | 'observacional';
+type TipoComparacao = 'texto' | 'numero' | 'booleano';
 
 interface DivergenciaAdapter {
+  severidade: SeveridadeDivergencia;
   lista: ListaLegada;
   chave: string;
   campo: string;
@@ -19,7 +22,7 @@ function normalizarCnpj(cnpj: unknown): string {
 }
 
 function normalizarTexto(valor: unknown): string {
-  return String(valor ?? '').trim();
+  return String(valor ?? '').replace(/\u00A0/g, ' ').trim();
 }
 
 function chaveItem(item: EntidadeSelecionada): string {
@@ -42,14 +45,15 @@ function valoresTextoEquivalentes(a: unknown, b: unknown): boolean {
 
 function compararCampo(params: {
   divergencias: DivergenciaAdapter[];
+  severidade: SeveridadeDivergencia;
   lista: ListaLegada;
   chave: string;
   campo: keyof EntidadeSelecionada;
   legado: EntidadeSelecionada;
   dadosVivos: EntidadeSelecionada;
-  tipo: 'texto' | 'numero' | 'booleano';
+  tipo: TipoComparacao;
 }): void {
-  const { divergencias, lista, chave, campo, legado, dadosVivos, tipo } = params;
+  const { divergencias, severidade, lista, chave, campo, legado, dadosVivos, tipo } = params;
   const valorLegado = legado[campo];
   const valorDadosVivos = dadosVivos[campo];
 
@@ -62,6 +66,7 @@ function compararCampo(params: {
 
   if (!equivalente) {
     divergencias.push({
+      severidade,
       lista,
       chave,
       campo,
@@ -69,6 +74,104 @@ function compararCampo(params: {
       dadosVivos: valorDadosVivos,
     });
   }
+}
+
+function compararCampos(params: {
+  divergencias: DivergenciaAdapter[];
+  severidade: SeveridadeDivergencia;
+  lista: ListaLegada;
+  chave: string;
+  legado: EntidadeSelecionada;
+  dadosVivos: EntidadeSelecionada;
+  campos: readonly (keyof EntidadeSelecionada)[];
+  tipo: TipoComparacao;
+}): void {
+  const { divergencias, severidade, lista, chave, legado, dadosVivos, campos, tipo } = params;
+
+  for (const campo of campos) {
+    compararCampo({
+      divergencias,
+      severidade,
+      lista,
+      chave,
+      campo,
+      legado,
+      dadosVivos,
+      tipo,
+    });
+  }
+}
+
+function camposDetalhadosTextoPorLista(lista: ListaLegada): readonly (keyof EntidadeSelecionada)[] {
+  if (lista === 'fomento2026') {
+    return [
+      'OBJETIVO',
+      'CATEGORIA',
+      'tipoRepasse',
+      'FISCAL_SUPLENTE',
+      'gestao_inicioexecucao',
+      'gestao_fimexecucao',
+      'gestao_termodefomento',
+      'gestao_status',
+      'gestao_primeirorepasse',
+      'gestao_dataprimeirorepasse',
+      'gestao_segundorepasse',
+      'gestao_datasegundorepasse',
+      'gestao_fiscalsuplente',
+      'gestao_situacaofinal',
+      'OBJETIVO_COMPLETO',
+      'AREA_ABRANGENCIA',
+      'OBJETIVO_ESPECIFICO_COMPLETO',
+      'PUBLICO_ALVO',
+      'OBJETIVO_ESTRATEGICO',
+      'TEXTO_NORM',
+      'RANKING_ADERENCIA_INFRABR',
+      'SCORES',
+      'DIMENSAO_PRINCIPAL',
+      'TERMOS_DETECTADOS',
+      'DIMENSAO_1',
+      'DIMENSAO_2',
+      'DIMENSAO_3',
+      'DIMENSAO_4',
+      'DIMENSAO_5',
+      'RANKING_COMPONENTES',
+      'SCORES_COMPONENTES',
+      'RANKING_INDICADORES',
+      'SCORES_INDICADORES',
+      'TERMOS_COMPONENTES',
+      'TERMOS_INDICADORES',
+      'COMPONENTE_1',
+      'COMPONENTE_2',
+      'COMPONENTE_3',
+      'COMPONENTE_4',
+      'COMPONENTE_5',
+      'COMPONENTE_6',
+      'COMPONENTE_7',
+      'INDICADOR_1',
+      'INDICADOR_2',
+      'INDICADOR_3',
+      'INDICADOR_4',
+      'INDICADOR_5',
+      'INDICADOR_6',
+      'INDICADOR_7',
+      'INDICADOR_8',
+      'INDICADOR_9',
+    ];
+  }
+
+  if (lista === 'fomentoHistorico') {
+    return ['OBJETIVO', 'CATEGORIA', 'tipoRepasse', 'DATA_INICIO', 'DATA_FIM', 'MES'];
+  }
+
+  return ['OBJETIVO', 'CATEGORIA', 'tipoRepasse', 'DATA_INICIO', 'DATA_FIM', 'MES', 'FISCAL_SUPLENTE'];
+}
+
+function camposDetalhadosNumeroPorLista(lista: ListaLegada): readonly (keyof EntidadeSelecionada)[] {
+  if (lista === 'fomento2026') {
+    return ['VOTOS', 'CONTROLE_ORCAMENTO', 'CONTROLE_PROJETO'];
+  }
+
+  return ['VOTOS', 'CONTROLE_ORCAMENTO', 'CONTROLE_PROJETO'];
 }
 
 function compararLista(
@@ -82,6 +185,7 @@ function compararLista(
 
   if (legado.length !== dadosVivos.length) {
     divergencias.push({
+      severidade: 'critica',
       lista,
       chave: 'contagem',
       campo: 'length',
@@ -95,6 +199,7 @@ function compararLista(
 
     if (!itemDadosVivos) {
       divergencias.push({
+        severidade: 'critica',
         lista,
         chave,
         campo: 'CNPJ',
@@ -104,46 +209,66 @@ function compararLista(
       continue;
     }
 
-    for (const campo of ['ENTIDADE', 'ESTADO', 'SEI', 'FISCAL'] as const) {
-      compararCampo({
-        divergencias,
-        lista,
-        chave,
-        campo,
-        legado: itemLegado,
-        dadosVivos: itemDadosVivos,
-        tipo: 'texto',
-      });
-    }
+    compararCampos({
+      divergencias,
+      severidade: 'critica',
+      lista,
+      chave,
+      legado: itemLegado,
+      dadosVivos: itemDadosVivos,
+      campos: ['ENTIDADE', 'ESTADO', 'SEI', 'FISCAL'],
+      tipo: 'texto',
+    });
 
-    for (const campo of ['NOTA', 'VALOR_REPASSE', 'VALOR_PROJETO'] as const) {
-      compararCampo({
-        divergencias,
-        lista,
-        chave,
-        campo,
-        legado: itemLegado,
-        dadosVivos: itemDadosVivos,
-        tipo: 'numero',
-      });
-    }
+    compararCampos({
+      divergencias,
+      severidade: 'critica',
+      lista,
+      chave,
+      legado: itemLegado,
+      dadosVivos: itemDadosVivos,
+      campos: ['NOTA', 'VALOR_REPASSE', 'VALOR_PROJETO'],
+      tipo: 'numero',
+    });
 
-    for (const campo of ['IsCDEN', 'IsPrecursora'] as const) {
-      compararCampo({
-        divergencias,
-        lista,
-        chave,
-        campo,
-        legado: itemLegado,
-        dadosVivos: itemDadosVivos,
-        tipo: 'booleano',
-      });
-    }
+    compararCampos({
+      divergencias,
+      severidade: 'critica',
+      lista,
+      chave,
+      legado: itemLegado,
+      dadosVivos: itemDadosVivos,
+      campos: ['IsCDEN', 'IsPrecursora'],
+      tipo: 'booleano',
+    });
+
+    compararCampos({
+      divergencias,
+      severidade: 'observacional',
+      lista,
+      chave,
+      legado: itemLegado,
+      dadosVivos: itemDadosVivos,
+      campos: camposDetalhadosTextoPorLista(lista),
+      tipo: 'texto',
+    });
+
+    compararCampos({
+      divergencias,
+      severidade: 'observacional',
+      lista,
+      chave,
+      legado: itemLegado,
+      dadosVivos: itemDadosVivos,
+      campos: camposDetalhadosNumeroPorLista(lista),
+      tipo: 'numero',
+    });
   }
 
   for (const [chave, itemDadosVivos] of dadosVivosPorChave) {
     if (!legadoPorChave.has(chave)) {
       divergencias.push({
+        severidade: 'critica',
         lista,
         chave,
         campo: 'CNPJ',
@@ -154,6 +279,38 @@ function compararLista(
   }
 
   return divergencias;
+}
+
+function contarPor<T>(itens: T[], criarChave: (item: T) => string): Map<string, number> {
+  const contagem = new Map<string, number>();
+
+  for (const item of itens) {
+    const chave = criarChave(item);
+    contagem.set(chave, (contagem.get(chave) ?? 0) + 1);
+  }
+
+  return contagem;
+}
+
+function imprimirResumoObservacional(observacoes: DivergenciaAdapter[]): void {
+  if (observacoes.length === 0) {
+    console.log('Divergencias observacionais: 0');
+    return;
+  }
+
+  console.log(`Divergencias observacionais: ${observacoes.length}`);
+
+  const porListaCampo = contarPor(observacoes, (observacao) => `${observacao.lista}.${observacao.campo}`);
+  for (const [chave, total] of [...porListaCampo.entries()].sort()) {
+    console.log(`- ${chave}: ${total}`);
+  }
+
+  console.log('Amostra observacional:');
+  for (const observacao of observacoes.slice(0, 10)) {
+    console.log(
+      `- ${observacao.lista} ${observacao.chave} ${observacao.campo}: legado=${JSON.stringify(observacao.legado)} dadosVivos=${JSON.stringify(observacao.dadosVivos)}`,
+    );
+  }
 }
 
 async function comFetchLocal<T>(acao: () => Promise<T>): Promise<T> {
@@ -188,11 +345,13 @@ async function main(): Promise<void> {
     ...compararLista('fomentoHistorico', legado.fomentoHistorico, dadosVivos.fomentoHistorico),
     ...compararLista('patrocinioHistorico', legado.patrocinioHistorico, dadosVivos.patrocinioHistorico),
   ];
+  const criticas = divergencias.filter((divergencia) => divergencia.severidade === 'critica');
+  const observacionais = divergencias.filter((divergencia) => divergencia.severidade === 'observacional');
 
-  if (divergencias.length > 0) {
-    console.error(`Adapter de dados vivos com ${divergencias.length} divergencia(s) critica(s).`);
+  if (criticas.length > 0) {
+    console.error(`Adapter de dados vivos com ${criticas.length} divergencia(s) critica(s).`);
 
-    for (const divergencia of divergencias.slice(0, 20)) {
+    for (const divergencia of criticas.slice(0, 20)) {
       console.error(
         `- ${divergencia.lista} ${divergencia.chave} ${divergencia.campo}: legado=${JSON.stringify(divergencia.legado)} dadosVivos=${JSON.stringify(divergencia.dadosVivos)}`,
       );
@@ -205,6 +364,8 @@ async function main(): Promise<void> {
   console.log(`Fomento 2026: ${dadosVivos.fomento2026.length}`);
   console.log(`Fomento historico: ${dadosVivos.fomentoHistorico.length}`);
   console.log(`Patrocinio historico: ${dadosVivos.patrocinioHistorico.length}`);
+  console.log('Divergencias criticas: 0');
+  imprimirResumoObservacional(observacionais);
 }
 
 main();

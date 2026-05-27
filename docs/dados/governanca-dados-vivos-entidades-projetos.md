@@ -223,6 +223,8 @@ Status: a Fase 1 paralela ja possui schemas, normalizers e validacao para `entid
 
 Status: adapter inicial criado em `src/data/dados-vivos/adapter.ts`, com validacao por `npm.cmd run data:validate-dados-vivos-adapter`. A validacao compara as listas legadas `fomento2026`, `fomentoHistorico` e `patrocinioHistorico` por `CNPJ + SEI`, cobrindo contagens, chaves e campos criticos sem trocar o runtime atual.
 
+O validador tambem possui uma camada observacional para campos detalhados. Na primeira execucao ampliada, nao houve divergencias criticas, mas foram identificadas divergencias observacionais relevantes em campos de classificacao validada do Fomento 2026, especialmente componentes, indicadores, rankings e scores complementares que ainda nao estao completamente representados no modelo paralelo.
+
 ### Fase 3 - Consumo Gradual
 
 - Migrar consumidores por blocos pequenos.
@@ -258,4 +260,4 @@ Status: adapter inicial criado em `src/data/dados-vivos/adapter.ts`, com validac
 
 ## Proxima Acao Recomendada
 
-Apos validar o adapter inicial da Fase 2, executar uma avaliacao curta para decidir entre aprofundar a equivalencia campo a campo do adapter ou criar tabelas auxiliares menores, como `grupos_entidade`, `ufs_regioes`, `status_projeto` e `ciclos`, antes de qualquer troca de runtime.
+Apos ampliar a equivalencia observacional do adapter, avaliar as divergencias de Fomento 2026 para decidir se o proximo bloco deve enriquecer `classificacoes_infrabr_projeto` com componentes e indicadores validados ou criar tabelas auxiliares menores, antes de qualquer troca de runtime.

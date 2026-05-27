@@ -19,8 +19,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Registro tecnico inicial**: `docs/dados/governanca-dados-vivos-entidades-projetos.md`.
 - **Registro da Fase 0**: `docs/dados/inventario-fase-0-dados-vivos.md`.
 - **Status da Fase 1 paralela**: Schemas, normalizers e validacao implementados para `entidades`, `projetos_base`, `projetos_fomento`, `projetos_patrocinio`, `acompanhamento_projetos` e `classificacoes_infrabr_projeto`, sem troca de runtime.
-- **Status da Fase 2 paralela**: Adapter inicial de compatibilidade criado para reconstruir `fomento2026`, `fomentoHistorico` e `patrocinioHistorico` a partir do modelo de dados vivos, com validacao por `npm.cmd run data:validate-dados-vivos-adapter`.
-- **Proxima acao sugerida**: Fazer avaliacao curta para decidir entre aprofundar a equivalencia campo a campo do adapter ou criar primeiro tabelas auxiliares menores, como `grupos_entidade`, `ufs_regioes`, `status_projeto` e `ciclos`, antes de qualquer troca de runtime.
+- **Status da Fase 2 paralela**: Adapter inicial de compatibilidade criado para reconstruir `fomento2026`, `fomentoHistorico` e `patrocinioHistorico` a partir do modelo de dados vivos, com validacao critica e observacional por `npm.cmd run data:validate-dados-vivos-adapter`.
+- **Proxima acao sugerida**: Avaliar as divergencias observacionais de Fomento 2026 para decidir se o proximo bloco deve enriquecer `classificacoes_infrabr_projeto` com componentes e indicadores validados ou criar primeiro tabelas auxiliares menores, antes de qualquer troca de runtime.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
