@@ -98,13 +98,15 @@ export interface ClassificacaoInfraBRProjetoDadosVivos {
   classificacao_id: string;
   projeto_id: string;
   nivel: NivelClassificacaoInfraBRProjetoDadosVivos;
-  dimensao: string;
+  dimensao?: string;
   componente?: string;
   indicador?: string;
   ordem_ranking?: number;
   score?: number;
   is_dimensao_principal: boolean;
   termos_detectados?: string;
+  termos_componentes?: string;
+  termos_indicadores?: string;
   ranking_original?: string;
   scores_original?: string;
   fonte_arquivo: FonteClassificacaoInfraBRProjetoDadosVivos;

@@ -50,15 +50,57 @@ function criarIndices(modelo: ModeloDadosVivosParalelo) {
   };
 }
 
-function dimensoesPorOrdem(classificacoes: ClassificacaoInfraBRProjetoDadosVivos[]): Partial<EntidadeSelecionada> {
-  const ordenadas = [...classificacoes].sort((a, b) => (a.ordem_ranking ?? 999) - (b.ordem_ranking ?? 999));
+function ordenarClassificacoes(
+  classificacoes: ClassificacaoInfraBRProjetoDadosVivos[],
+  nivel: ClassificacaoInfraBRProjetoDadosVivos['nivel'],
+): ClassificacaoInfraBRProjetoDadosVivos[] {
+  return classificacoes
+    .filter((classificacao) => classificacao.nivel === nivel)
+    .sort((a, b) => (a.ordem_ranking ?? 999) - (b.ordem_ranking ?? 999));
+}
+
+function metadadoOriginal(
+  classificacoes: ClassificacaoInfraBRProjetoDadosVivos[],
+  campo: 'ranking_original' | 'scores_original' | 'termos_componentes' | 'termos_indicadores',
+): string {
+  return classificacoes.find((classificacao) => classificacao[campo])?.[campo] ?? '';
+}
+
+function classificacoesInfraBRPorOrdem(
+  classificacoes: ClassificacaoInfraBRProjetoDadosVivos[],
+): Partial<EntidadeSelecionada> {
+  const dimensoes = ordenarClassificacoes(classificacoes, 'dimensao');
+  const componentes = ordenarClassificacoes(classificacoes, 'componente');
+  const indicadores = ordenarClassificacoes(classificacoes, 'indicador');
 
   return {
-    DIMENSAO_1: ordenadas[0]?.dimensao ?? '',
-    DIMENSAO_2: ordenadas[1]?.dimensao ?? '',
-    DIMENSAO_3: ordenadas[2]?.dimensao ?? '',
-    DIMENSAO_4: ordenadas[3]?.dimensao ?? '',
-    DIMENSAO_5: ordenadas[4]?.dimensao ?? '',
+    DIMENSAO_1: dimensoes[0]?.dimensao ?? '',
+    DIMENSAO_2: dimensoes[1]?.dimensao ?? '',
+    DIMENSAO_3: dimensoes[2]?.dimensao ?? '',
+    DIMENSAO_4: dimensoes[3]?.dimensao ?? '',
+    DIMENSAO_5: dimensoes[4]?.dimensao ?? '',
+    RANKING_COMPONENTES: metadadoOriginal(componentes, 'ranking_original'),
+    SCORES_COMPONENTES: metadadoOriginal(componentes, 'scores_original'),
+    RANKING_INDICADORES: metadadoOriginal(indicadores, 'ranking_original'),
+    SCORES_INDICADORES: metadadoOriginal(indicadores, 'scores_original'),
+    TERMOS_COMPONENTES: metadadoOriginal(componentes, 'termos_componentes'),
+    TERMOS_INDICADORES: metadadoOriginal(indicadores, 'termos_indicadores'),
+    COMPONENTE_1: componentes[0]?.componente ?? '',
+    COMPONENTE_2: componentes[1]?.componente ?? '',
+    COMPONENTE_3: componentes[2]?.componente ?? '',
+    COMPONENTE_4: componentes[3]?.componente ?? '',
+    COMPONENTE_5: componentes[4]?.componente ?? '',
+    COMPONENTE_6: componentes[5]?.componente ?? '',
+    COMPONENTE_7: componentes[6]?.componente ?? '',
+    INDICADOR_1: indicadores[0]?.indicador ?? '',
+    INDICADOR_2: indicadores[1]?.indicador ?? '',
+    INDICADOR_3: indicadores[2]?.indicador ?? '',
+    INDICADOR_4: indicadores[3]?.indicador ?? '',
+    INDICADOR_5: indicadores[4]?.indicador ?? '',
+    INDICADOR_6: indicadores[5]?.indicador ?? '',
+    INDICADOR_7: indicadores[6]?.indicador ?? '',
+    INDICADOR_8: indicadores[7]?.indicador ?? '',
+    INDICADOR_9: indicadores[8]?.indicador ?? '',
   };
 }
 
@@ -116,7 +158,7 @@ function adaptarProjetoFomento(params: {
     SCORES: fomento?.scores_dimensoes ?? '',
     DIMENSAO_PRINCIPAL: fomento?.dimensao_principal ?? '',
     TERMOS_DETECTADOS: fomento?.termos_detectados ?? '',
-    ...dimensoesPorOrdem(classificacoes),
+    ...classificacoesInfraBRPorOrdem(classificacoes),
   };
 }
 

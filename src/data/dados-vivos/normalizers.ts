@@ -3,6 +3,7 @@ import { cdenCSV } from '../cden';
 import { fomento2025CSV } from '../fomento2025';
 import { fomento2026CSV } from '../fomento2026';
 import { gestaofomento26 } from '../gestaofomento26';
+import { newFomentoCSV } from '../newFomentoData';
 import { patrocinioCSV } from '../patrocinio2025';
 import { precursorasCSV } from '../precursoras';
 import { parseCurrency, parseNumberBR } from '../../utils/formatters';
@@ -65,6 +66,15 @@ function obterCampo(row: CsvRow, ...nomes: string[]): unknown {
   return undefined;
 }
 
+function obterCampoNaoVazio(row: CsvRow, ...nomes: string[]): unknown {
+  for (const nome of nomes) {
+    const valor = obterCampo(row, nome);
+    if (indefinidoSeVazio(valor) !== undefined) return valor;
+  }
+
+  return undefined;
+}
+
 function indefinidoSeVazio(valor: unknown): string | undefined {
   const texto = normalizarTexto(valor);
   if (!texto || texto === '-') return undefined;
@@ -119,9 +129,15 @@ function parseValorOpcional(valor: unknown): number | undefined {
   return parseValor(valor);
 }
 
-function normalizarDimensaoInfraBR(valor: unknown): string | undefined {
+function normalizarItemInfraBR(valor: unknown): string | undefined {
   const texto = indefinidoSeVazio(valor);
   if (!texto || chaveComparavel(texto) === 'naoclassificado') return undefined;
+  return texto;
+}
+
+function normalizarDimensaoInfraBR(valor: unknown): string | undefined {
+  const texto = normalizarItemInfraBR(valor);
+  if (!texto) return undefined;
   return texto.toUpperCase();
 }
 
@@ -256,7 +272,7 @@ function criarProjetoBase(params: {
   };
 }
 
-function criarProjetoFomento2026(row: CsvRow, projetoId: string): ProjetoFomentoDadosVivos {
+function criarProjetoFomento2026(row: CsvRow, projetoId: string, rowValidado?: CsvRow): ProjetoFomentoDadosVivos {
   return {
     projeto_id: projetoId,
     objetivo_estrategico: indefinidoSeVazio(row.OBJETIVO_ESTRATEGICO),
@@ -265,10 +281,16 @@ function criarProjetoFomento2026(row: CsvRow, projetoId: string): ProjetoFomento
     area_abrangencia: indefinidoSeVazio(row.AREA_ABRANGENCIA),
     publico_alvo: indefinidoSeVazio(row.PUBLICO_ALVO),
     texto_norm: indefinidoSeVazio(row.TEXTO_NORM),
-    ranking_aderencia_infrabr: indefinidoSeVazio(row.RANKING_ADERENCIA_INFRABR),
-    scores_dimensoes: indefinidoSeVazio(row.SCORES),
+    ranking_aderencia_infrabr: indefinidoSeVazio(
+      obterCampo(rowValidado ?? {}, 'Ranking_Aderencia_InfraBR_M3_3_VALIDADO'),
+    ) ?? indefinidoSeVazio(row.RANKING_ADERENCIA_INFRABR),
+    scores_dimensoes: indefinidoSeVazio(
+      obterCampo(rowValidado ?? {}, 'Scores_Dimensoes_M3_3_VALIDADO'),
+    ) ?? indefinidoSeVazio(row.SCORES),
     dimensao_principal: indefinidoSeVazio(row.DIMENSAO_PRINCIPAL),
-    termos_detectados: indefinidoSeVazio(row.TERMOS_DETECTADOS),
+    termos_detectados: indefinidoSeVazio(
+      obterCampo(rowValidado ?? {}, 'Termos_Detectados_M3_3_VALIDADO'),
+    ) ?? indefinidoSeVazio(row.TERMOS_DETECTADOS),
   };
 }
 
@@ -410,6 +432,176 @@ function criarClassificacoesInfraBRFomento2026(
   }));
 }
 
+function extrairScoresInfraBRPorItem(
+  valor: unknown,
+  normalizarItem: (valor: unknown) => string | undefined,
+): Map<string, number> {
+  const texto = indefinidoSeVazio(valor);
+  const scores = new Map<string, number>();
+  if (!texto) return scores;
+
+  for (const parte of texto.split('|')) {
+    const separador = parte.lastIndexOf(':');
+    const nomeBruto = separador >= 0 ? parte.slice(0, separador) : parte;
+    const scoreBruto = separador >= 0 ? parte.slice(separador + 1) : undefined;
+    const nome = normalizarItem(nomeBruto);
+    const score = parseNumero(scoreBruto);
+
+    if (nome && score !== undefined) {
+      scores.set(chaveComparavel(nome), score);
+    }
+  }
+
+  return scores;
+}
+
+function extrairRankingInfraBRPorItem(params: {
+  rankingOriginal?: unknown;
+  rowFallback: CsvRow;
+  prefixoFallback: string;
+  totalFallback: number;
+  normalizarItem: (valor: unknown) => string | undefined;
+}): Array<{ ordem: number; nome: string }> {
+  const rankingOriginal = indefinidoSeVazio(params.rankingOriginal);
+  const ranking = new Map<string, { ordem: number; nome: string }>();
+
+  for (let indice = 1; indice <= params.totalFallback; indice += 1) {
+    const nome = params.normalizarItem(
+      obterCampoNaoVazio(
+        params.rowFallback,
+        `${params.prefixoFallback}_${indice}_M3_3_VALIDADO`,
+        `${params.prefixoFallback}_${indice}`,
+      ),
+    );
+    if (!nome) continue;
+
+    const chave = chaveComparavel(nome);
+    if (!ranking.has(chave)) {
+      ranking.set(chave, { ordem: indice, nome });
+    }
+  }
+
+  if (rankingOriginal) {
+    for (const parte of rankingOriginal.split('|')) {
+      const match = normalizarTexto(parte).match(/^(\d+)[Âºo]?\s*-\s*(.+)$/i);
+      const ordem = match ? Number(match[1]) : undefined;
+      const nome = params.normalizarItem(match ? match[2] : parte);
+
+      if (nome && !ranking.has(chaveComparavel(nome))) {
+        ranking.set(chaveComparavel(nome), { ordem: ordem ?? ranking.size + 1, nome });
+      }
+    }
+  }
+
+  return [...ranking.values()].sort((a, b) => a.ordem - b.ordem);
+}
+
+function criarClassificacoesInfraBRFomento2026Expandida(
+  row: CsvRow,
+  projetoId: string,
+  rowValidado?: CsvRow,
+): ClassificacaoInfraBRProjetoDadosVivos[] {
+  const fonteValidada = rowValidado ?? {};
+  const fonteComFallback = { ...row, ...fonteValidada };
+  const rankingDimensoesOriginal = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Ranking_Aderencia_InfraBR_M3_3_VALIDADO'),
+  ) ?? indefinidoSeVazio(row.RANKING_ADERENCIA_INFRABR);
+  const scoresDimensoesOriginal = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Scores_Dimensoes_M3_3_VALIDADO'),
+  ) ?? indefinidoSeVazio(row.SCORES);
+  const termosDetectados = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Termos_Detectados_M3_3_VALIDADO'),
+  ) ?? indefinidoSeVazio(row.TERMOS_DETECTADOS);
+  const rankingComponentesOriginal = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Ranking_Componentes_M3_3_VALIDADO'),
+  );
+  const scoresComponentesOriginal = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Scores_Componentes_M3_3_VALIDADO'),
+  );
+  const rankingIndicadoresOriginal = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Ranking_Indicadores_M3_3_VALIDADO'),
+  );
+  const scoresIndicadoresOriginal = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Scores_Indicadores_M3_3_VALIDADO'),
+  );
+  const termosComponentes = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Termos_Componentes_M3_3_VALIDADO'),
+  );
+  const termosIndicadores = indefinidoSeVazio(
+    obterCampo(fonteValidada, 'Termos_Indicadores_M3_3_VALIDADO'),
+  );
+
+  const rankingDimensoes = extrairRankingInfraBRPorItem({
+    rankingOriginal: rankingDimensoesOriginal,
+    rowFallback: fonteComFallback,
+    prefixoFallback: 'Dimensao',
+    totalFallback: 5,
+    normalizarItem: normalizarDimensaoInfraBR,
+  });
+  const rankingComponentes = extrairRankingInfraBRPorItem({
+    rankingOriginal: rankingComponentesOriginal,
+    rowFallback: fonteComFallback,
+    prefixoFallback: 'Componente',
+    totalFallback: 7,
+    normalizarItem: normalizarItemInfraBR,
+  });
+  const rankingIndicadores = extrairRankingInfraBRPorItem({
+    rankingOriginal: rankingIndicadoresOriginal,
+    rowFallback: fonteComFallback,
+    prefixoFallback: 'Indicador',
+    totalFallback: 9,
+    normalizarItem: normalizarItemInfraBR,
+  });
+  const scoresDimensoes = extrairScoresInfraBRPorItem(scoresDimensoesOriginal, normalizarDimensaoInfraBR);
+  const scoresComponentes = extrairScoresInfraBRPorItem(scoresComponentesOriginal, normalizarItemInfraBR);
+  const scoresIndicadores = extrairScoresInfraBRPorItem(scoresIndicadoresOriginal, normalizarItemInfraBR);
+  const dimensaoPrincipal = normalizarDimensaoInfraBR(row.DIMENSAO_PRINCIPAL);
+
+  return [
+    ...rankingDimensoes.map(({ ordem, nome }) => ({
+      classificacao_id: `fomento2026:${projetoId}:dimensao:${ordem}`,
+      projeto_id: projetoId,
+      nivel: 'dimensao' as const,
+      dimensao: nome,
+      ordem_ranking: ordem,
+      score: scoresDimensoes.get(chaveComparavel(nome)),
+      is_dimensao_principal: dimensaoPrincipal ? chaveComparavel(nome) === chaveComparavel(dimensaoPrincipal) : false,
+      termos_detectados: termosDetectados,
+      ranking_original: rankingDimensoesOriginal,
+      scores_original: scoresDimensoesOriginal,
+      fonte_arquivo: 'fomento2026' as const,
+    })),
+    ...rankingComponentes.map(({ ordem, nome }) => ({
+      classificacao_id: `fomento2026:${projetoId}:componente:${ordem}`,
+      projeto_id: projetoId,
+      nivel: 'componente' as const,
+      componente: nome,
+      ordem_ranking: ordem,
+      score: scoresComponentes.get(chaveComparavel(nome)),
+      is_dimensao_principal: false,
+      termos_detectados: termosDetectados,
+      termos_componentes: termosComponentes,
+      ranking_original: rankingComponentesOriginal,
+      scores_original: scoresComponentesOriginal,
+      fonte_arquivo: 'fomento2026' as const,
+    })),
+    ...rankingIndicadores.map(({ ordem, nome }) => ({
+      classificacao_id: `fomento2026:${projetoId}:indicador:${ordem}`,
+      projeto_id: projetoId,
+      nivel: 'indicador' as const,
+      indicador: nome,
+      ordem_ranking: ordem,
+      score: scoresIndicadores.get(chaveComparavel(nome)),
+      is_dimensao_principal: false,
+      termos_detectados: termosDetectados,
+      termos_indicadores: termosIndicadores,
+      ranking_original: rankingIndicadoresOriginal,
+      scores_original: scoresIndicadoresOriginal,
+      fonte_arquivo: 'fomento2026' as const,
+    })),
+  ];
+}
+
 function carregarGrupos() {
   const cdenRows = parseCsv<CsvRow>(cdenCSV);
   const precursorasRows = parseCsv<CsvRow>(precursorasCSV);
@@ -536,6 +728,13 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
   const grupos = carregarGrupos();
 
   const fomento2026 = parseCsv<CsvRow>(fomento2026CSV);
+  const fomento2026Validado = parseCsv<CsvRow>(newFomentoCSV, ';');
+  const fomento2026ValidadoPorCnpj = new Map<string, CsvRow>(
+    fomento2026Validado.flatMap((row): Array<[string, CsvRow]> => {
+      const cnpj = normalizarCnpj(row.CNPJ);
+      return cnpj ? [[cnpj, row]] : [];
+    }),
+  );
   const fomento2025 = parseCsv<CsvRow>(fomento2025CSV);
   const patrocinio2025 = parseCsv<CsvRow>(patrocinioCSV);
 
@@ -550,6 +749,7 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
     );
     const nome = indefinidoSeVazio(row.ENTIDADE);
     if (!cnpj || !nome) return;
+    const rowValidado = fomento2026ValidadoPorCnpj.get(cnpj);
 
     const projetoBase = criarProjetoBase({
         row,
@@ -571,8 +771,10 @@ export function construirModeloDadosVivosParalelo(): ModeloDadosVivosParalelo {
       });
 
     projetos.push(projetoBase);
-    projetosFomento.push(criarProjetoFomento2026(row, projetoBase.projeto_id));
-    classificacoesInfraBR.push(...criarClassificacoesInfraBRFomento2026(row, projetoBase.projeto_id));
+    projetosFomento.push(criarProjetoFomento2026(row, projetoBase.projeto_id, rowValidado));
+    classificacoesInfraBR.push(
+      ...criarClassificacoesInfraBRFomento2026Expandida(row, projetoBase.projeto_id, rowValidado),
+    );
   });
 
   fomento2025.forEach((row, indice) => {
