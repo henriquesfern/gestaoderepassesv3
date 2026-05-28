@@ -366,6 +366,14 @@ Uso recomendado:
 
 - caminho preferencial antes da troca definitiva.
 
+Status do bloco de preparacao:
+
+- `parseData()` passou a aceitar uma opcao explicita de fonte de projetos;
+- a fonte padrao permanece `legado`;
+- chamadas sem parametros continuam equivalentes a `parseData({ fonteProjetos: 'legado' })`;
+- `parseData({ fonteProjetos: 'dados-vivos' })` permite validar a legacy view dos dados vivos sem alterar o app;
+- o script `npm.cmd run data:validate-dados-vivos-runtime-source` valida a fonte padrao, a fonte legada explicita e a fonte dados vivos.
+
 ### Opcao C - Trocar diretamente `parseData()`
 
 Descricao:
@@ -398,9 +406,10 @@ Sequencia recomendada:
 1. Manter registrada a regra de derivacao de `CATEGORIA` no adapter de dados vivos.
 2. Criar ponto central de montagem de `appData` com fonte selecionavel.
 3. Manter a fonte legada como padrao inicial.
-4. Testar fonte de dados vivos localmente com validacao visual.
-5. Se aprovado, sincronizar em PR pequeno.
-6. Em bloco posterior, decidir se a fonte dados vivos vira padrao.
+4. Validar fonte padrao, fonte legada explicita e fonte dados vivos por script dedicado.
+5. Testar fonte de dados vivos localmente com validacao visual.
+6. Se aprovado, sincronizar em PR pequeno.
+7. Em bloco posterior, decidir se a fonte dados vivos vira padrao.
 
 ## Plano de Fallback
 
@@ -569,6 +578,6 @@ Antes de aprovar troca futura, validar perguntas e telas:
 
 ## Proxima Acao Recomendada
 
-Executar um bloco pequeno e seguro para preparar uma chave controlada de origem dos dados, mantendo o runtime legado como padrao e usando os dados vivos apenas como caminho selecionavel para validacao.
+Executar validacao visual local com a fonte dados vivos selecionada explicitamente, mantendo a fonte padrao do app como legado.
 
-Esse bloco deve preservar rollback simples por chave central, sem trocar a fonte padrao do app.
+Essa validacao deve verificar carregamento, telas principais de Fomento 2026, diretorio, paineis globais e pontos afetados por `OBJETIVO` longo e `DIMENSOES` enriquecidas.

@@ -7,9 +7,37 @@ import { fetchStaticText, parseCsvRows } from './runtime-loaders';
 import { EntidadeCDEN, EntidadePrecursora } from '../types';
 import { adaptFomento2025, adaptFomento2026, adaptPatrocinio2025 } from './adapters';
 import { loadInfraBRCanonicoRuntimeData } from './canonico/adapters';
+import type { DadosVivosLegacyView } from './dados-vivos';
 import type { RawFomento2025Row, RawFomento2026Row, RawPatrocinio2025Row, GestaoFomento26Row } from './types';
 
-export const parseData = async () => {
+export type FonteProjetosRuntime = 'legado' | 'dados-vivos';
+
+export interface ParseDataOptions {
+  fonteProjetos?: FonteProjetosRuntime;
+}
+
+export const FONTE_PROJETOS_RUNTIME_PADRAO: FonteProjetosRuntime = 'legado';
+
+interface ProjetosRuntimeLegado {
+  fomento2026: DadosVivosLegacyView['fomento2026'];
+  fomentoHistorico: DadosVivosLegacyView['fomentoHistorico'];
+  patrocinioHistorico: DadosVivosLegacyView['patrocinioHistorico'];
+}
+
+export async function selecionarProjetosRuntime(
+  fonte: FonteProjetosRuntime,
+  legado: ProjetosRuntimeLegado,
+): Promise<ProjetosRuntimeLegado> {
+  if (fonte === 'dados-vivos') {
+    const { carregarDadosVivosLegacyView } = await import('./dados-vivos');
+    return carregarDadosVivosLegacyView();
+  }
+
+  return legado;
+}
+
+export const parseData = async (options: ParseDataOptions = {}) => {
+  const fonteProjetos = options.fonteProjetos ?? FONTE_PROJETOS_RUNTIME_PADRAO;
   const cdenParsed = Papa.parse<EntidadeCDEN>(cdenCSV.trim(), { header: true, skipEmptyLines: true }).data;
   const precursorasParsed = Papa.parse<EntidadePrecursora>(precursorasCSV.trim(), { header: true, skipEmptyLines: true }).data;
 
@@ -43,13 +71,18 @@ export const parseData = async () => {
   const fomentoHistoricoParsed = fomentoRaw.map(row => adaptFomento2025(row, cdenParsed, precursorasParsed));
   const fomento2026Parsed = fomento2026Raw.map(row => adaptFomento2026(row, cdenParsed, precursorasParsed, newFomentoMap, gestao26Map));
   const patrocinioParsed = patrocinioRaw.map(row => adaptPatrocinio2025(row, cdenParsed, precursorasParsed));
+  const projetosRuntime = await selecionarProjetosRuntime(fonteProjetos, {
+    fomento2026: fomento2026Parsed,
+    fomentoHistorico: fomentoHistoricoParsed,
+    patrocinioHistorico: patrocinioParsed,
+  });
 
   return {
     cden: cdenParsed,
     precursoras: precursorasParsed,
-    fomento2026: fomento2026Parsed,
-    fomentoHistorico: fomentoHistoricoParsed,
-    patrocinioHistorico: patrocinioParsed,
+    fomento2026: projetosRuntime.fomento2026,
+    fomentoHistorico: projetosRuntime.fomentoHistorico,
+    patrocinioHistorico: projetosRuntime.patrocinioHistorico,
     infraBR: infraData
   };
 };
