@@ -22,7 +22,7 @@ function normalizarCnpj(cnpj: unknown): string {
 }
 
 function normalizarTexto(valor: unknown): string {
-  return String(valor ?? '').replace(/\u00A0/g, ' ').trim();
+  return String(valor ?? '').replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function chaveItem(item: EntidadeSelecionada): string {
@@ -39,8 +39,29 @@ function valoresNumericosEquivalentes(a: unknown, b: unknown): boolean {
   return Math.abs(numeroA - numeroB) <= 0.01;
 }
 
-function valoresTextoEquivalentes(a: unknown, b: unknown): boolean {
-  return normalizarTexto(a) === normalizarTexto(b);
+function chaveComparavelTexto(valor: string): string {
+  return valor
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function isCampoDimensao(campo: keyof EntidadeSelecionada): boolean {
+  return String(campo).startsWith('DIMENSAO_');
+}
+
+function normalizarTextoParaCampo(valor: unknown, campo: keyof EntidadeSelecionada): string {
+  const texto = normalizarTexto(valor);
+
+  if (isCampoDimensao(campo) && chaveComparavelTexto(texto) === 'nao classificado') {
+    return '';
+  }
+
+  return texto;
+}
+
+function valoresTextoEquivalentes(a: unknown, b: unknown, campo: keyof EntidadeSelecionada): boolean {
+  return normalizarTextoParaCampo(a, campo) === normalizarTextoParaCampo(b, campo);
 }
 
 function compararCampo(params: {
@@ -62,7 +83,7 @@ function compararCampo(params: {
       ? valoresNumericosEquivalentes(valorLegado, valorDadosVivos)
       : tipo === 'booleano'
         ? Boolean(valorLegado) === Boolean(valorDadosVivos)
-        : valoresTextoEquivalentes(valorLegado, valorDadosVivos);
+        : valoresTextoEquivalentes(valorLegado, valorDadosVivos, campo);
 
   if (!equivalente) {
     divergencias.push({
