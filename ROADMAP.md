@@ -29,7 +29,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status dos criterios de comparacao observacional**: O validador do adapter passou a ignorar diferencas apenas de whitespace textual e a tratar `Nao classificado` versus vazio como equivalentes em campos de dimensao.
 - **Status da comparacao de dimensoes**: Dimensoes do Fomento 2026 passaram a ser comparadas no validador como conjunto normalizado, reduzindo ruido de ordem e duplicidade na visao legada.
 - **Status de fechamento da compatibilidade**: As 16 divergencias observacionais restantes do Fomento 2026 foram aceitas como enriquecimento do modelo paralelo, compostas por preenchimento textual novo em `OBJETIVO`/`CATEGORIA` e classificacoes Infra-BR adicionais em `DIMENSOES`.
-- **Proxima acao sugerida**: Planejar a decisao de troca futura do runtime para os dados vivos ou manter uma rodada adicional de observacao com o adapter paralelo antes da troca.
+- **Matriz de decisao do runtime**: `docs/dados/matriz-decisao-runtime-dados-vivos.md` registra consumidores afetados, campos sensiveis, divergencias observacionais, criterios de aceite, estrategias possiveis e plano de fallback antes de qualquer troca de runtime.
+- **Proxima acao sugerida**: Tratar a regra de `CATEGORIA` no adapter de dados vivos, sem trocar runtime, antes de preparar uma chave controlada de origem ou qualquer troca efetiva.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
