@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 type ParseData = typeof import('../data/parser').parseData;
+type FonteProjetosRuntime = import('../data/parser').FonteProjetosRuntime;
 export type AppData = Awaited<ReturnType<ParseData>>;
 
 interface DataContextType {
@@ -9,6 +10,10 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType>({ appData: null, isLoading: true });
+
+function getFonteProjetosRuntimeLocal(): FonteProjetosRuntime {
+  return import.meta.env.VITE_FONTE_PROJETOS_RUNTIME === 'dados-vivos' ? 'dados-vivos' : 'legado';
+}
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [dataState, setDataState] = useState<DataContextType>({ appData: null, isLoading: true });
@@ -19,7 +24,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     // We defer the execution using setTimeout so that initial paint is not blocked.
     const timer = setTimeout(async () => {
       const { parseData } = await import('../data/parser');
-      const data = await parseData();
+      const data = await parseData({ fonteProjetos: getFonteProjetosRuntimeLocal() });
 
       if (isMounted) {
         setDataState({ appData: data, isLoading: false });

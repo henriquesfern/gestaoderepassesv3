@@ -32,7 +32,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Matriz de decisao do runtime**: `docs/dados/matriz-decisao-runtime-dados-vivos.md` registra consumidores afetados, campos sensiveis, divergencias observacionais, criterios de aceite, estrategias possiveis e plano de fallback antes de qualquer troca de runtime.
 - **Status da regra de CATEGORIA**: `CATEGORIA` no adapter de dados vivos passou a ser preenchida apenas por rotulos curtos de Fomento (`objetivo_estrategico` ou `linha_solicitada`), reduzindo divergencias observacionais do adapter de 16 para 11 sem trocar runtime.
 - **Status da chave controlada de origem**: `parseData()` passou a aceitar fonte explicita de projetos, preservando `legado` como padrao e permitindo validar `dados-vivos` apenas quando selecionado explicitamente.
-- **Proxima acao sugerida**: Executar validacao visual local com a fonte dados vivos selecionada explicitamente, mantendo a fonte padrao do app como legado.
+- **Status do modo local controlado**: `DataProvider` passou a respeitar `VITE_FONTE_PROJETOS_RUNTIME`, mantendo `legado` como padrao e ativando `dados-vivos` somente quando a variavel for definida explicitamente para validacao visual local.
+- **Proxima acao sugerida**: Executar validacao visual local com `VITE_FONTE_PROJETOS_RUNTIME=dados-vivos`, conferindo carregamento, Fomento 2026, diretorio, paineis globais e impactos de `OBJETIVO` longo e `DIMENSOES` enriquecidas.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
