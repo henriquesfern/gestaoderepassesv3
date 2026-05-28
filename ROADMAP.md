@@ -28,7 +28,8 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status das fontes validadas do Fomento 2026**: O CSV validado do Fomento 2026 foi alinhado entre `public/data`, `src/data` e a fonte embutida `newFomentoData.ts`, reduzindo divergencias observacionais do adapter de 362 para 45.
 - **Status dos criterios de comparacao observacional**: O validador do adapter passou a ignorar diferencas apenas de whitespace textual e a tratar `Nao classificado` versus vazio como equivalentes em campos de dimensao.
 - **Status da comparacao de dimensoes**: Dimensoes do Fomento 2026 passaram a ser comparadas no validador como conjunto normalizado, reduzindo ruido de ordem e duplicidade na visao legada.
-- **Proxima acao sugerida**: Avaliar as divergencias observacionais restantes do Fomento 2026 que ainda representam preenchimento textual novo ou classificacao Infra-BR realmente enriquecida antes de qualquer troca de runtime.
+- **Status de fechamento da compatibilidade**: As 16 divergencias observacionais restantes do Fomento 2026 foram aceitas como enriquecimento do modelo paralelo, compostas por preenchimento textual novo em `OBJETIVO`/`CATEGORIA` e classificacoes Infra-BR adicionais em `DIMENSOES`.
+- **Proxima acao sugerida**: Planejar a decisao de troca futura do runtime para os dados vivos ou manter uma rodada adicional de observacao com o adapter paralelo antes da troca.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
