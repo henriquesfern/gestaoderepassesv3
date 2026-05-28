@@ -64,6 +64,47 @@ function valoresTextoEquivalentes(a: unknown, b: unknown, campo: keyof EntidadeS
   return normalizarTextoParaCampo(a, campo) === normalizarTextoParaCampo(b, campo);
 }
 
+function dimensoesNormalizadas(item: EntidadeSelecionada): string[] {
+  const dimensoes = new Set<string>();
+
+  for (const campo of ['DIMENSAO_1', 'DIMENSAO_2', 'DIMENSAO_3', 'DIMENSAO_4', 'DIMENSAO_5'] as const) {
+    const dimensao = normalizarTextoParaCampo(item[campo], campo);
+
+    if (dimensao) {
+      dimensoes.add(dimensao);
+    }
+  }
+
+  return [...dimensoes].sort();
+}
+
+function listasTextoEquivalentes(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((valor, indice) => valor === b[indice]);
+}
+
+function compararDimensoesComoConjunto(params: {
+  divergencias: DivergenciaAdapter[];
+  lista: ListaLegada;
+  chave: string;
+  legado: EntidadeSelecionada;
+  dadosVivos: EntidadeSelecionada;
+}): void {
+  const { divergencias, lista, chave, legado, dadosVivos } = params;
+  const dimensoesLegado = dimensoesNormalizadas(legado);
+  const dimensoesDadosVivos = dimensoesNormalizadas(dadosVivos);
+
+  if (!listasTextoEquivalentes(dimensoesLegado, dimensoesDadosVivos)) {
+    divergencias.push({
+      severidade: 'observacional',
+      lista,
+      chave,
+      campo: 'DIMENSOES',
+      legado: dimensoesLegado,
+      dadosVivos: dimensoesDadosVivos,
+    });
+  }
+}
+
 function compararCampo(params: {
   divergencias: DivergenciaAdapter[];
   severidade: SeveridadeDivergencia;
@@ -150,11 +191,6 @@ function camposDetalhadosTextoPorLista(lista: ListaLegada): readonly (keyof Enti
       'SCORES',
       'DIMENSAO_PRINCIPAL',
       'TERMOS_DETECTADOS',
-      'DIMENSAO_1',
-      'DIMENSAO_2',
-      'DIMENSAO_3',
-      'DIMENSAO_4',
-      'DIMENSAO_5',
       'RANKING_COMPONENTES',
       'SCORES_COMPONENTES',
       'RANKING_INDICADORES',
@@ -273,6 +309,16 @@ function compararLista(
       campos: camposDetalhadosTextoPorLista(lista),
       tipo: 'texto',
     });
+
+    if (lista === 'fomento2026') {
+      compararDimensoesComoConjunto({
+        divergencias,
+        lista,
+        chave,
+        legado: itemLegado,
+        dadosVivos: itemDadosVivos,
+      });
+    }
 
     compararCampos({
       divergencias,
