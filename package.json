@@ -30,6 +30,7 @@
     "data:validate-canonical-infra-runtime-loader": "tsx scripts/validateCanonicalInfraRuntimeLoader.ts",
     "data:validate-dados-vivos": "tsx scripts/validateDadosVivos.ts",
     "data:validate-dados-vivos-adapter": "tsx scripts/validateDadosVivosAdapter.ts",
+    "data:validate-dados-vivos-runtime-source": "tsx scripts/validateDadosVivosRuntimeSource.ts",
     "changelog:status": "tsx scripts/changelog.ts status",
     "changelog:reset": "tsx scripts/changelog.ts reset",
     "changelog:add": "tsx scripts/changelog.ts add",
