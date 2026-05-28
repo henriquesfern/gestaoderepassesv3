@@ -114,12 +114,13 @@ function adaptarProjetoFomento(params: {
   const { projeto, entidade, fomento, acompanhamento, classificacoes } = params;
   const estado = projeto.estado_snapshot ?? entidade?.estado ?? projeto.uf_snapshot ?? entidade?.uf ?? '';
   const objetivo = fomento?.objetivo_estrategico ?? fomento?.linha_solicitada ?? projeto.titulo_ou_objeto_resumido ?? '';
+  const categoria = fomento?.objetivo_estrategico ?? fomento?.linha_solicitada ?? '';
 
   return {
     ENTIDADE: projeto.nome_entidade_snapshot || entidade?.nome_atual || '',
     CNPJ: projeto.cnpj_entidade,
     OBJETIVO: objetivo,
-    CATEGORIA: objetivo,
+    CATEGORIA: categoria,
     ESTADO: estado,
     NOTA: projeto.nota ?? 0,
     VOTOS: fomento?.votos ?? 0,

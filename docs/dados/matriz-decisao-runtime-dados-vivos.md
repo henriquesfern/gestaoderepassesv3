@@ -53,7 +53,7 @@ Validacao atual do adapter de compatibilidade:
 - `fomentoHistorico`: 123 registros
 - `patrocinioHistorico`: 223 registros
 - Divergencias criticas: 0
-- Divergencias observacionais: 16
+- Divergencias observacionais: 11 apos a definicao da regra de `CATEGORIA`
 
 Conclusao tecnica: o modelo paralelo esta consistente para observacao e comparacao, mas a troca de runtime ainda exige decisao sobre impactos semanticos e visuais.
 
@@ -127,7 +127,7 @@ Risco: as 6 divergencias de dimensoes podem alterar contagens por dimensao e lei
 
 - `src/components/AIAssistant.tsx`
 
-Risco: objetivos e categorias antes vazios passam a fornecer mais contexto. Isso pode melhorar respostas, mas tambem pode aumentar ruido se `CATEGORIA` receber texto longo em vez de rotulo curto.
+Risco: objetivos antes vazios passam a fornecer mais contexto. Isso pode melhorar respostas, mas tambem exige controle para que textos longos nao sejam usados como rótulos classificatorios.
 
 ## Campos Sensíveis
 
@@ -165,6 +165,13 @@ Decisao sugerida:
 - nao trocar runtime antes de decidir uma regra especifica para `CATEGORIA`;
 - avaliar se `CATEGORIA` deve continuar curta, usando `objetivo_estrategico`, `linha_solicitada`, `status_geral` ou outro campo classificatorio;
 - manter texto longo preferencialmente em `OBJETIVO`, `OBJETIVO_COMPLETO` ou campo equivalente.
+
+Regra definida no bloco preparatorio seguinte:
+
+- `CATEGORIA` deve permanecer como campo classificatorio curto;
+- para Fomento, a legacy view dos dados vivos deve preencher `CATEGORIA` apenas com `objetivo_estrategico` ou `linha_solicitada`;
+- se nao houver rotulo curto confiavel, `CATEGORIA` deve ficar vazia;
+- o texto longo do projeto deve permanecer em `OBJETIVO`, `OBJETIVO_COMPLETO` ou campos especificos de Fomento, evitando impacto visual e analitico em filtros, badges e agrupamentos.
 
 ### `DIMENSOES`
 
@@ -213,14 +220,14 @@ Tratamento recomendado:
 - validar exibicao visual;
 - confirmar que buscas e IA se beneficiam do preenchimento.
 
-### Grupo 2 - `CATEGORIA`
+### Grupo 2 - `CATEGORIA` - resolvido no adapter paralelo
 
 Total: 5 casos.
 
 Caracteristica:
 
 - legado vazio;
-- dados vivos preenchido, em alguns casos, com texto longo semelhante ao objetivo.
+- dados vivos preenchia, em alguns casos, texto longo semelhante ao objetivo.
 
 Entidades conhecidas:
 
@@ -232,9 +239,15 @@ Entidades conhecidas:
 
 Tratamento recomendado:
 
-- nao aceitar automaticamente como criterio final de runtime;
-- antes da troca, definir se `CATEGORIA` deve ser derivada de rotulo curto;
-- se nao houver rotulo curto confiavel, considerar manter `CATEGORIA` vazia ou usar fallback controlado, evitando texto excessivo em campo classificatorio.
+- manter `CATEGORIA` como campo classificatorio curto;
+- preencher apenas com `objetivo_estrategico` ou `linha_solicitada`;
+- quando nao houver rotulo curto confiavel, manter vazio;
+- preservar o texto longo em `OBJETIVO` e campos completos.
+
+Status validado:
+
+- o ajuste removeu as 5 divergencias observacionais de `CATEGORIA`;
+- o adapter passou de 16 para 11 divergencias observacionais, mantendo divergencias criticas em zero.
 
 ### Grupo 3 - `DIMENSOES`
 
@@ -282,7 +295,7 @@ A troca futura so deve ser considerada pronta quando todos os criterios abaixo f
 - valores financeiros principais preservados;
 - notas e votos preservados;
 - flags `IsCDEN` e `IsPrecursora` preservadas;
-- divergencias de `OBJETIVO`, `CATEGORIA` e `DIMENSOES` decididas explicitamente.
+- divergencias de `OBJETIVO` e `DIMENSOES` decididas explicitamente.
 
 ### Criterios visuais
 
@@ -326,7 +339,7 @@ Desvantagens:
 
 Uso recomendado:
 
-- quando houver duvida sobre `CATEGORIA`;
+- quando houver duvida sobre objetivos longos ou dimensoes enriquecidas;
 - quando nao houver tempo para validacao visual completa.
 
 ### Opcao B - Preparar chave controlada de origem
@@ -368,23 +381,23 @@ Desvantagens:
 
 - maior risco visual e semantico;
 - rollback depende de PR/reversao;
-- `CATEGORIA` ainda pode carregar texto longo em alguns casos.
+- ainda exige validacao visual para objetivos longos e dimensoes enriquecidas.
 
 Uso recomendado:
 
-- somente depois de resolver o criterio de `CATEGORIA` e validar visualmente.
+- somente depois de validar visualmente objetivos longos, dimensoes enriquecidas e fallback de origem.
 
 ## Recomendacao Tecnica
 
 O caminho mais seguro e a Opcao B: preparar uma chave controlada de origem, mantendo o legado como fallback e permitindo ativacao controlada dos dados vivos.
 
-Antes mesmo dessa implementacao, recomenda-se resolver o ponto de `CATEGORIA`, porque ele e a divergencia com maior chance de impacto visual e analitico.
+O ponto de `CATEGORIA` foi tratado no adapter paralelo antes da troca de runtime, reduzindo o principal risco visual e analitico identificado nesta matriz.
 
 Sequencia recomendada:
 
-1. Definir regra de derivacao para `CATEGORIA` no adapter de dados vivos.
-2. Rodar validadores e confirmar se as divergencias observacionais reduzem ou permanecem justificadas.
-3. Criar ponto central de montagem de `appData` com fonte selecionavel.
+1. Manter registrada a regra de derivacao de `CATEGORIA` no adapter de dados vivos.
+2. Criar ponto central de montagem de `appData` com fonte selecionavel.
+3. Manter a fonte legada como padrao inicial.
 4. Testar fonte de dados vivos localmente com validacao visual.
 5. Se aprovado, sincronizar em PR pequeno.
 6. Em bloco posterior, decidir se a fonte dados vivos vira padrao.
@@ -408,6 +421,108 @@ const usarDadosVivos = false;
 ```
 
 Esse exemplo nao e uma proposta final de implementacao, mas registra o principio: a decisao de origem deve ficar centralizada, visivel e reversivel.
+
+## Momentos Recomendados Para Backup e Rollback
+
+Backup e rollback nao precisam ter o mesmo peso em todos os blocos. A estrategia deve crescer conforme o risco da etapa.
+
+### Momento 1 - Blocos documentais e validadores paralelos
+
+Exemplos:
+
+- documentacao tecnica;
+- ajustes em roadmap;
+- validadores que nao alteram runtime;
+- refinamentos no adapter paralelo sem consumo pela UI.
+
+Protecao recomendada:
+
+- Git local limpo antes de iniciar;
+- branch proprio para o bloco;
+- PR pequeno;
+- merge por squash;
+- validadores de dados executados.
+
+Rollback recomendado:
+
+- reverter o PR no GitHub, caso a documentacao ou regra paralela precise ser corrigida;
+- nao e necessario backup fisico em `/backups`, pois nao ha alteracao estrutural de runtime nem movimentacao de arquivos.
+
+### Momento 2 - Preparacao de chave controlada de origem
+
+Exemplos:
+
+- criar funcao central para escolher fonte legada ou dados vivos;
+- manter runtime legado como padrao;
+- deixar dados vivos disponiveis apenas para teste local ou flag interna.
+
+Protecao recomendada:
+
+- PR pequeno e isolado;
+- `flow:prepare-pr`;
+- validadores de dados;
+- validacao visual local;
+- preview Vercel antes do merge;
+- manter a fonte legada como padrao inicial.
+
+Rollback recomendado:
+
+- desativar a flag ou constante central;
+- reverter o PR se a estrutura de selecao gerar instabilidade;
+- manter commit de troca separado de qualquer refatoracao visual.
+
+### Momento 3 - Troca do runtime padrao para dados vivos
+
+Exemplos:
+
+- `parseData()` passa a retornar `fomento2026`, `fomentoHistorico` e `patrocinioHistorico` a partir da legacy view dos dados vivos;
+- dados vivos viram fonte principal do app.
+
+Protecao recomendada:
+
+- tratar como Nivel 3;
+- exigir confirmacao explicita antes de implementar;
+- executar validadores antes e depois;
+- validar visualmente telas principais;
+- abrir PR pequeno apenas com a troca de origem;
+- aguardar GitHub Actions e Vercel Preview verdes;
+- registrar claramente no PR o plano de rollback.
+
+Rollback recomendado:
+
+- se a troca estiver atras de chave central, retornar a chave para fonte legada;
+- se ja estiver mergeada sem chave, usar `Revert` do PR no GitHub;
+- se o deploy Vercel em producao apresentar regressao, usar rollback/promote do ultimo deployment estavel da Vercel enquanto o GitHub e corrigido;
+- nao misturar a troca de runtime com alteracoes de layout, IA ou dados novos.
+
+### Momento 4 - Migracoes, renomeacoes ou reorganizacao de arquivos vivos
+
+Exemplos:
+
+- mover pastas de dados;
+- renomear fontes oficiais;
+- substituir arquivos CSV/XLSX/TXT em massa;
+- criar nova estrutura canonica de entrada.
+
+Protecao recomendada:
+
+- tratar como Nivel 4 quando envolver movimentacao ampla ou risco de perda estrutural;
+- executar `npx tsx scripts/backup.ts` antes da alteracao, conforme protocolo do projeto;
+- confirmar que o backup foi criado em `/backups`;
+- executar em branch proprio;
+- validar contagens e diffs de dados antes do PR.
+
+Rollback recomendado:
+
+- restaurar a partir do backup local quando a falha ocorrer antes do PR;
+- reverter PR no GitHub quando a falha ja estiver versionada;
+- usar rollback de deployment na Vercel somente se a regressao tiver chegado ao ambiente publicado.
+
+### Momento recomendado para este ciclo
+
+No ciclo atual, ainda nao e necessario backup fisico em `/backups`, porque o ajuste permanece no adapter paralelo e na documentacao.
+
+O primeiro momento em que o backup operacional deve ser reavaliado e antes de qualquer troca efetiva do runtime ou reorganizacao de arquivos de entrada. Para a troca controlada de runtime, o rollback via GitHub e Vercel e suficiente se a mudanca ficar isolada e reversivel.
 
 ## Bateria Minima de Validacao Manual
 
@@ -447,14 +562,13 @@ Antes de aprovar troca futura, validar perguntas e telas:
 
 ## Decisoes Pendentes
 
-- Regra final para `CATEGORIA` em Fomento 2026.
+- Se as 11 divergencias observacionais restantes devem continuar aparecendo no validador ou migrar para uma lista de excecoes documentadas.
 - Se a primeira troca usara flag local, constante interna ou funcao dedicada de selecao.
 - Se a fonte dados vivos deve virar padrao no primeiro PR ou apenas ficar disponivel para teste.
-- Se as divergencias observacionais devem continuar aparecendo no validador apos aceitas ou migrar para uma lista de excecoes documentadas.
 - Se a validacao visual deve ser feita apenas localmente ou tambem com preview Vercel antes do merge.
 
 ## Proxima Acao Recomendada
 
-Executar um bloco pequeno e seguro para tratar a regra de `CATEGORIA` no adapter de dados vivos, sem trocar runtime.
+Executar um bloco pequeno e seguro para preparar uma chave controlada de origem dos dados, mantendo o runtime legado como padrao e usando os dados vivos apenas como caminho selecionavel para validacao.
 
-Esse bloco deve buscar reduzir o risco visual e semantico antes de qualquer chave controlada de origem ou troca efetiva do runtime.
+Esse bloco deve preservar rollback simples por chave central, sem trocar a fonte padrao do app.
