@@ -28,9 +28,10 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status das fontes validadas do Fomento 2026**: O CSV validado do Fomento 2026 foi alinhado entre `public/data`, `src/data` e a fonte embutida `newFomentoData.ts`, reduzindo divergencias observacionais do adapter de 362 para 45.
 - **Status dos criterios de comparacao observacional**: O validador do adapter passou a ignorar diferencas apenas de whitespace textual e a tratar `Nao classificado` versus vazio como equivalentes em campos de dimensao.
 - **Status da comparacao de dimensoes**: Dimensoes do Fomento 2026 passaram a ser comparadas no validador como conjunto normalizado, reduzindo ruido de ordem e duplicidade na visao legada.
-- **Status de fechamento da compatibilidade**: As 16 divergencias observacionais restantes do Fomento 2026 foram aceitas como enriquecimento do modelo paralelo, compostas por preenchimento textual novo em `OBJETIVO`/`CATEGORIA` e classificacoes Infra-BR adicionais em `DIMENSOES`.
+- **Status de fechamento da compatibilidade**: As divergencias observacionais restantes do Fomento 2026 foram aceitas como enriquecimento do modelo paralelo, compostas por preenchimento textual novo em `OBJETIVO` e classificacoes Infra-BR adicionais em `DIMENSOES`.
 - **Matriz de decisao do runtime**: `docs/dados/matriz-decisao-runtime-dados-vivos.md` registra consumidores afetados, campos sensiveis, divergencias observacionais, criterios de aceite, estrategias possiveis e plano de fallback antes de qualquer troca de runtime.
-- **Proxima acao sugerida**: Tratar a regra de `CATEGORIA` no adapter de dados vivos, sem trocar runtime, antes de preparar uma chave controlada de origem ou qualquer troca efetiva.
+- **Status da regra de CATEGORIA**: `CATEGORIA` no adapter de dados vivos passou a ser preenchida apenas por rotulos curtos de Fomento (`objetivo_estrategico` ou `linha_solicitada`), reduzindo divergencias observacionais do adapter de 16 para 11 sem trocar runtime.
+- **Proxima acao sugerida**: Preparar chave controlada de origem dos dados, mantendo o runtime legado como padrao e os dados vivos apenas como caminho selecionavel para validacao.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
