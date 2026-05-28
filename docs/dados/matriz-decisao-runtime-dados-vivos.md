@@ -374,6 +374,14 @@ Status do bloco de preparacao:
 - `parseData({ fonteProjetos: 'dados-vivos' })` permite validar a legacy view dos dados vivos sem alterar o app;
 - o script `npm.cmd run data:validate-dados-vivos-runtime-source` valida a fonte padrao, a fonte legada explicita e a fonte dados vivos.
 
+Status do modo local controlado:
+
+- o `DataProvider` passou a ler `VITE_FONTE_PROJETOS_RUNTIME`;
+- o valor padrao continua sendo `legado`;
+- somente o valor explicito `dados-vivos` ativa a fonte viva no frontend;
+- a configuracao foi documentada em `.env.example`;
+- esse modo deve ser usado apenas para validacao visual local antes de qualquer troca de fonte padrao.
+
 ### Opcao C - Trocar diretamente `parseData()`
 
 Descricao:
@@ -578,6 +586,6 @@ Antes de aprovar troca futura, validar perguntas e telas:
 
 ## Proxima Acao Recomendada
 
-Executar validacao visual local com a fonte dados vivos selecionada explicitamente, mantendo a fonte padrao do app como legado.
+Executar validacao visual local com `VITE_FONTE_PROJETOS_RUNTIME=dados-vivos`, mantendo `legado` como valor padrao documentado.
 
 Essa validacao deve verificar carregamento, telas principais de Fomento 2026, diretorio, paineis globais e pontos afetados por `OBJETIVO` longo e `DIMENSOES` enriquecidas.
