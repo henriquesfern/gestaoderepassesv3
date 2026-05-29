@@ -33,7 +33,9 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status da regra de CATEGORIA**: `CATEGORIA` no adapter de dados vivos passou a ser preenchida apenas por rotulos curtos de Fomento (`objetivo_estrategico` ou `linha_solicitada`), reduzindo divergencias observacionais do adapter de 16 para 11 sem trocar runtime.
 - **Status da chave controlada de origem**: `parseData()` passou a aceitar fonte explicita de projetos, preservando `legado` como padrao e permitindo validar `dados-vivos` apenas quando selecionado explicitamente.
 - **Status do modo local controlado**: `DataProvider` passou a respeitar `VITE_FONTE_PROJETOS_RUNTIME`, mantendo `legado` como padrao e ativando `dados-vivos` somente quando a variavel for definida explicitamente para validacao visual local.
-- **Proxima acao sugerida**: Executar validacao visual local com `VITE_FONTE_PROJETOS_RUNTIME=dados-vivos`, conferindo carregamento, Fomento 2026, diretorio, paineis globais e impactos de `OBJETIVO` longo e `DIMENSOES` enriquecidas.
+- **Status da validacao visual local**: A fonte `dados-vivos` foi validada localmente em preview, com carregamento da visao geral, presenca dos principais itens de navegacao e ausencia de erro visivel no primeiro carregamento.
+- **Status da validacao de consumidores runtime**: O script `npm.cmd run data:validate-dados-vivos-runtime-consumers` cobre Diretório e Painel Financeiro para `fomento2026`, `fomentoHistorico` e `patrocinioHistorico`, incluindo filtros basicos, ordenacao por nota, totais financeiros por regiao e presenca de campos enriquecidos do Fomento 2026.
+- **Proxima acao sugerida**: Executar uma bateria curta de validacao local com `data:validate-dados-vivos`, `data:validate-dados-vivos-adapter`, `data:validate-dados-vivos-runtime-source`, `data:validate-dados-vivos-runtime-consumers` e `dev:check`; se tudo permanecer verde, sincronizar este bloco antes de qualquer troca de fonte padrao.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
