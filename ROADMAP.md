@@ -37,6 +37,14 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Status da validacao de consumidores runtime**: O script `npm.cmd run data:validate-dados-vivos-runtime-consumers` cobre Diretório e Painel Financeiro para `fomento2026`, `fomentoHistorico` e `patrocinioHistorico`, incluindo filtros basicos, ordenacao por nota, totais financeiros por regiao e presenca de campos enriquecidos do Fomento 2026.
 - **Proxima acao sugerida**: Executar uma bateria curta de validacao local com `data:validate-dados-vivos`, `data:validate-dados-vivos-adapter`, `data:validate-dados-vivos-runtime-source`, `data:validate-dados-vivos-runtime-consumers` e `dev:check`; se tudo permanecer verde, sincronizar este bloco antes de qualquer troca de fonte padrao.
 
+### Padronizacao formal de todos os arquivos de entrada de dados do app
+
+- **Status**: Em aberto.
+- **Origem**: Conversa de 01/06/2026 apos a revisao da estrutura dos arquivos de entrada e da necessidade de reduzir risco operacional nas atualizacoes futuras por Excel/CSV.
+- **Contexto**: O app ainda recebe dados por familias de arquivos com contratos heterogeneos de cabecalho, delimitador, encoding e granularidade. A iniciativa ampla deve consolidar modelos formais para todos os fluxos de entrada, incluindo historicos, ciclos vivos, classificacoes complementares, acompanhamentos e futuras entradas de Patrocinio 2026.
+- **Criticidade estimada**: Nivel 3, pois a padronizacao completa pode afetar parsers, validadores, adapters, fontes embutidas e o processo operacional de atualizacao.
+- **Proxima acao sugerida**: Concluir primeiro a padronizacao operacional do Fomento 2026 e, depois, expandir o mesmo metodo para Patrocinio 2026 e demais arquivos historicos com modelos formais versionados.
+
 ### Acompanhamento futuro da consulta IA Infra-BR
 
 - **Status**: Em aberto.

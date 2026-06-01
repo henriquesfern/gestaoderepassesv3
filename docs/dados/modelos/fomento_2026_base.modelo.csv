@@ -1,0 +1,2 @@
+ENTIDADE;CNPJ;SIGLA_UF;ESTADO;SEI;FISCAL;VALOR_CONCEDENTEAJUSTADO;VALORPROJETO;CONTROLEORCAMENTO;CONTROLEPROJETO;MEDIA;VOTOS;OBJETIVO_ESTRATEGICO;OBJETIVO_COMPLETO;OBJETIVO_ESPECIFICO;AREA_ABRANGENCIA;PUBLICO_ALVO;TEXTO_NORM
+ENTIDADE EXEMPLO;12345678000199;SP;Sao Paulo;00.000001/2026-00;Fiscal Exemplo;100000.00;150000.00;100000.00;150000.00;11.43;7;Direcionamento Estrategico local;Objetivo completo de exemplo para orientar o cadastro padrao.;Objetivo especifico de exemplo.;Municipio de exemplo e entorno.;Populacao beneficiada de exemplo.;texto norm padronizado de exemplo
