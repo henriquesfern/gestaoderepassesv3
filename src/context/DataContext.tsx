@@ -12,7 +12,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType>({ appData: null, isLoading: true });
 
 function getFonteProjetosRuntimeLocal(): FonteProjetosRuntime {
-  return import.meta.env.VITE_FONTE_PROJETOS_RUNTIME === 'dados-vivos' ? 'dados-vivos' : 'legado';
+  return import.meta.env.VITE_FONTE_PROJETOS_RUNTIME === 'legado' ? 'legado' : 'dados-vivos';
 }
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {

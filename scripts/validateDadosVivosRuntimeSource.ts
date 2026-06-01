@@ -56,11 +56,13 @@ async function main(): Promise<void> {
   const padrao = await validarFonte();
   const legadoExplicito = await validarFonte('legado');
   const dadosVivos = await validarFonte('dados-vivos');
+  const fontePadraoExplicita = await validarFonte(FONTE_PROJETOS_RUNTIME_PADRAO);
 
-  assertMesmoJson('FONTE_RUNTIME_PADRAO_DIFERE_DE_LEGADO_EXPLICITO', padrao, legadoExplicito);
+  assertMesmoJson('FONTE_RUNTIME_PADRAO_DIFERE_DA_FONTE_EXPLICITA', padrao, fontePadraoExplicita);
 
   console.log('Fonte controlada de projetos validada com sucesso.');
   console.log(`Fonte padrao: ${FONTE_PROJETOS_RUNTIME_PADRAO}`);
+  console.log(`Fonte padrao explicita: ${resumo(fontePadraoExplicita)}`);
   console.log(`Legado: ${resumo(legadoExplicito)}`);
   console.log(`Dados vivos: ${resumo(dadosVivos)}`);
 }
