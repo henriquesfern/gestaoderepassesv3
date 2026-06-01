@@ -14,13 +14,13 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
   return (
     <React.Fragment>
       <tr className={cn("hover:bg-slate-50 transition-colors cursor-pointer", isExpanded && "bg-slate-50")} onClick={() => toggleRow(uniqueKey)}>
-        <td className="py-3 px-6">
-          <div className="flex items-start">
+        <td className="py-3 px-6 align-top">
+          <div className="flex min-w-0 items-start">
             <button className="mr-3 mt-0.5 text-slate-400 hover:text-[#003865] flex-shrink-0 transition-colors">
               {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
             </button>
-            <div>
-              <div className="font-medium text-slate-800 text-sm align-middle flex items-center">
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-slate-800 text-sm align-middle flex min-w-0 items-center">
                 {item.ENTIDADE}
                 {item.RANKING_ADERENCIA_INFRABR && (
                   <div className="ml-3 mt-0.5" title={`${item.RANKING_ADERENCIA_INFRABR.split('|').length}/6 Dimensões Infra-BR`}>
@@ -41,7 +41,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                   </div>
                 )}
               </div>
-              <div className="mt-2 flex flex-wrap items-start gap-1">
+              <div className="mt-2 flex min-w-0 flex-wrap items-start gap-1">
           <span className={cn(
             "inline-block px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap",
             item.CATEGORIA?.toLowerCase() === "direcionamento estratégico local" ? "bg-blue-50 text-blue-700 border-blue-200" :
@@ -151,16 +151,17 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
           className="bg-slate-50 overflow-hidden" 
           style={{ display: 'table-row' }} // framer motion on tr workaround can be tricky, typically better as <td colSpan><motion.div>
         >
-          <td colSpan={6} className="p-0 border-b border-slate-200">
+          <td colSpan={6} className="border-b border-slate-200 bg-slate-50 px-6 py-4 align-top">
             <motion.div 
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="px-10 py-4 space-y-4 text-sm w-full"
+              className="w-full overflow-x-hidden rounded-lg border border-slate-200 bg-white px-6 py-5 text-sm shadow-sm"
             >
+              <div className="flex w-full flex-col gap-4">
               {item.RANKING_ADERENCIA_INFRABR ? (
-                <div className="bg-[#003865]/5 p-4 rounded-lg border border-[#003865]/10">
+                <div className="w-full rounded-lg border border-[#003865]/10 bg-[#003865]/5 p-4">
                   <h4 className="font-semibold text-[#003865] mb-2 text-xs uppercase tracking-wide flex items-center">
                     <span className="w-2 h-2 bg-[#003865] rounded-full mr-2"></span>
                     Aderência Setorial Infra-BR
@@ -178,28 +179,28 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                       infraData
                     ).map((dim, dIdx) => (
                       <div key={dIdx} className="flex flex-col gap-2">
-                        <div className={cn("inline-flex flex-col items-start px-3 py-1.5 border rounded shadow-sm text-left w-fit", getDimensionColor(dim.name))}>
+                        <div className={cn("inline-flex w-fit max-w-full flex-col items-start rounded border px-3 py-1.5 text-left shadow-sm", getDimensionColor(dim.name))}>
                             <span className="text-[9px] font-bold opacity-60 uppercase tracking-tighter">{dim.rank}</span>
                             <span className="text-xs font-semibold leading-tight">{dim.name}</span>
                         </div>
                         
                         {dim.components.length > 0 && (
-                          <div className="pl-4 border-l-2 border-slate-200/60 ml-2 mt-1 flex flex-col gap-3">
+                          <div className="ml-2 mt-1 flex flex-col gap-3 border-l-2 border-slate-200/60 pl-4">
                             {dim.components.map((comp, cIdx) => (
                               <div key={cIdx} className="flex flex-col gap-1.5">
                                 <div className="flex items-center gap-2">
                                   <span className="text-slate-300 text-xs">└─&gt;</span>
-                                  <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm", getColorForChild(comp.name, infraData))}>
+                                  <div className={cn("inline-flex items-center gap-1.5 rounded border px-2 py-1 shadow-sm", getColorForChild(comp.name, infraData))}>
                                     <span className="text-[11px] font-semibold leading-tight">{comp.name}</span>
                                   </div>
                                 </div>
 
                                 {comp.indicators.length > 0 && (
-                                  <div className="pl-6 flex flex-col gap-1.5">
+                                  <div className="flex flex-col gap-1.5 pl-6">
                                     {comp.indicators.map((ind, iIdx) => (
                                       <div key={iIdx} className="flex items-center gap-2">
                                         <span className="text-slate-300 text-xs">└─&gt;</span>
-                                        <div className={cn("inline-flex items-center gap-1.5 px-2 py-1 rounded border shadow-sm bg-white/60", getColorForChild(ind.name, infraData))}>
+                                        <div className={cn("inline-flex items-center gap-1.5 rounded border bg-white/60 px-2 py-1 shadow-sm", getColorForChild(ind.name, infraData))}>
                                           <span className="text-[10px] font-medium leading-tight">{ind.name}</span>
                                         </div>
                                       </div>
@@ -216,28 +217,28 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                 </div>
               ) : null}
               {item.OBJETIVO_COMPLETO ? (
-                <div>
+                <div className="w-full">
                   <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Objetivo Completo</h4>
-                  <p className="text-slate-600 leading-relaxed">{item.OBJETIVO_COMPLETO}</p>
+                  <p className="whitespace-pre-wrap break-words text-slate-600 leading-relaxed">{item.OBJETIVO_COMPLETO}</p>
                 </div>
               ) : null}
               {item.OBJETIVO_ESPECIFICO_COMPLETO ? (
-                <div>
+                <div className="w-full">
                   <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Objetivo Específico</h4>
-                  <p className="text-slate-600 leading-relaxed">{item.OBJETIVO_ESPECIFICO_COMPLETO}</p>
+                  <p className="whitespace-pre-wrap break-words text-slate-600 leading-relaxed">{item.OBJETIVO_ESPECIFICO_COMPLETO}</p>
                 </div>
               ) : null}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid w-full gap-6 md:grid-cols-2">
                 {item.PUBLICO_ALVO ? (
-                  <div>
+                  <div className="max-w-full">
                     <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Público Alvo</h4>
-                    <p className="text-slate-600">{item.PUBLICO_ALVO}</p>
+                    <p className="whitespace-pre-wrap break-words text-slate-600">{item.PUBLICO_ALVO}</p>
                   </div>
                 ) : null}
                 {item.AREA_ABRANGENCIA ? (
-                  <div>
+                  <div className="max-w-full">
                     <h4 className="font-semibold text-slate-700 mb-1 text-xs uppercase tracking-wide">Área de Abrangência</h4>
-                    <p className="text-slate-600">{item.AREA_ABRANGENCIA}</p>
+                    <p className="whitespace-pre-wrap break-words text-slate-600">{item.AREA_ABRANGENCIA}</p>
                   </div>
                 ) : null}
               </div>
@@ -246,6 +247,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
                   Detalhes do anexo não disponíveis para esta entidade.
                 </div>
               )}
+              </div>
             </motion.div>
           </td>
         </motion.tr>

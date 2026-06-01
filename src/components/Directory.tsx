@@ -38,26 +38,26 @@ export function Directory({ data }: DirectoryProps) {
         />
       </div>
 
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <table className="w-full table-fixed text-left border-collapse">
           <thead className="bg-slate-50 sticky top-0 z-10 shadow-md">
             <tr>
-              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('ENTIDADE')}>
+              <th className="w-[42%] py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('ENTIDADE')}>
                 <div className="flex items-center">Entidade {renderSortIndicator('ENTIDADE')}</div>
               </th>
-              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('CNPJ')}>
+              <th className="w-[15%] py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('CNPJ')}>
                 <div className="flex items-center">CNPJ {renderSortIndicator('CNPJ')}</div>
               </th>
-              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('ESTADO')}>
+              <th className="w-[10%] py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('ESTADO')}>
                 <div className="flex items-center">Estado {renderSortIndicator('ESTADO')}</div>
               </th>
-              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-center cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('IsCDEN')}>
+              <th className="w-[9%] py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-center cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('IsCDEN')}>
                 <div className="flex items-center justify-center">Grupo {renderSortIndicator('IsCDEN')}</div>
               </th>
-              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-right cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('VALOR_REPASSE')}>
+              <th className="w-[14%] py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-right cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('VALOR_REPASSE')}>
                 <div className="flex items-center justify-end">Valor do Repasse {renderSortIndicator('VALOR_REPASSE')}</div>
               </th>
-              <th className="py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-right cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('NOTA')}>
+              <th className="w-[10%] py-3 px-6 text-xs font-semibold text-[#003865] uppercase tracking-wider border-b border-[#003865]/10 text-right cursor-pointer group hover:bg-slate-100 transition-colors" onClick={() => actions.handleSort('NOTA')}>
                 <div className="flex items-center justify-end">Nota Final {renderSortIndicator('NOTA')}</div>
               </th>
             </tr>
