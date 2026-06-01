@@ -5,8 +5,8 @@ export const InfraBRProgressBar = ({ count, className }: { count: number, classN
   const safeCount = Math.min(Math.max(0, count), 6);
   
   return (
-    <div className={cn("flex flex-col gap-1", className)}>
-      <div className="flex gap-1 h-2 w-full">
+    <div className={cn("inline-flex flex-col items-start gap-1", className)}>
+      <div className="flex h-2 w-[100px] max-w-[100px] shrink-0 gap-1">
         {[...Array(6)].map((_, i) => (
           <div 
             key={i} 
@@ -17,7 +17,7 @@ export const InfraBRProgressBar = ({ count, className }: { count: number, classN
           />
         ))}
       </div>
-      <div className="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+      <div className="flex w-[100px] max-w-[100px] items-center justify-between text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
         <span>Aderência Infra-BR</span>
         <span className={cn("px-1 rounded", safeCount < 3 ? "text-rose-600" : "text-emerald-600")}>
           {safeCount}/6 Dimensões
