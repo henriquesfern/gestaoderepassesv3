@@ -404,7 +404,7 @@ async function comFetchLocal<T>(acao: () => Promise<T>): Promise<T> {
 }
 
 async function main(): Promise<void> {
-  const legado = await comFetchLocal(parseData);
+  const legado = await comFetchLocal(() => parseData({ fonteProjetos: 'legado' }));
   const dadosVivos = carregarDadosVivosLegacyView();
 
   const divergencias = [

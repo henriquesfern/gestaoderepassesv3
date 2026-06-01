@@ -16,7 +16,7 @@ export interface ParseDataOptions {
   fonteProjetos?: FonteProjetosRuntime;
 }
 
-export const FONTE_PROJETOS_RUNTIME_PADRAO: FonteProjetosRuntime = 'legado';
+export const FONTE_PROJETOS_RUNTIME_PADRAO: FonteProjetosRuntime = 'dados-vivos';
 
 interface ProjetosRuntimeLegado {
   fomento2026: DadosVivosLegacyView['fomento2026'];

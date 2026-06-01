@@ -584,8 +584,20 @@ Antes de aprovar troca futura, validar perguntas e telas:
 - Se a fonte dados vivos deve virar padrao no primeiro PR ou apenas ficar disponivel para teste.
 - Se a validacao visual deve ser feita apenas localmente ou tambem com preview Vercel antes do merge.
 
-## Proxima Acao Recomendada
+## Atualizacao Posterior
 
-Executar validacao visual local com `VITE_FONTE_PROJETOS_RUNTIME=dados-vivos`, mantendo `legado` como valor padrao documentado.
+A troca do runtime padrao para `dados-vivos` foi implementada em bloco isolado apos a bateria tecnica e a validacao operacional local.
 
-Essa validacao deve verificar carregamento, telas principais de Fomento 2026, diretorio, paineis globais e pontos afetados por `OBJETIVO` longo e `DIMENSOES` enriquecidas.
+Estado resultante:
+
+- `parseData()` passou a usar `dados-vivos` como fonte padrao de projetos;
+- `VITE_FONTE_PROJETOS_RUNTIME` continua aceitando `legado` como fallback controlado;
+- a validacao tecnica passou com `data:validate-dados-vivos`, `data:validate-dados-vivos-adapter`, `data:validate-dados-vivos-runtime-source`, `data:validate-dados-vivos-runtime-consumers` e `dev:check`;
+- o preview local com a fonte viva respondeu sem erro de carregamento inicial;
+- as 11 divergencias observacionais permaneceram documentadas e aceitas como enriquecimento de `OBJETIVO` e `DIMENSOES`.
+
+Recomendacao operacional apos a troca:
+
+- manter o fallback `legado` disponivel apenas para diagnostico e rollback localizado;
+- acompanhar uso real das telas mais sensiveis de Fomento 2026 e Infra-BR;
+- corrigir esta matriz apenas como registro historico do processo, sem reabrir a decisao de runtime por padrao.
