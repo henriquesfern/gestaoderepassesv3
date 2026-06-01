@@ -51,7 +51,7 @@ export const getSegmentColor = (index: number) => {
 export const AdherenceProgressBar = ({ percentage, className }: { percentage: number, className?: string }) => {
   const litCount = Math.round((percentage / 100) * 6);
   return (
-    <div className={cn("flex gap-0.5 h-1.5 w-full max-w-[100px]", className)}>
+    <div className={cn("flex gap-0.5 h-1.5 max-w-[100px]", className)}>
       {[...Array(6)].map((_, i) => (
         <div 
           key={i} 
