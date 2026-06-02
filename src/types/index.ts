@@ -19,6 +19,8 @@ export interface EntidadeSelecionada {
   OBJETIVO: string;
   CATEGORIA: string;
   ESTADO: string;
+  CIDADE?: string;
+  CIDADE_UF?: string;
   NOTA: number;
   VOTOS: number;
   VALOR_REPASSE: number;
