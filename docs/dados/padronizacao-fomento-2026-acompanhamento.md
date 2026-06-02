@@ -161,7 +161,7 @@ Para o acompanhamento vivo do `Fomento 2026`, a fonte operacional recomendada pa
 
 - [public/data/fomento_2026_acompanhamento.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\public\data\fomento_2026_acompanhamento.csv)
 
-Esse arquivo e o ponto de entrada para futuras atualizacoes por Excel ou CSV. O arquivo [src/data/gestaofomento26.ts](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\src\data\gestaofomento26.ts) deve ser tratado como artefato sincronizado a partir dele, e nao mais como origem manual de preenchimento.
+Esse arquivo e o ponto de entrada para futuras atualizacoes por Excel ou CSV. O modulo [src/data/gestaofomento26.ts](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\src\data\gestaofomento26.ts) continua existindo apenas como camada de leitura do proprio CSV operacional, e nao mais como origem manual de preenchimento.
 
 ## Recomendacao Operacional
 
@@ -174,11 +174,13 @@ Para o acompanhamento vivo, o fluxo recomendado passa a ser:
 npm.cmd run data:validate-fomento2026-acompanhamento
 ```
 
-3. Sincronizar a fonte TypeScript usada internamente pelo app:
+3. Verificar a leitura direta do runtime:
 
 ```bash
 npm.cmd run data:sync-fomento2026-acompanhamento
 ```
+
+Esse comando agora valida o CSV operacional e confirma que nao existe mais sincronizacao manual em TypeScript.
 
 4. Executar a checagem local do projeto:
 
@@ -220,8 +222,10 @@ O validador bloqueia:
 
 ### Bootstrap inicial desta fase
 
-Para criar ou recriar o CSV operacional a partir da base historica hoje embutida no repositorio:
+Para fluxos antigos que ainda chamarem o bootstrap:
 
 ```bash
 npm.cmd run data:bootstrap-fomento2026-acompanhamento
 ```
+
+O comando permanece apenas como compatibilidade operacional. Se o CSV ja existir, ele valida o arquivo e informa que a fonte operacional ja esta pronta. Se o arquivo tiver sido perdido, a restauracao deve ser feita pelo Git ou por backup.
