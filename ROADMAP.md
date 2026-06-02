@@ -53,6 +53,22 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 3, pois a entrada viva de Patrocinio 2026 pode afetar parsers, adapters, validadores, fluxo operacional de atualizacao e compatibilidade com consumidores legados.
 - **Proxima acao sugerida**: Retomar este item somente depois de concluir a migracao do Fomento 2026 base e validado para consumo direto dos CSVs oficiais e estabilizar o fluxo operacional de atualizacao.
 
+### Revisao do fluxo legado de exportacao estatica para public/data
+
+- **Status**: Em aberto.
+- **Origem**: Avaliacao tecnica de 02/06/2026 apos a migracao do Fomento 2026 base, validado e acompanhamento para consumo direto de CSVs oficiais em runtime.
+- **Contexto**: O script `scripts/export-static-data.ts` ainda representa um fluxo legado de geracao e copia para `public/data`. A frente futura deve decidir se ele continua apenas como compatibilidade controlada, se precisa ser reduzido ou se deve ser descontinuado para evitar ambiguidade sobre a fonte oficial dos datasets.
+- **Criticidade estimada**: Nivel 2, podendo subir para Nivel 3 se a revisao tocar automacoes usadas em deploy ou bootstrap local.
+- **Proxima acao sugerida**: Mapear quem ainda depende desse script e definir se ele deve continuar, ser simplificado ou substituido por validacoes operacionais dos CSVs oficiais.
+
+### Consolidacao do pipeline paralelo de dados em src/data/pipeline
+
+- **Status**: Em aberto.
+- **Origem**: Avaliacao tecnica de 02/06/2026 apos a estabilizacao do parser runtime principal e da camada de dados vivos do Fomento 2026.
+- **Contexto**: A pasta `src/data/pipeline` continua como uma arquitetura paralela de ingestao, transformacao e montagem da visao final. A frente futura deve decidir se ela sera promovida, consolidada como ferramental de apoio ou removida gradualmente para reduzir duplicidade conceitual com `src/data/parser.ts`.
+- **Criticidade estimada**: Nivel 3, pois pode afetar contratos de dados, validadores e pontos de comparacao legados.
+- **Proxima acao sugerida**: Inventariar consumidores reais do pipeline, validar se ele ainda gera valor operacional e so entao decidir por consolidacao, isolamento ou desativacao.
+
 ### Acompanhamento futuro da consulta IA Infra-BR
 
 - **Status**: Em aberto.
