@@ -65,13 +65,14 @@ export interface RawPatrocinio2025Row {
 
 export interface GestaoFomento26Row {
   cnpj: string;
+  sei?: string;
   inicioexecucao?: string;
   fimexecucao?: string;
   termodefomento?: string;
   status?: string;
-  primeirorepasse?: string;
+  primeirorepasse?: string | number;
   dataprimeirorepasse?: string;
-  segundorepasse?: string;
+  segundorepasse?: string | number;
   datasegundorepasse?: string;
   fiscalsuplente?: string;
   situacaofinal?: string;

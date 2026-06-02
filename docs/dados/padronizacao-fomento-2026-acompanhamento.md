@@ -155,9 +155,38 @@ Os modelos de preenchimento desta fase estao em:
 - [docs/dados/modelos/fomento_2026_infrabr_validado.modelo.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\docs\dados\modelos\fomento_2026_infrabr_validado.modelo.csv)
 - [docs/dados/modelos/fomento_2026_acompanhamento.modelo.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\docs\dados\modelos\fomento_2026_acompanhamento.modelo.csv)
 
+## Fonte Operacional do Acompanhamento
+
+Para o acompanhamento vivo do `Fomento 2026`, a fonte operacional recomendada passa a ser:
+
+- [public/data/fomento_2026_acompanhamento.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\public\data\fomento_2026_acompanhamento.csv)
+
+Esse arquivo e o ponto de entrada para futuras atualizacoes por Excel ou CSV. O arquivo [src/data/gestaofomento26.ts](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\src\data\gestaofomento26.ts) deve ser tratado como artefato sincronizado a partir dele, e nao mais como origem manual de preenchimento.
+
 ## Recomendacao Operacional
 
-Antes de substituir os arquivos consumidos pelo app, a proxima etapa recomendada e criar validacao automatica para esses tres modelos, com checagem de:
+Para o acompanhamento vivo, o fluxo recomendado passa a ser:
+
+1. Atualizar [public/data/fomento_2026_acompanhamento.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\public\data\fomento_2026_acompanhamento.csv) a partir do Excel.
+2. Validar o arquivo:
+
+```bash
+npm.cmd run data:validate-fomento2026-acompanhamento
+```
+
+3. Sincronizar a fonte TypeScript usada internamente pelo app:
+
+```bash
+npm.cmd run data:sync-fomento2026-acompanhamento
+```
+
+4. Executar a checagem local do projeto:
+
+```bash
+npm.cmd run dev:check
+```
+
+O objetivo operacional desta etapa e bloquear:
 
 - cabecalho esperado;
 - CNPJ com 14 digitos;
@@ -188,3 +217,11 @@ O validador bloqueia:
 - datas fora do padrao `YYYY-MM-DD`;
 - valores numericos preenchidos com simbolo monetario ou formato textual invalido;
 - duplicidade de `CNPJ + SEI` no mesmo arquivo.
+
+### Bootstrap inicial desta fase
+
+Para criar ou recriar o CSV operacional a partir da base historica hoje embutida no repositorio:
+
+```bash
+npm.cmd run data:bootstrap-fomento2026-acompanhamento
+```
