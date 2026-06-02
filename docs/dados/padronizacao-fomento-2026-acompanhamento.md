@@ -197,6 +197,32 @@ O objetivo operacional desta etapa e bloquear:
 - valores numericos parseaveis;
 - duplicidade de `CNPJ + SEI`.
 
+## Validacao Operacional dos Arquivos Reais em public/data
+
+Agora o projeto tambem possui uma validacao separada para os arquivos reais consumidos pelo runtime atual do app:
+
+```bash
+npm.cmd run data:validate-fomento2026-runtime-files
+```
+
+Esse comando valida:
+
+- [public/data/fomento2026.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\public\data\fomento2026.csv)
+- [public/data/GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\public\data\GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv)
+- [public/data/fomento_2026_acompanhamento.csv](C:\Users\fernando.henriques\Downloads\github\gestaoderepassesv3-git\public\data\fomento_2026_acompanhamento.csv)
+
+O foco aqui nao e exigir o cabecalho padrao idealizado dos modelos, e sim bloquear riscos reais para o app hoje:
+
+- cabecalho fora da estrutura operacional esperada pelo runtime atual;
+- delimitador incorreto;
+- `CNPJ` invalido;
+- campos obrigatorios vazios nos arquivos reais;
+- valores nao parseaveis pelo adapter atual;
+- datas invalidas no acompanhamento;
+- duplicidade de `CNPJ + SEI`;
+- duplicidade de `CNPJ` em arquivos complementares indexados por CNPJ;
+- divergencia de conjunto de projetos entre base, validado Infra-BR e acompanhamento.
+
 ## Validacao Automatizada
 
 O projeto agora possui um validador operacional para esses tres arquivos:
