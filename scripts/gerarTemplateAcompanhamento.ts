@@ -170,6 +170,21 @@ function main() {
     }
   }
 
+  const colunasData = ['INICIO_EXECUCAO', 'FIM_EXECUCAO', 'DATA_PRIMEIRO_REPASSE', 'DATA_SEGUNDO_REPASSE'];
+  const indicesData = colunasData.map((col) => colunas.indexOf(col));
+
+  for (let r = 2; r < totalLinhas; r++) {
+    for (const c of indicesData) {
+      if (c < 0) continue;
+      const addr = XLSX.utils.encode_cell({ r, c });
+      if (ws[addr] && ws[addr].v !== undefined && ws[addr].v !== '') {
+        ws[addr].t = 's';
+        ws[addr].v = String(ws[addr].v);
+        delete ws[addr].z;
+      }
+    }
+  }
+
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
   const wb = XLSX.utils.book_new();
