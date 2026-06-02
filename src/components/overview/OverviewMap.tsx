@@ -224,22 +224,28 @@ export function OverviewMap({
               })
             }
           </Geographies>
-          {/* Polígonos de cobertura da entidade selecionada */}
-          {coverageFeatures && coverageFeatures.map((feature: any, i: number) => (
-            <Geography
-              key={`cov-${i}`}
-              geography={feature}
-              fill={`${tColorSecondary}33`}
-              stroke={tColorSecondary}
-              strokeWidth={2}
-              strokeDasharray="8,4"
-              style={{
-                default: { outline: 'none' },
-                hover: { outline: 'none' },
-                pressed: { outline: 'none' },
-              }}
-            />
-          ))}
+          {/* Polígonos de cobertura — Geographies processa svgPath antes de renderizar */}
+          {coverageFeatures && coverageFeatures.length > 0 && (
+            <Geographies geography={{ type: 'FeatureCollection', features: coverageFeatures }}>
+              {({ geographies }) =>
+                geographies.map((geo, i) => (
+                  <Geography
+                    key={`cov-${i}`}
+                    geography={geo}
+                    fill={`${tColorSecondary}33`}
+                    stroke={tColorSecondary}
+                    strokeWidth={2}
+                    strokeDasharray="8,4"
+                    style={{
+                      default: { outline: 'none', pointerEvents: 'none' },
+                      hover:   { outline: 'none', pointerEvents: 'none' },
+                      pressed: { outline: 'none', pointerEvents: 'none' },
+                    }}
+                  />
+                ))
+              }
+            </Geographies>
+          )}
 
           {selectedState && cityMarkers.map((marker: any, index: number) => {
             const isSelected = selectedCityMarker?.name === marker.name;
