@@ -88,6 +88,12 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               kpis={metrics.kpis}
               clearFilters={helpers.clearFilters}
               selectedCategoria={state.selectedCategoria}
+              selectedCityMarker={state.selectedCityMarker}
+              cityPanelPos={state.cityPanelPos}
+              selectedCoverageEntityCNPJ={state.selectedCoverageEntityCNPJ}
+              coverageFeatures={metrics.coverageFeatures}
+              handleCityMarkerClick={helpers.handleCityMarkerClick}
+              handleCoverageToggle={helpers.handleCoverageToggle}
             />
           </div>
 

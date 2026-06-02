@@ -5,7 +5,8 @@ import { useData } from '../context/DataContext';
 import { getStateSigla } from '../data/regions';
 import { getCityCoords, getCityCoordsExact } from '../data/municipalities';
 import { getLocalizacaoByCNPJ } from '../data/entidadesLocalizacao';
-import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
+import { getAbrangenciaByCNPJ } from '../data/abrangencias';
+import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson, loadAbrangenciaGeoJson } from '../lib/brazilGeo';
 import { EntidadeSelecionada } from '../types';
 
 export const UF_TO_REGION: Record<string, string> = {
@@ -31,6 +32,10 @@ export function useOverviewMetrics(
   const [selectedInfraComponent, setSelectedInfraComponent] = useState<string | null>(null);
   const [mapTooltip, setMapTooltip] = useState<any>(null);
   const [geoData, setGeoData] = useState<any>(null);
+  const [selectedCityMarker, setSelectedCityMarker] = useState<any | null>(null);
+  const [cityPanelPos, setCityPanelPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [selectedCoverageEntityCNPJ, setSelectedCoverageEntityCNPJ] = useState<string | null>(null);
+  const [abrangenciaGeoData, setAbrangenciaGeoData] = useState<any>(null);
 
   useEffect(() => {
     loadBrazilStatesGeoJson().then(data => setGeoData(data));
@@ -41,6 +46,30 @@ export function useOverviewMetrics(
     setSelectedCategoria(null);
     setSelectedInfraDimension(null);
     setSelectedInfraComponent(null);
+    setSelectedCityMarker(null);
+    setSelectedCoverageEntityCNPJ(null);
+  };
+
+  const handleCityMarkerClick = (marker: any, clientX: number, clientY: number) => {
+    if (selectedCityMarker?.name === marker.name) {
+      setSelectedCityMarker(null);
+      setSelectedCoverageEntityCNPJ(null);
+      return;
+    }
+    setSelectedCityMarker(marker);
+    setCityPanelPos({ x: clientX, y: clientY });
+    setSelectedCoverageEntityCNPJ(null);
+  };
+
+  const handleCoverageToggle = (cnpj: string) => {
+    if (selectedCoverageEntityCNPJ === cnpj) {
+      setSelectedCoverageEntityCNPJ(null);
+      return;
+    }
+    setSelectedCoverageEntityCNPJ(cnpj);
+    if (!abrangenciaGeoData) {
+      loadAbrangenciaGeoJson().then(setAbrangenciaGeoData);
+    }
   };
 
   const filteredData = useMemo(() => {
@@ -398,6 +427,18 @@ export function useOverviewMetrics(
     return infraData.detalhamento.find(d => d.INDICADOR.trim().toLowerCase() === indicatorName.trim().toLowerCase() || d.ID === indicatorName);
   };
 
+  const coverageFeatures = useMemo(() => {
+    if (!selectedCoverageEntityCNPJ || !abrangenciaGeoData) return [];
+    const abr = getAbrangenciaByCNPJ(selectedCoverageEntityCNPJ);
+    if (!abr || abr.municipios.length === 0) return [];
+    const codigosSet = new Set(
+      abr.municipios.filter(m => m.codigoIbge).map(m => m.codigoIbge)
+    );
+    return abrangenciaGeoData.features.filter(
+      (f: any) => codigosSet.has(f.properties.codigoIbge)
+    );
+  }, [selectedCoverageEntityCNPJ, abrangenciaGeoData]);
+
   return {
     state: {
       selectedState, setSelectedState,
@@ -406,17 +447,20 @@ export function useOverviewMetrics(
       selectedInfraComponent, setSelectedInfraComponent,
       mapTooltip, setMapTooltip,
       geoData, setGeoData,
-      geoUrl: BRAZIL_STATES_GEOJSON_URL
+      geoUrl: BRAZIL_STATES_GEOJSON_URL,
+      selectedCityMarker, cityPanelPos,
+      selectedCoverageEntityCNPJ,
     },
     metrics: {
       filteredData, kpis, regionData, stateData, stateBreakdownData, evolucaoData,
       stateEntitiesCount, stateAdherenceData, sortedStateData, totalGlobalRepasse,
       maxStateValue, stateColorScale, getStateColor, infraChartData, grupoData,
       infraBRAdherenceTotals, cityMarkers, mapProjection,
-      infraData
+      infraData, coverageFeatures,
     },
     helpers: {
-      clearFilters, getComponentsForDimension, getIndicatorsForComponent, getIndicatorDetails
+      clearFilters, getComponentsForDimension, getIndicatorsForComponent, getIndicatorDetails,
+      handleCityMarkerClick, handleCoverageToggle,
     }
   };
 }
