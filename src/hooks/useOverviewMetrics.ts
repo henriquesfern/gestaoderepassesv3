@@ -59,6 +59,10 @@ export function useOverviewMetrics(
     setSelectedCityMarker(marker);
     setCityPanelPos({ x: clientX, y: clientY });
     setSelectedCoverageEntityCNPJ(null);
+    // Pré-carrega o GeoJSON ao abrir o panel para que o zoom esteja pronto ao clicar "Ver área"
+    if (!abrangenciaGeoData) {
+      loadAbrangenciaGeoJson().then(setAbrangenciaGeoData);
+    }
   };
 
   const handleCoverageToggle = (cnpj: string) => {
@@ -67,9 +71,6 @@ export function useOverviewMetrics(
       return;
     }
     setSelectedCoverageEntityCNPJ(cnpj);
-    if (!abrangenciaGeoData) {
-      loadAbrangenciaGeoJson().then(setAbrangenciaGeoData);
-    }
   };
 
   const filteredData = useMemo(() => {
@@ -467,6 +468,7 @@ export function useOverviewMetrics(
       geoUrl: BRAZIL_STATES_GEOJSON_URL,
       selectedCityMarker, cityPanelPos,
       selectedCoverageEntityCNPJ,
+      abrangenciaGeoDataReady: abrangenciaGeoData !== null,
     },
     metrics: {
       filteredData, kpis, regionData, stateData, stateBreakdownData, evolucaoData,
