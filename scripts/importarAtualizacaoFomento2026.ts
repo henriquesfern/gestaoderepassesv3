@@ -23,6 +23,28 @@ const CABECALHO_CSV = [
   'SITUACAO_FINAL',
 ];
 
+const COLUNAS_DATA = new Set([
+  'INICIO_EXECUCAO',
+  'FIM_EXECUCAO',
+  'DATA_PRIMEIRO_REPASSE',
+  'DATA_SEGUNDO_REPASSE',
+]);
+
+function converterDataExcel(valor: string): string {
+  const v = valor.trim();
+  if (!v) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const serial = parseFloat(v);
+  if (!isNaN(serial) && serial > 0) {
+    const date = new Date(Math.floor(serial - 25569) * 86400 * 1000);
+    const ano = date.getUTCFullYear();
+    const mes = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const dia = String(date.getUTCDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  }
+  return v;
+}
+
 const CNPJ_REGEX = /^\d{14}$/;
 
 function npmRun(comando: string): void {
@@ -44,9 +66,10 @@ function parseArgs(): { arquivo: string } {
 function lerXlsx(caminho: string): string[][] {
   let wb: XLSX.WorkBook;
   try {
-    wb = XLSX.readFile(caminho, { cellDates: false, raw: false });
-  } catch {
-    throw new Error(`Arquivo não encontrado ou inválido: ${caminho}`);
+    const buf = readFileSync(caminho);
+    wb = XLSX.read(buf, { type: 'buffer', cellDates: false, raw: false });
+  } catch (e: any) {
+    throw new Error(`Arquivo não encontrado ou inválido: ${caminho}\n${e?.message ?? ''}`);
   }
 
   const nomePlanilha = wb.SheetNames.find(
@@ -101,7 +124,11 @@ function main(): void {
   if (linhasDados.length === 0) throw new Error('Nenhuma linha de dados encontrada na planilha.');
 
   const linhasExportadas = linhasDados.map((linha) =>
-    indices.map((i) => String(linha[i] ?? '').trim()),
+    indices.map((i, colIdx) => {
+      const col = CABECALHO_CSV[colIdx];
+      const valor = String(linha[i] ?? '').trim();
+      return COLUNAS_DATA.has(col) ? converterDataExcel(valor) : valor;
+    }),
   );
 
   const csvAtual = readFileSync(OUTPUT_CSV, 'utf-8');
