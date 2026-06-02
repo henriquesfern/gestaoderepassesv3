@@ -92,6 +92,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               cityPanelPos={state.cityPanelPos}
               selectedCoverageEntityCNPJ={state.selectedCoverageEntityCNPJ}
               coverageFeatures={metrics.coverageFeatures}
+              abrangenciaGeoDataReady={state.abrangenciaGeoDataReady}
               handleCityMarkerClick={helpers.handleCityMarkerClick}
               handleCoverageToggle={helpers.handleCoverageToggle}
             />

@@ -37,6 +37,7 @@ export function OverviewMap({
   cityPanelPos,
   selectedCoverageEntityCNPJ,
   coverageFeatures,
+  abrangenciaGeoDataReady,
   handleCityMarkerClick,
   handleCoverageToggle,
 }: any) {
@@ -486,13 +487,14 @@ export function OverviewMap({
                   {hasPolygon && (
                     <button
                       onClick={() => handleCoverageToggle(entity.CNPJ)}
+                      disabled={false}
                       className={`shrink-0 text-[10px] px-2 py-1 rounded border transition-colors whitespace-nowrap ${
                         isActive
                           ? 'bg-blue-700 border-blue-500 text-white'
                           : 'border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-300'
                       }`}
                     >
-                      {isActive ? 'Ocultar' : 'Ver área'}
+                      {isActive ? 'Ocultar' : !abrangenciaGeoDataReady ? 'Carregando…' : 'Ver área'}
                     </button>
                   )}
                 </div>
