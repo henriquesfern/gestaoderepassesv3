@@ -13,13 +13,15 @@ Este documento registra a Fase 0 e a Fase 1 da governança de dados do projeto: 
 - `public/data`: CSVs carregados em runtime pelo app.
 - `src/data`: adapters, schemas, loaders, arquivos CSV de origem/espelho e alguns caminhos legados de compatibilidade.
 - `src/types` e `src/types/infra.ts`: contratos TypeScript consumidos pelo app.
-- `scripts/export-static-data.ts` e `scripts/validateData.ts`: exportação e validação estrutural.
+- `scripts/export-static-data.ts` e `scripts/validateData.ts`: compatibilidade legada de exportação e validação estrutural.
 
 ## Estado Atual
 
 O app consome os principais datasets por meio de `src/data/parser.ts`, que carrega CSVs de `public/data` com `fetchStaticText`.
 
 Também existem arquivos em `src/data/*.ts` usados por caminhos legados de compatibilidade. Para o `Fomento 2026`, os módulos locais agora apenas reexportam os CSVs oficiais de `public/data`, sem manter uma segunda cópia embutida do conteúdo.
+
+O script `scripts/export-static-data.ts` foi reduzido para um papel de compatibilidade controlada. Ele continua gerando apenas os históricos ainda embutidos em TypeScript e espelhando CSVs auxiliares do Infra-BR, mas não sobrescreve mais os arquivos oficiais do `Fomento 2026` em `public/data`.
 
 Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/paralelo. Ela deve ser tratada como candidata a revisão antes de qualquer remoção.
 
@@ -62,7 +64,7 @@ Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/par
 
 ## Problemas Identificados
 
-- Há duplicidade entre CSVs em `src/data` e `public/data`.
+- Ainda há duplicidade parcial entre CSVs em `src/data` e `public/data`, especialmente em espelhos auxiliares do Infra-BR e em históricos legados.
 - Há arquivos TypeScript grandes com dados embutidos que podem confundir a fonte oficial.
 - O app combina nomes de coluna em formatos diferentes, como `ESTADO`, `Estado`, `SIGLA_UF`, `REGIÃO`, `MÉDIA`, `Pontuação` e `Valor de Repasse`.
 - Alguns campos exigem compatibilidade com acentuação e encoding, especialmente em datasets Infra-BR e detalhamento.

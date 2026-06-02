@@ -53,14 +53,6 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 3, pois a entrada viva de Patrocinio 2026 pode afetar parsers, adapters, validadores, fluxo operacional de atualizacao e compatibilidade com consumidores legados.
 - **Proxima acao sugerida**: Retomar este item somente depois de concluir a migracao do Fomento 2026 base e validado para consumo direto dos CSVs oficiais e estabilizar o fluxo operacional de atualizacao.
 
-### Revisao do fluxo legado de exportacao estatica para public/data
-
-- **Status**: Em aberto.
-- **Origem**: Avaliacao tecnica de 02/06/2026 apos a migracao do Fomento 2026 base, validado e acompanhamento para consumo direto de CSVs oficiais em runtime.
-- **Contexto**: O script `scripts/export-static-data.ts` ainda representa um fluxo legado de geracao e copia para `public/data`. A frente futura deve decidir se ele continua apenas como compatibilidade controlada, se precisa ser reduzido ou se deve ser descontinuado para evitar ambiguidade sobre a fonte oficial dos datasets.
-- **Criticidade estimada**: Nivel 2, podendo subir para Nivel 3 se a revisao tocar automacoes usadas em deploy ou bootstrap local.
-- **Proxima acao sugerida**: Mapear quem ainda depende desse script e definir se ele deve continuar, ser simplificado ou substituido por validacoes operacionais dos CSVs oficiais.
-
 ### Consolidacao do pipeline paralelo de dados em src/data/pipeline
 
 - **Status**: Em aberto.
@@ -119,6 +111,14 @@ Nao ha itens priorizados pendentes neste momento.
 - **Contexto**: Foram registrados inventario inicial, consumidores principais, chaves de relacionamento e fontes oficiais propostas em `docs/dados/inventario-camada-dados.md`.
 - **Criticidade estimada**: Nivel 2 para inventario e documentacao.
 - **Resultado**: A Fase 0 + Fase 1 da governanca de dados foi registrada e sincronizada.
+
+### Revisao do fluxo legado de exportacao estatica para public/data
+
+- **Status**: Concluido.
+- **Origem**: Avaliacao tecnica de 02/06/2026 apos a migracao do Fomento 2026 base, validado e acompanhamento para consumo direto de CSVs oficiais em runtime.
+- **Contexto**: O script `scripts/export-static-data.ts` ainda representava um fluxo legado de geracao e copia para `public/data`, criando ambiguidade sobre a fonte oficial dos datasets.
+- **Criticidade estimada**: Nivel 2, mantido em escopo controlado sem afetar deploy nem bootstrap.
+- **Resultado**: O script foi reduzido a compatibilidade controlada. Ele continua gerando apenas historicos ainda embutidos em TypeScript e espelhando CSVs auxiliares do Infra-BR, sem sobrescrever mais os arquivos oficiais do `Fomento 2026` em `public/data`.
 
 ### Fase 2 funcional do modelo canonico Infra-BR
 
