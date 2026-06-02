@@ -3,6 +3,7 @@ import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { UF_TO_REGION } from '../../hooks/useOverviewMetrics';
 import { AdherenceProgressBar } from './OverviewUtils';
+import { getAbrangenciaByCNPJ } from '../../data/abrangencias';
 
 export function OverviewMap({
   theme,
@@ -31,7 +32,13 @@ export function OverviewMap({
   mapTooltip,
   kpis,
   clearFilters,
-  selectedCategoria
+  selectedCategoria,
+  selectedCityMarker,
+  cityPanelPos,
+  selectedCoverageEntityCNPJ,
+  coverageFeatures,
+  handleCityMarkerClick,
+  handleCoverageToggle,
 }: any) {
   return (
     <>
@@ -217,10 +224,35 @@ export function OverviewMap({
               })
             }
           </Geographies>
-          {selectedState && cityMarkers.map((marker: any, index: number) => (
+          {/* Polígonos de cobertura da entidade selecionada */}
+          {coverageFeatures && coverageFeatures.map((feature: any, i: number) => (
+            <Geography
+              key={`cov-${i}`}
+              geography={feature}
+              fill={`${tColorSecondary}33`}
+              stroke={tColorSecondary}
+              strokeWidth={2}
+              strokeDasharray="8,4"
+              style={{
+                default: { outline: 'none' },
+                hover: { outline: 'none' },
+                pressed: { outline: 'none' },
+              }}
+            />
+          ))}
+
+          {selectedState && cityMarkers.map((marker: any, index: number) => {
+            const isSelected = selectedCityMarker?.name === marker.name;
+            return (
             <Marker key={`city-${index}`} coordinates={marker.coords}>
-              <circle r={6} fill="#1e40af" stroke="#ffffff" strokeWidth={2} style={{ cursor: 'pointer' }}
+              <circle
+                r={isSelected ? 8 : 6}
+                fill={isSelected ? tColorSecondary : '#1e40af'}
+                stroke="#ffffff"
+                strokeWidth={isSelected ? 3 : 2}
+                style={{ cursor: 'pointer', transition: 'all 150ms' }}
                 onMouseEnter={(e: any) => {
+                  if (selectedCityMarker) return;
                   const fom = marker.entities.reduce((acc: any, e: any) => acc + (e.VALOR_REPASSE || 0), 0);
                   setMapTooltip({
                     isCityMarker: true,
@@ -233,10 +265,14 @@ export function OverviewMap({
                   });
                 }}
                 onMouseMove={(e: any) => {
-                  setMapTooltip((prev: any) => prev ? {...prev, x: e.clientX, y: e.clientY} : prev);
+                  if (!selectedCityMarker) setMapTooltip((prev: any) => prev ? {...prev, x: e.clientX, y: e.clientY} : prev);
                 }}
                 onMouseLeave={() => {
+                  if (!selectedCityMarker) setMapTooltip(null);
+                }}
+                onClick={(e: any) => {
                   setMapTooltip(null);
+                  handleCityMarkerClick(marker, e.clientX, e.clientY);
                 }}
               />
               <text
@@ -254,7 +290,8 @@ export function OverviewMap({
                 {marker.label}
               </text>
             </Marker>
-          ))}
+            );
+          })}
         </ComposableMap>
         
         {mapTooltip && (
@@ -408,6 +445,64 @@ export function OverviewMap({
           </div>
         )}
       </div>
+
+      {/* Panel persistente de seleção de abrangência */}
+      {selectedCityMarker && (
+        <div
+          className="fixed z-50 bg-slate-900 border border-blue-700 text-white p-4 rounded-xl shadow-2xl min-w-65 max-w-85"
+          style={{ top: cityPanelPos.y + 15, left: cityPanelPos.x + 15 }}
+        >
+          <div className="flex justify-between items-center mb-2 pb-2 border-b border-slate-700">
+            <span className="font-bold text-base text-blue-300">{selectedCityMarker.label}</span>
+            <button
+              className="text-slate-400 hover:text-white text-xl leading-none ml-4"
+              onClick={() => handleCityMarkerClick(selectedCityMarker, 0, 0)}
+            >×</button>
+          </div>
+          <div className="flex flex-col gap-3">
+            {selectedCityMarker.entities.map((entity: any, i: number) => {
+              const abr = getAbrangenciaByCNPJ(entity.CNPJ);
+              const hasPolygon = abr && abr.municipios.some((m: any) => m.codigoIbge);
+              const isActive = selectedCoverageEntityCNPJ === entity.CNPJ;
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-200 leading-snug">{entity.ENTIDADE}</p>
+                    {abr && abr.municipios.length > 0 && (
+                      <p className="text-[10px] text-slate-500 mt-0.5 capitalize">
+                        {abr.tipo} · {abr.municipios.map((m: any) => `${m.municipio}/${m.uf}`).join(', ')}
+                      </p>
+                    )}
+                    {abr && abr.tipo === 'indeterminado' && (
+                      <p className="text-[10px] text-slate-600 mt-0.5">abrangência não identificada</p>
+                    )}
+                  </div>
+                  {hasPolygon && (
+                    <button
+                      onClick={() => handleCoverageToggle(entity.CNPJ)}
+                      className={`shrink-0 text-[10px] px-2 py-1 rounded border transition-colors whitespace-nowrap ${
+                        isActive
+                          ? 'bg-blue-700 border-blue-500 text-white'
+                          : 'border-slate-600 text-slate-400 hover:border-blue-500 hover:text-blue-300'
+                      }`}
+                    >
+                      {isActive ? 'Ocultar' : 'Ver área'}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 pt-2 border-t border-slate-700/50 flex justify-between text-xs text-slate-500">
+            <span>Repasse total:</span>
+            <span className="text-emerald-400 font-medium">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+                .format(selectedCityMarker.entities.reduce((s: number, e: any) => s + (e.VALOR_REPASSE || 0), 0))}
+            </span>
+          </div>
+        </div>
+      )}
+
       <p className="text-xs text-slate-400 mt-4 text-center shrink-0">Clique em um estado para filtrar os demais gráficos e focar na região.</p>
     </>
   );
