@@ -10,3 +10,4 @@ coverage/
 .tmp/
 .env*.local
 CHANGELOG_PENDING.md
+data-inputs/

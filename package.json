@@ -36,6 +36,8 @@
     "data:validate-fomento2026-acompanhamento": "tsx scripts/validateFomento2026InputModels.ts --acompanhamento public/data/fomento_2026_acompanhamento.csv",
     "data:validate-fomento2026-runtime-files": "tsx scripts/validateFomento2026RuntimeFiles.ts",
     "data:update-fomento2026-flow": "tsx scripts/runFomento2026UpdateFlow.ts",
+    "data:gerar-template-fomento2026": "tsx scripts/gerarTemplateAcompanhamento.ts",
+    "data:importar-fomento2026": "tsx scripts/importarAtualizacaoFomento2026.ts",
     "data:bootstrap-fomento2026-acompanhamento": "tsx scripts/syncFomento2026Acompanhamento.ts bootstrap",
     "data:sync-fomento2026-acompanhamento": "tsx scripts/syncFomento2026Acompanhamento.ts sync",
     "changelog:status": "tsx scripts/changelog.ts status",
@@ -88,6 +90,7 @@
     "autoprefixer": "^10.4.21",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "xlsx": "^0.18.5"
   }
 }
