@@ -395,7 +395,24 @@ export function useOverviewMetrics(
     if (!geoData) {
       return projection.scale(750).center([-54, -15]);
     }
-    
+
+    // Zoom para área de abrangência selecionada (~80% de ocupação: 10% padding em cada lado)
+    if (selectedCoverageEntityCNPJ && abrangenciaGeoData) {
+      const abr = getAbrangenciaByCNPJ(selectedCoverageEntityCNPJ);
+      if (abr && abr.municipios.length > 0) {
+        const codigosSet = new Set(abr.municipios.filter(m => m.codigoIbge).map(m => m.codigoIbge));
+        const features = abrangenciaGeoData.features.filter((f: any) => codigosSet.has(f.properties.codigoIbge));
+        if (features.length > 0) {
+          try {
+            return projection.fitExtent(
+              [[width * 0.1, height * 0.1], [width * 0.9, height * 0.9]],
+              { type: 'FeatureCollection', features } as any
+            );
+          } catch { /* fallback para nível de estado */ }
+        }
+      }
+    }
+
     if (selectedState) {
       const feature = geoData.features.find((f: any) => f.properties.name === selectedState);
       if (feature) {
@@ -403,9 +420,9 @@ export function useOverviewMetrics(
         return projection.fitExtent([[padding, padding], [width - padding, height - padding]], feature);
       }
     }
-    
+
     return projection.fitSize([width, height], geoData);
-  }, [geoData, selectedState]);
+  }, [geoData, selectedState, selectedCoverageEntityCNPJ, abrangenciaGeoData]);
 
   const getComponentsForDimension = (dimensionName: string) => {
     if (!selectedState) return [];
