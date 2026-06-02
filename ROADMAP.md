@@ -57,9 +57,10 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 - **Status**: Em aberto.
 - **Origem**: Avaliacao tecnica de 02/06/2026 apos a estabilizacao do parser runtime principal e da camada de dados vivos do Fomento 2026.
-- **Contexto**: A pasta `src/data/pipeline` continua como uma arquitetura paralela de ingestao, transformacao e montagem da visao final. A frente futura deve decidir se ela sera promovida, consolidada como ferramental de apoio ou removida gradualmente para reduzir duplicidade conceitual com `src/data/parser.ts`.
+- **Contexto**: A pasta `src/data/pipeline` continua como uma arquitetura paralela de ingestao, transformacao e montagem da visao final. O inventario tecnico consolidado em `docs/dados/inventario-pipeline-paralelo.md` identificou que ela nao possui consumo real fora da propria pasta e hoje replica responsabilidades ja cobertas por `src/data/parser.ts`.
 - **Criticidade estimada**: Nivel 3, pois pode afetar contratos de dados, validadores e pontos de comparacao legados.
-- **Proxima acao sugerida**: Inventariar consumidores reais do pipeline, validar se ele ainda gera valor operacional e so entao decidir por consolidacao, isolamento ou desativacao.
+- **Decisao atual recomendada**: Tratar `src/data/pipeline` como legado tecnico sem consumo runtime identificado e preparar uma fase propria de desativacao gradual ou isolamento definitivo.
+- **Proxima acao sugerida**: Abrir um bloco pequeno para marcar explicitamente o pipeline como legado tecnico e decidir, com validacao local, se ele deve ser isolado em area de legado ou removido gradualmente.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
