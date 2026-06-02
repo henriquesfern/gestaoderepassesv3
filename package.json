@@ -35,6 +35,7 @@
     "data:validate-fomento2026-inputs": "tsx scripts/validateFomento2026InputModels.ts",
     "data:validate-fomento2026-acompanhamento": "tsx scripts/validateFomento2026InputModels.ts --acompanhamento public/data/fomento_2026_acompanhamento.csv",
     "data:validate-fomento2026-runtime-files": "tsx scripts/validateFomento2026RuntimeFiles.ts",
+    "data:update-fomento2026-flow": "tsx scripts/runFomento2026UpdateFlow.ts",
     "data:bootstrap-fomento2026-acompanhamento": "tsx scripts/syncFomento2026Acompanhamento.ts bootstrap",
     "data:sync-fomento2026-acompanhamento": "tsx scripts/syncFomento2026Acompanhamento.ts sync",
     "changelog:status": "tsx scripts/changelog.ts status",

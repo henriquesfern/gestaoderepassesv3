@@ -223,6 +223,22 @@ O foco aqui nao e exigir o cabecalho padrao idealizado dos modelos, e sim bloque
 - duplicidade de `CNPJ` em arquivos complementares indexados por CNPJ;
 - divergencia de conjunto de projetos entre base, validado Infra-BR e acompanhamento.
 
+## Fluxo Guiado de Atualizacao do Fomento 2026
+
+Para reduzir etapa manual na rotina de atualizacao por Excel ou CSV, o projeto agora possui um fluxo unico:
+
+```bash
+npm.cmd run data:update-fomento2026-flow
+```
+
+Esse comando executa em sequencia:
+
+1. `npm.cmd run data:validate-fomento2026-runtime-files`
+2. `npm.cmd run data:sync-fomento2026-acompanhamento`
+3. `npm.cmd run dev:check`
+
+O objetivo e transformar a rotina operacional em uma checagem unica antes de qualquer sincronismo com GitHub, bloqueando o fluxo logo no primeiro erro relevante.
+
 ## Validacao Automatizada
 
 O projeto agora possui um validador operacional para esses tres arquivos:
