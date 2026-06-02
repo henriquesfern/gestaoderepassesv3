@@ -4,6 +4,7 @@ import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
 import { getStateSigla } from '../data/regions';
 import { getCityCoords, getCityCoordsExact } from '../data/municipalities';
+import { getLocalizacaoByCNPJ } from '../data/entidadesLocalizacao';
 import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
 import { EntidadeSelecionada } from '../types';
 
@@ -332,7 +333,15 @@ export function useOverviewMetrics(
     const markers: { name: string, label: string, coords: [number, number], entities: any[] }[] = [];
     
     currentEntities.forEach(entity => {
-      const city = (entity.CIDADE ? getCityCoordsExact(entity.CIDADE) : null) ?? getCityCoords(entity.ENTIDADE);
+      // 1. Tenta pelo campo CIDADE já enriquecido no adapter
+      let city = entity.CIDADE ? getCityCoordsExact(entity.CIDADE) : null;
+      // 2. Lookup direto por CNPJ no mapa de localização (bypass de qualquer problema de propagação)
+      if (!city && entity.CNPJ) {
+        const loc = getLocalizacaoByCNPJ(entity.CNPJ);
+        if (loc) city = getCityCoordsExact(loc.cidade);
+      }
+      // 3. Fallback legado: busca por substring no nome da entidade
+      if (!city) city = getCityCoords(entity.ENTIDADE);
       if (city) {
         const existing = markers.find(m => m.name === city.name);
         if (existing) {
