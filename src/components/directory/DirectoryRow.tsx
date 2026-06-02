@@ -4,6 +4,7 @@ import { cn, getDimensionColor, getColorForChild, getSegmentColor, buildTree } f
 import { InfraBRProgressBar } from './InfraBRProgressBar';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatCNPJ } from '../../utils/sanitizers';
+import { formatarData } from '../../utils/formatters';
 import { useData } from '../../context/DataContext';
 
 export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
@@ -68,7 +69,7 @@ export function DirectoryRow({ item, isExpanded, toggleRow, uniqueKey }: any) {
           )}
           {item.DATA_INICIO && (
             <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 whitespace-nowrap" title="Período">
-              {item.DATA_INICIO} {item.DATA_FIM && ` a ${item.DATA_FIM}`}
+              {formatarData(item.DATA_INICIO)} {item.DATA_FIM && ` a ${formatarData(item.DATA_FIM)}`}
             </span>
           )}
           {item.MES && (

@@ -10,3 +10,14 @@ export const parseNumberBR = (val: string) => {
   if (!val) return 0;
   return parseFloat(val.replace(',', '.')) || 0;
 };
+
+// Formata data de YYYY-MM-DD para DD/MM/YYYY (padrão pt-BR)
+export const formatarData = (val: string | undefined): string => {
+  if (!val || val === '-') return '-';
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(val)) return val;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+    const [y, m, d] = val.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return val;
+};

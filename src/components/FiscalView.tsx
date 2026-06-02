@@ -5,6 +5,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { EntidadeSelecionada } from '../types';
 import { formatCNPJ } from '../utils/sanitizers';
+import { formatarData } from '../utils/formatters';
 import { ChartPanelFallback } from './shared/ChartPanelFallback';
 
 function cn(...inputs: ClassValue[]) {
@@ -304,7 +305,7 @@ export function FiscalView({ data }: FiscalViewProps) {
                                           </div>
                                           <div>
                                             <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">Período de Execução</div>
-                                            <div className="text-slate-700 font-medium">{proj.gestao_inicioexecucao || '-'} a {proj.gestao_fimexecucao || '-'}</div>
+                                            <div className="text-slate-700 font-medium">{formatarData(proj.gestao_inicioexecucao)} a {formatarData(proj.gestao_fimexecucao)}</div>
                                             {proj.gestao_inicioexecucao && proj.gestao_fimexecucao && (() => {
                                               const start = parseDate(proj.gestao_inicioexecucao);
                                               const end = parseDate(proj.gestao_fimexecucao);
@@ -356,14 +357,14 @@ export function FiscalView({ data }: FiscalViewProps) {
                                             <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">1º Repasse</div>
                                             <div className="text-[#008f4c] font-bold">
                                               {proj.gestao_primeirorepasse || '-'}
-                                              {proj.gestao_dataprimeirorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({proj.gestao_dataprimeirorepasse})</span>}
+                                              {proj.gestao_dataprimeirorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({formatarData(proj.gestao_dataprimeirorepasse)})</span>}
                                             </div>
                                           </div>
                                           <div>
                                             <div className="text-slate-400 font-medium mb-1 uppercase tracking-wider text-[10px]">2º Repasse</div>
                                             <div className="text-[#008f4c] font-bold">
                                               {proj.gestao_segundorepasse || '-'}
-                                              {proj.gestao_datasegundorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({proj.gestao_datasegundorepasse})</span>}
+                                              {proj.gestao_datasegundorepasse && <span className="text-slate-400 font-normal text-[10px] ml-1">({formatarData(proj.gestao_datasegundorepasse)})</span>}
                                             </div>
                                           </div>
                                         </div>
