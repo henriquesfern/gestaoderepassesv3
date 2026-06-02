@@ -45,6 +45,14 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 - **Criticidade estimada**: Nivel 3, pois a padronizacao completa pode afetar parsers, validadores, adapters, fontes embutidas e o processo operacional de atualizacao.
 - **Proxima acao sugerida**: Concluir primeiro a padronizacao operacional do Fomento 2026 e, depois, expandir o mesmo metodo para Patrocinio 2026 e demais arquivos historicos com modelos formais versionados.
 
+### Desenho padronizado da futura entrada de Patrocinio 2026
+
+- **Status**: Em aberto.
+- **Origem**: Decisao de escopo em 02/06/2026, ao priorizar a aplicacao imediata do padrao apenas no Fomento 2026 e preservar o desenho equivalente de Patrocinio 2026 para um ciclo posterior.
+- **Contexto**: O proximo ciclo vivo de dados alem do Fomento 2026 devera ser o Patrocinio 2026. O desenho precisa prever arquivo base, arquivo de acompanhamento e eventuais complementos analiticos com as mesmas garantias de cabecalho, encoding, validacao automatica e consumo direto em runtime, mas sem misturar essa frente com a consolidacao atual do Fomento 2026.
+- **Criticidade estimada**: Nivel 3, pois a entrada viva de Patrocinio 2026 pode afetar parsers, adapters, validadores, fluxo operacional de atualizacao e compatibilidade com consumidores legados.
+- **Proxima acao sugerida**: Retomar este item somente depois de concluir a migracao do Fomento 2026 base e validado para consumo direto dos CSVs oficiais e estabilizar o fluxo operacional de atualizacao.
+
 ### Acompanhamento futuro da consulta IA Infra-BR
 
 - **Status**: Em aberto.
