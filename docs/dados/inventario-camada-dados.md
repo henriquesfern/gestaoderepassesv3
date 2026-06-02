@@ -23,7 +23,7 @@ Também existem arquivos em `src/data/*.ts` usados por caminhos legados de compa
 
 O script `scripts/export-static-data.ts` foi reduzido para um papel de compatibilidade controlada. Ele continua gerando apenas os históricos ainda embutidos em TypeScript e espelhando CSVs auxiliares do Infra-BR, mas não sobrescreve mais os arquivos oficiais do `Fomento 2026` em `public/data`.
 
-Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/paralelo. Ela deve ser tratada como candidata a revisão antes de qualquer remoção.
+Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/paralelo. O inventário específico dessa estrutura foi consolidado em `docs/dados/inventario-pipeline-paralelo.md`, com recomendação de tratá-la como legado técnico candidato a desativação gradual ou isolamento definitivo.
 
 ## Fontes Oficiais Propostas
 
