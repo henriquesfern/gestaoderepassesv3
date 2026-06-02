@@ -11,7 +11,7 @@ Este documento registra a Fase 0 e a Fase 1 da governança de dados do projeto: 
 ## Escopo Avaliado
 
 - `public/data`: CSVs carregados em runtime pelo app.
-- `src/data`: adapters, schemas, loaders, arquivos CSV de origem/espelho e arquivos TypeScript com dados embutidos.
+- `src/data`: adapters, schemas, loaders, arquivos CSV de origem/espelho e alguns caminhos legados de compatibilidade.
 - `src/types` e `src/types/infra.ts`: contratos TypeScript consumidos pelo app.
 - `scripts/export-static-data.ts` e `scripts/validateData.ts`: exportação e validação estrutural.
 
@@ -19,7 +19,7 @@ Este documento registra a Fase 0 e a Fase 1 da governança de dados do projeto: 
 
 O app consome os principais datasets por meio de `src/data/parser.ts`, que carrega CSVs de `public/data` com `fetchStaticText`.
 
-Também existem arquivos grandes em `src/data/*.ts` que embutem CSVs ou arrays. Eles ainda aparecem em scripts e em caminhos legados, mas não são a principal fonte runtime do app para os dados centrais já exportados em `public/data`.
+Também existem arquivos em `src/data/*.ts` usados por caminhos legados de compatibilidade. Para o `Fomento 2026`, os módulos locais agora apenas reexportam os CSVs oficiais de `public/data`, sem manter uma segunda cópia embutida do conteúdo.
 
 Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/paralelo. Ela deve ser tratada como candidata a revisão antes de qualquer remoção.
 
@@ -27,8 +27,8 @@ Há ainda uma pasta `src/data/pipeline`, que representa um pipeline anterior/par
 
 | Domínio | Fonte oficial proposta | Arquivos derivados ou auxiliares | Chave principal sugerida |
 | --- | --- | --- | --- |
-| Fomento corrente 2026 | `public/data/fomento2026.csv` | `src/data/fomento2026.ts`, `src/data/newFomentoData.ts`, `public/data/GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv` | `cnpj`, `sei`, `ano`, `programa` |
-| Gestão do fomento 2026 | `public/data/GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv` | `src/data/GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv`, `src/data/gestaofomento26.ts` | `cnpj`, `sei` |
+| Fomento corrente 2026 | `public/data/fomento2026.csv` | `src/data/fomento2026.ts` (reexporta o CSV bruto), `public/data/GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv` | `cnpj`, `sei`, `ano`, `programa` |
+| Gestão do fomento 2026 | `public/data/GestaoFomento26_Marco3_3_OFICIAL_VALIDADO.csv` | `src/data/newFomentoData.ts` (reexporta o CSV bruto), `src/data/gestaofomento26.ts` | `cnpj`, `sei` |
 | Fomento histórico 2025 | `public/data/fomento2025.csv` | `src/data/fomento2025.ts` | `cnpj`, `sei`, `ano`, `programa` |
 | Patrocínio histórico 2025 | `public/data/patrocinio2025.csv` | `src/data/patrocinio2025.ts` | `cnpj`, `sei`, `ano`, `programa` |
 | Entidades CDEN | `src/data/cden.ts` | Nenhum espelho identificado | `cnpj` |
