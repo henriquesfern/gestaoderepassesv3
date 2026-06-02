@@ -3,7 +3,7 @@ import { geoMercator } from 'd3-geo';
 import { scaleLinear } from 'd3-scale';
 import { useData } from '../context/DataContext';
 import { getStateSigla } from '../data/regions';
-import { getCityCoords } from '../data/municipalities';
+import { getCityCoords, getCityCoordsExact } from '../data/municipalities';
 import { BRAZIL_STATES_GEOJSON_URL, loadBrazilStatesGeoJson } from '../lib/brazilGeo';
 import { EntidadeSelecionada } from '../types';
 
@@ -332,7 +332,7 @@ export function useOverviewMetrics(
     const markers: { name: string, label: string, coords: [number, number], entities: any[] }[] = [];
     
     currentEntities.forEach(entity => {
-      const city = getCityCoords(entity.ENTIDADE);
+      const city = (entity.CIDADE ? getCityCoordsExact(entity.CIDADE) : null) ?? getCityCoords(entity.ENTIDADE);
       if (city) {
         const existing = markers.find(m => m.name === city.name);
         if (existing) {
