@@ -55,12 +55,11 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ### Consolidacao do pipeline paralelo de dados em src/data/pipeline
 
-- **Status**: Em aberto.
+- **Status**: Concluido.
 - **Origem**: Avaliacao tecnica de 02/06/2026 apos a estabilizacao do parser runtime principal e da camada de dados vivos do Fomento 2026.
-- **Contexto**: A pasta `src/data/pipeline` continua como uma arquitetura paralela de ingestao, transformacao e montagem da visao final. O inventario tecnico consolidado em `docs/dados/inventario-pipeline-paralelo.md` identificou que ela nao possui consumo real fora da propria pasta e hoje replica responsabilidades ja cobertas por `src/data/parser.ts`.
-- **Criticidade estimada**: Nivel 3, pois pode afetar contratos de dados, validadores e pontos de comparacao legados.
-- **Decisao atual recomendada**: Tratar `src/data/pipeline` como legado tecnico sem consumo runtime identificado e preparar uma fase propria de desativacao gradual ou isolamento definitivo.
-- **Proxima acao sugerida**: Abrir um bloco pequeno para marcar explicitamente o pipeline como legado tecnico e decidir, com validacao local, se ele deve ser isolado em area de legado ou removido gradualmente.
+- **Contexto**: A pasta `src/data/pipeline` foi confirmada sem consumo runtime fora da propria pasta, replicando responsabilidades ja cobertas por `src/data/parser.ts`.
+- **Criticidade estimada**: Nivel 3.
+- **Resultado**: Remoção direta dos 4 arquivos (ingest.ts, transform.ts, buildAppData.ts, types.ts) confirmada por busca ativa de consumidores e validada por dev:check (typecheck + build). PR #120 mergeado em 02/06/2026. Historico git preserva os arquivos para eventual recuperacao.
 
 ### Acompanhamento futuro da consulta IA Infra-BR
 
