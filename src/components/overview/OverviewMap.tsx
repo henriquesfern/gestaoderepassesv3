@@ -227,6 +227,7 @@ export function OverviewMap({
                     content: marker.label,
                     sub: `Entidades: ${marker.entities.length}`,
                     fom: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(fom),
+                    entidades: marker.entities.map((ent: any) => ent.ENTIDADE),
                     x: e.clientX,
                     y: e.clientY
                   });
@@ -258,7 +259,7 @@ export function OverviewMap({
         
         {mapTooltip && (
           <div 
-            className="fixed z-50 bg-slate-900 border border-slate-700 text-white p-4 rounded shadow-xl pointer-events-none min-w-[200px]"
+            className="fixed z-50 bg-slate-900 border border-slate-700 text-white p-4 rounded shadow-xl pointer-events-none min-w-[200px] max-w-85"
             style={{ top: mapTooltip.y + 15, left: mapTooltip.x + 15, opacity: 0.95 }}
           >
             <div className="font-bold text-base mb-2 border-b border-slate-700 pb-1">
@@ -267,13 +268,23 @@ export function OverviewMap({
             {mapTooltip.isCityMarker ? (
               <div className="flex flex-col gap-1 text-sm">
                 <div className="flex justify-between gap-4 mt-1">
-                  <span className="text-slate-400 font-medium">Projetos Identificados:</span> 
+                  <span className="text-slate-400 font-medium">Projetos Identificados:</span>
                   <span className="font-semibold text-white">{mapTooltip.sub.replace('Entidades: ', '')}</span>
                 </div>
                 {mapTooltip.fom && (
                   <div className="flex justify-between gap-4 pt-1 mt-1 border-t border-slate-700/50">
-                    <span className="text-slate-400 font-medium">Repasse Local:</span> 
+                    <span className="text-slate-400 font-medium">Repasse Local:</span>
                     <span className="font-medium text-emerald-400">{mapTooltip.fom}</span>
+                  </div>
+                )}
+                {mapTooltip.entidades && mapTooltip.entidades.length > 0 && (
+                  <div className="mt-2 pt-1 border-t border-slate-700/50">
+                    <span className="text-slate-400 font-medium text-xs block mb-1">Entidades:</span>
+                    <ul className="flex flex-col gap-0.5">
+                      {mapTooltip.entidades.map((nome: string, i: number) => (
+                        <li key={i} className="text-slate-200 text-xs leading-snug">• {nome}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
