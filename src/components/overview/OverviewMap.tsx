@@ -232,10 +232,10 @@ export function OverviewMap({
                   <Geography
                     key={`cov-${i}`}
                     geography={geo}
-                    fill={`${tColorSecondary}33`}
-                    stroke={tColorSecondary}
-                    strokeWidth={2}
-                    strokeDasharray="8,4"
+                    fill={`${tColorSecondary}1A`}
+                    stroke="#f87171"
+                    strokeWidth={0.8}
+                    strokeDasharray="6,3"
                     style={{
                       default: { outline: 'none', pointerEvents: 'none' },
                       hover:   { outline: 'none', pointerEvents: 'none' },
