@@ -49,8 +49,10 @@ export function OverviewMap({
   // Refs para evitar stale closure no handler do wheel
   const userViewBoxRef = useRef<string | null>(null);
   const activeViewBoxRef = useRef<string | undefined>(undefined);
+  const coverageViewBoxRef = useRef<string | undefined>(undefined);
   const selectedStateRef = useRef<string | null>(null);
   userViewBoxRef.current = userViewBox;
+  coverageViewBoxRef.current = coverageViewBox;
   selectedStateRef.current = selectedState;
 
   // Reseta zoom do usuário ao trocar de estado ou ao ativar cobertura
@@ -83,14 +85,21 @@ export function OverviewMap({
       const my = vbY + ((e.clientY - rect.top) / rect.height) * vbH;
 
       const factor = e.deltaY < 0 ? 0.8 : 1 / 0.8;
-      const newW = Math.min(800, Math.max(30, vbW * factor));
+
+      // Limite máximo de zoom-out: largura do coverageViewBox (pode ser > 800
+      // para municípios grandes como Japurá/AM) ou 800 quando sem cobertura
+      const baseW = coverageViewBoxRef.current
+        ? parseFloat(coverageViewBoxRef.current.split(' ')[2])
+        : 800;
+
+      const newW = Math.min(baseW, Math.max(30, vbW * factor));
       const newH = newW / 1.6; // mantém proporção 800:500
 
       const fracX = (mx - vbX) / vbW;
       const fracY = (my - vbY) / vbH;
 
-      if (newW >= 799) {
-        setUserViewBox(null); // totalmente zoom-out → volta à vista padrão
+      if (newW >= baseW * 0.98) {
+        setUserViewBox(null); // zoom-out máximo → volta à vista de cobertura ou estado
       } else {
         setUserViewBox(`${mx - fracX * newW} ${my - fracY * newH} ${newW} ${newH}`);
       }
