@@ -38,6 +38,7 @@ export function OverviewMap({
   selectedCoverageEntityCNPJ,
   coverageFeatures,
   coverageFeatureCollection,
+  coverageViewBox,
   abrangenciaGeoDataReady,
   handleCityMarkerClick,
   handleCoverageToggle,
@@ -108,6 +109,7 @@ export function OverviewMap({
           width={800}
           height={500}
           style={{ width: "100%", height: "100%" }}
+          {...(coverageViewBox ? { viewBox: coverageViewBox } : {})}
         >
           <Geographies geography={geoData || geoUrl}>
             {({ geographies }) =>
