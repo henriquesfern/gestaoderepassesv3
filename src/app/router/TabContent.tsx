@@ -67,6 +67,11 @@ const InsightsFiscalView = lazy(async () => {
   return { default: module.InsightsFiscalView };
 });
 
+const AcompanhamentoEntidadesView = lazy(async () => {
+  const module = await import('../../features/entidades');
+  return { default: module.AcompanhamentoEntidadesView };
+});
+
 interface TabContentProps {
   activeTab: TabId;
   appData: AppData;
@@ -98,6 +103,7 @@ export function TabContent({ activeTab, appData }: TabContentProps) {
       {activeTab === 'insights_ec' && <InsightsECGeral />}
       {activeTab === 'insights_infra' && <InfraBRInsights />}
       {activeTab === 'insights_fiscal' && <InsightsFiscalView />}
+      {activeTab === 'acompanhamento_entidades' && <AcompanhamentoEntidadesView />}
       {activeTab === 'ai_assistant' && <AIAssistant />}
     </Suspense>
   );
