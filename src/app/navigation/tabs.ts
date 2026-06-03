@@ -20,6 +20,7 @@ export type TabId =
   | 'insights_forca'
   | 'insights_ec'
   | 'insights_infra'
+  | 'insights_fiscal'
   | 'ai_assistant';
 
 export interface MenuItem {
@@ -51,6 +52,7 @@ export const menuItems: MenuItem[] = [
   { id: 'insights_forca', label: 'Força por Estado', icon: LayoutDashboard, depth: 1, description: 'Comparativo de força e repasse por UF.' },
   { id: 'insights_ec', label: 'Visão EC Geral', icon: LayoutDashboard, depth: 1, description: 'Insights sobre a base EC Geral.' },
   { id: 'insights_infra', label: 'Avaliação Infra-BR', icon: LayoutDashboard, depth: 1, description: 'Análise entre repasses e indicadores Infra-BR.' },
+  { id: 'insights_fiscal', label: 'Análise Fiscal', icon: UserCheck, depth: 1, description: 'Evolução do ciclo de repasses e carga de trabalho por fiscal.' },
 
   { id: 'ai_assistant', label: 'IA - Consulta', icon: Sparkles, depth: 0, description: 'Assistente de IA para consulta dos dados.' }
 ];
@@ -90,7 +92,8 @@ export function getPresentationFallbackTab() {
 export const sectionBreakAfter: TabId[] = [
   'current_financial',
   'history_ec_geral',
-  'insights_infra'
+  'insights_infra',
+  // 'insights_fiscal', // Análise Fiscal - evolução do ciclo de repasses e carga por fiscal.
 ];
 
 export const getHeaderTitle = (tab: TabId) => {
@@ -113,6 +116,7 @@ export const getHeaderTitle = (tab: TabId) => {
     case 'insights_forca': return 'Força por Estado';
     case 'insights_ec': return 'Visão EC Geral';
     case 'insights_infra': return 'Avaliação Infra-BR';
+    case 'insights_fiscal': return 'Análise Fiscal';
     case 'ai_assistant': return 'IA - Consulta de Dados';
   }
 };
