@@ -37,20 +37,21 @@ export function OverviewMap({
   cityPanelPos,
   selectedCoverageEntityCNPJ,
   coverageFeatures,
+  coverageFeatureCollection,
   abrangenciaGeoDataReady,
   handleCityMarkerClick,
   handleCoverageToggle,
 }: any) {
   return (
     <>
-      <div className="flex justify-end items-center min-h-[24px] mb-2 -mt-4 relative z-10 w-full col-span-1 lg:col-span-4 max-w-[800px] mx-auto opacity-0 pointer-events-none"></div>
+      <div className="flex justify-end items-center min-h-6 mb-2 -mt-4 relative z-10 w-full col-span-1 lg:col-span-4 max-w-200 mx-auto opacity-0 pointer-events-none"></div>
 
       <div className="mb-6 border-b pb-2 shrink-0 flex justify-between items-start">
         <div>
           <h3 className="text-lg font-semibold text-slate-800 flex items-center cursor-default">
             <span>Investimento por Estado</span>
           </h3>
-          <div className="text-xs font-normal text-slate-500 mt-0.5 cursor-default min-h-[16px]">
+          <div className="text-xs font-normal text-slate-500 mt-0.5 cursor-default min-h-4">
             {selectedState ? `Filtrado: ${selectedState}` : '\u00A0'}
           </div>
         </div>
@@ -101,7 +102,7 @@ export function OverviewMap({
           </RadixTooltip.Provider>
         </div>
       </div>
-      <div className="flex-1 w-full relative min-h-[500px]">
+      <div className="flex-1 w-full relative min-h-125">
         <ComposableMap
           projection={mapProjection as any}
           width={800}
@@ -225,9 +226,9 @@ export function OverviewMap({
               })
             }
           </Geographies>
-          {/* Polígonos de cobertura — Geographies processa svgPath antes de renderizar */}
-          {coverageFeatures && coverageFeatures.length > 0 && (
-            <Geographies geography={{ type: 'FeatureCollection', features: coverageFeatures }}>
+          {/* Polígonos de cobertura — FeatureCollection memoizado evita re-render infinito */}
+          {coverageFeatureCollection && (
+            <Geographies geography={coverageFeatureCollection}>
               {({ geographies }) =>
                 geographies.map((geo, i) => (
                   <Geography
@@ -303,7 +304,7 @@ export function OverviewMap({
         
         {mapTooltip && (
           <div 
-            className="fixed z-50 bg-slate-900 border border-slate-700 text-white p-4 rounded shadow-xl pointer-events-none min-w-[200px] max-w-85"
+            className="fixed z-50 bg-slate-900 border border-slate-700 text-white p-4 rounded shadow-xl pointer-events-none min-w-50 max-w-85"
             style={{ top: mapTooltip.y + 15, left: mapTooltip.x + 15, opacity: 0.95 }}
           >
             <div className="font-bold text-base mb-2 border-b border-slate-700 pb-1">

@@ -457,6 +457,15 @@ export function useOverviewMetrics(
     );
   }, [selectedCoverageEntityCNPJ, abrangenciaGeoData]);
 
+  // FeatureCollection memoizado com referência estável — evita re-render infinito
+  // no useGeographies do react-simple-maps (que reage a mudança de referência de geography)
+  const coverageFeatureCollection = useMemo(() =>
+    coverageFeatures.length > 0
+      ? ({ type: 'FeatureCollection' as const, features: coverageFeatures })
+      : null,
+    [coverageFeatures]
+  );
+
   return {
     state: {
       selectedState, setSelectedState,
@@ -475,7 +484,7 @@ export function useOverviewMetrics(
       stateEntitiesCount, stateAdherenceData, sortedStateData, totalGlobalRepasse,
       maxStateValue, stateColorScale, getStateColor, infraChartData, grupoData,
       infraBRAdherenceTotals, cityMarkers, mapProjection,
-      infraData, coverageFeatures,
+      infraData, coverageFeatures, coverageFeatureCollection,
     },
     helpers: {
       clearFilters, getComponentsForDimension, getIndicatorsForComponent, getIndicatorDetails,
