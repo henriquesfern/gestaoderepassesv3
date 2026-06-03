@@ -607,12 +607,26 @@ export function OverviewMap({
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-slate-200 leading-snug">{entity.ENTIDADE}</p>
                     {abr && abr.municipios.length > 0 && (
-                      <p className="text-[10px] text-slate-500 mt-0.5 capitalize">
-                        {abr.tipo} · {abr.municipios.map((m: any) => `${m.municipio}/${m.uf}`).join(', ')}
-                      </p>
+                      <div className="flex justify-between items-center gap-2 mt-0.5">
+                        <p className="text-[10px] text-slate-500 capitalize">
+                          {abr.tipo} · {abr.municipios.map((m: any) => `${m.municipio}/${m.uf}`).join(', ')}
+                        </p>
+                        {entity.VALOR_REPASSE > 0 && (
+                          <span className="text-[10px] text-emerald-400 font-medium whitespace-nowrap shrink-0">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(entity.VALOR_REPASSE)}
+                          </span>
+                        )}
+                      </div>
                     )}
                     {abr && abr.tipo === 'indeterminado' && (
-                      <p className="text-[10px] text-slate-600 mt-0.5">abrangência não identificada</p>
+                      <div className="flex justify-between items-center gap-2 mt-0.5">
+                        <p className="text-[10px] text-slate-600">abrangência não identificada</p>
+                        {entity.VALOR_REPASSE > 0 && (
+                          <span className="text-[10px] text-emerald-400 font-medium whitespace-nowrap shrink-0">
+                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(entity.VALOR_REPASSE)}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
                   {hasPolygon && (
