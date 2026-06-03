@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { UF_TO_REGION } from '../../hooks/useOverviewMetrics';
@@ -20,7 +20,6 @@ export function OverviewMap({
   sortedStateData,
   infraData,
   totalGlobalRepasse,
-  maxStateValue,
   getStateColor,
   tColorSecondary,
   tColorSecondaryDark,
@@ -44,6 +43,63 @@ export function OverviewMap({
   handleCoverageToggle,
   clearCityPanel,
 }: any) {
+  const [userViewBox, setUserViewBox] = useState<string | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  // Refs para evitar stale closure no handler do wheel
+  const userViewBoxRef = useRef<string | null>(null);
+  const activeViewBoxRef = useRef<string | undefined>(undefined);
+  const selectedStateRef = useRef<string | null>(null);
+  userViewBoxRef.current = userViewBox;
+  selectedStateRef.current = selectedState;
+
+  // Reseta zoom do usuário ao trocar de estado ou ao ativar cobertura
+  // (para que o zoom automático de cobertura tome efeito)
+  useEffect(() => { setUserViewBox(null); }, [selectedState]);
+  useEffect(() => { if (selectedCoverageEntityCNPJ) setUserViewBox(null); }, [selectedCoverageEntityCNPJ]);
+
+  // viewBox ativo: zoom manual > cobertura > padrão
+  // Ao ativar cobertura, userViewBox é resetado acima, então coverage toma efeito.
+  // Após o primeiro scroll com cobertura ativa, userViewBox semeia de coverage e toma controle.
+  const activeViewBox = userViewBox || coverageViewBox || undefined;
+  activeViewBoxRef.current = activeViewBox;
+
+  // Listener de scroll não-passivo para zoom com o cursor como âncora
+  useEffect(() => {
+    const el = mapContainerRef.current;
+    if (!el) return;
+
+    const handler = (e: WheelEvent) => {
+      if (!selectedStateRef.current) return; // só ativo com estado selecionado
+      e.preventDefault();
+
+      const rect = el.getBoundingClientRect();
+      // Semeia a partir do viewBox ativo atual (manual ou de cobertura)
+      const [vbX, vbY, vbW, vbH] = (activeViewBoxRef.current || '0 0 800 500')
+        .split(' ').map(Number);
+
+      // Posição do cursor em coordenadas SVG
+      const mx = vbX + ((e.clientX - rect.left) / rect.width) * vbW;
+      const my = vbY + ((e.clientY - rect.top) / rect.height) * vbH;
+
+      const factor = e.deltaY < 0 ? 0.8 : 1 / 0.8;
+      const newW = Math.min(800, Math.max(30, vbW * factor));
+      const newH = newW / 1.6; // mantém proporção 800:500
+
+      const fracX = (mx - vbX) / vbW;
+      const fracY = (my - vbY) / vbH;
+
+      if (newW >= 799) {
+        setUserViewBox(null); // totalmente zoom-out → volta à vista padrão
+      } else {
+        setUserViewBox(`${mx - fracX * newW} ${my - fracY * newH} ${newW} ${newH}`);
+      }
+    };
+
+    el.addEventListener('wheel', handler, { passive: false });
+    return () => el.removeEventListener('wheel', handler);
+  }, []); // deps vazias — usa refs para valores correntes
+
   return (
     <>
       <div className="flex justify-end items-center min-h-6 mb-2 -mt-4 relative z-10 w-full col-span-1 lg:col-span-4 max-w-200 mx-auto opacity-0 pointer-events-none"></div>
@@ -104,13 +160,13 @@ export function OverviewMap({
           </RadixTooltip.Provider>
         </div>
       </div>
-      <div className="flex-1 w-full relative min-h-125">
+      <div className="flex-1 w-full relative min-h-125" ref={mapContainerRef}>
         <ComposableMap
           projection={mapProjection as any}
           width={800}
           height={500}
           style={{ width: "100%", height: "100%" }}
-          {...(coverageViewBox ? { viewBox: coverageViewBox } : {})}
+          {...(activeViewBox ? { viewBox: activeViewBox } : {})}
         >
           <Geographies geography={geoData || geoUrl}>
             {({ geographies }) =>
@@ -140,24 +196,7 @@ export function OverviewMap({
                 const regionProp = totalGlobalRepasse > 0 ? ((regionVal / totalGlobalRepasse) * 100).toFixed(1) + '%' : '0%';
 
                 const entidadesSize = stateEntitiesCount.get(stateName) || 0;
-                const isDark = stateVal > maxStateValue * 0.35;
-                
-                let textColor = "#00284a";
-                let shadowText = "0px 1px 3px rgba(255,255,255,0.9), 0px 0px 2px rgba(255,255,255,1)";
-                
-                if (stateVal === 0) {
-                  textColor = "#991b1b";
-                  shadowText = "0px 1px 2px rgba(255,255,255,0.5)";
-                } else if (isDark) {
-                  textColor = "#ffffff";
-                  shadowText = "0px 1px 3px rgba(0,0,0,0.8)";
-                }
 
-                // Temporary workaround since we don't have geoCentroid in scope directly easily
-                // we import geoCentroid in the actual hook but we don't return centroid
-                // we will skip text marker rendering or mock the centroid if not rendering in map hook
-                // Wait, geoCentroid was imported from d3-geo
-                
                 return (
                   <React.Fragment key={`${geo.rsmKey}-group`}>
                     <Geography
@@ -235,14 +274,37 @@ export function OverviewMap({
           {coverageFeatureCollection && (() => {
             // Escala o traço proporcionalmente ao zoom do viewBox:
             // viewBox padrão = 800 unidades; quanto menor a janela, maior o zoom
-            const vbWidth = coverageViewBox
-              ? parseFloat(coverageViewBox.split(' ')[2])
+            const vbWidth = activeViewBox
+              ? parseFloat(activeViewBox.split(' ')[2])
               : 800;
             const s = vbWidth / 800; // factor: 1 = sem zoom, 0.2 = 5× zoom
             const covStroke = Math.max(0.12, 0.8 * s);
             const d1 = Math.max(0.8, 6 * s);
             const d2 = Math.max(0.4, 3 * s);
+            const labelSize = Math.max(4, 11 * s);
+            // Calcula centroide geográfico a partir das coordenadas do polígono
+            const geoCentroids: Array<{ coords: [number,number]; label: string }> = [];
+            if (coverageFeatureCollection) {
+              coverageFeatureCollection.features.forEach((f: any) => {
+                try {
+                  const ring = f.geometry?.type === 'Polygon'
+                    ? f.geometry.coordinates[0]
+                    : f.geometry?.coordinates?.[0]?.[0];
+                  if (!ring?.length) return;
+                  const lng = ring.reduce((s: number, c: number[]) => s + c[0], 0) / ring.length;
+                  const lat = ring.reduce((s: number, c: number[]) => s + c[1], 0) / ring.length;
+                  if (isFinite(lng) && isFinite(lat) && f.properties?.nome) {
+                    geoCentroids.push({
+                      coords: [lng, lat],
+                      label: `${f.properties.nome}/${f.properties.uf}`,
+                    });
+                  }
+                } catch { /* ignorar feature inválida */ }
+              });
+            }
+
             return (
+            <>
             <Geographies geography={coverageFeatureCollection}>
               {({ geographies }) =>
                 geographies.map((geo, i) => (
@@ -262,14 +324,32 @@ export function OverviewMap({
                 ))
               }
             </Geographies>
+            {geoCentroids.map((c, i) => (
+              <Marker key={`cov-label-${i}`} coordinates={c.coords}>
+                <text
+                  textAnchor="middle"
+                  y={-labelSize * 0.6}
+                  style={{
+                    fontFamily: 'system-ui',
+                    fontSize: `${labelSize}px`,
+                    fill: '#f87171',
+                    fontWeight: '500',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  {c.label}
+                </text>
+              </Marker>
+            ))}
+            </>
             );
           })()}
 
           {selectedState && (() => {
             // Fator de escala para manter tamanho visual constante independente do zoom do viewBox
             // s=1 → sem zoom (estado inteiro), s<1 → zoomed (viewBox menor)
-            const vbScale = coverageViewBox
-              ? parseFloat(coverageViewBox.split(' ')[2]) / 800
+            const vbScale = activeViewBox
+              ? parseFloat(activeViewBox.split(' ')[2]) / 800
               : 1;
 
             return cityMarkers.map((marker: any, index: number) => {
@@ -286,7 +366,7 @@ export function OverviewMap({
             <Marker key={`city-${index}`} coordinates={marker.coords}>
               <circle
                 r={scaledR}
-                fill={isSelected ? tColorSecondary : '#475569'}
+                fill={hasCoverageActive ? '#ffffff' : isSelected ? tColorSecondary : '#475569'}
                 stroke={isSelected && !hasCoverageActive ? '#ffffff' : 'none'}
                 strokeWidth={isSelected && !hasCoverageActive ? 1.5 * vbScale : 0}
                 opacity={hasCoverageActive ? 0.55 : 1}
@@ -315,20 +395,34 @@ export function OverviewMap({
                   handleCityMarkerClick(marker, e.clientX, e.clientY);
                 }}
               />
-              <text
-                textAnchor="middle"
-                y={scaledY}
-                style={{
-                  fontFamily: "system-ui",
-                  fill: "#1e3a8a",
-                  fontSize: scaledFont,
-                  fontWeight: "bold",
-                  pointerEvents: "none",
-                  textShadow: "0px 1px 3px rgba(255,255,255,0.9), 0px 0px 2px rgba(255,255,255,1)"
-                }}
-              >
-                {marker.label}
-              </text>
+              {(() => {
+                // Detecta se a área de abrangência é no mesmo município da sede
+                const abr = hasCoverageActive
+                  ? getAbrangenciaByCNPJ(selectedCoverageEntityCNPJ || '')
+                  : null;
+                const norm = (s: string) =>
+                  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+                const coverageIsSede = !!abr?.municipios.some(
+                  (m: any) => norm(m.municipio) === norm(marker.label)
+                );
+                // Mostra sede quando: sem cobertura OU cobertura em cidade diferente
+                if (hasCoverageActive && coverageIsSede) return null;
+                return (
+                  <text
+                    textAnchor="middle"
+                    y={scaledY}
+                    style={{
+                      fontFamily: "system-ui",
+                      fill: hasCoverageActive ? "#f87171" : "#686C64",
+                      fontSize: scaledFont,
+                      fontWeight: hasCoverageActive ? "500" : "normal",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    {marker.label}
+                  </text>
+                );
+              })()}
             </Marker>
             );
           });
