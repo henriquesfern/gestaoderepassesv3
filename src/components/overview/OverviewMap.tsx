@@ -42,6 +42,7 @@ export function OverviewMap({
   abrangenciaGeoDataReady,
   handleCityMarkerClick,
   handleCoverageToggle,
+  clearCityPanel,
 }: any) {
   return (
     <>
@@ -186,6 +187,8 @@ export function OverviewMap({
                         if (!isSame) {
                           setSelectedInfraDimension(null);
                           setSelectedInfraComponent(null);
+                        } else {
+                          clearCityPanel();
                         }
                       }}
                       onMouseEnter={(e) => {
@@ -229,7 +232,17 @@ export function OverviewMap({
             }
           </Geographies>
           {/* Polígonos de cobertura — FeatureCollection memoizado evita re-render infinito */}
-          {coverageFeatureCollection && (
+          {coverageFeatureCollection && (() => {
+            // Escala o traço proporcionalmente ao zoom do viewBox:
+            // viewBox padrão = 800 unidades; quanto menor a janela, maior o zoom
+            const vbWidth = coverageViewBox
+              ? parseFloat(coverageViewBox.split(' ')[2])
+              : 800;
+            const s = vbWidth / 800; // factor: 1 = sem zoom, 0.2 = 5× zoom
+            const covStroke = Math.max(0.12, 0.8 * s);
+            const d1 = Math.max(0.8, 6 * s);
+            const d2 = Math.max(0.4, 3 * s);
+            return (
             <Geographies geography={coverageFeatureCollection}>
               {({ geographies }) =>
                 geographies.map((geo, i) => (
@@ -238,8 +251,8 @@ export function OverviewMap({
                     geography={geo}
                     fill={`${tColorSecondary}1A`}
                     stroke="#f87171"
-                    strokeWidth={0.8}
-                    strokeDasharray="6,3"
+                    strokeWidth={covStroke}
+                    strokeDasharray={`${d1},${d2}`}
                     style={{
                       default: { outline: 'none', pointerEvents: 'none' },
                       hover:   { outline: 'none', pointerEvents: 'none' },
@@ -249,18 +262,35 @@ export function OverviewMap({
                 ))
               }
             </Geographies>
-          )}
+            );
+          })()}
 
-          {selectedState && cityMarkers.map((marker: any, index: number) => {
+          {selectedState && (() => {
+            // Fator de escala para manter tamanho visual constante independente do zoom do viewBox
+            // s=1 → sem zoom (estado inteiro), s<1 → zoomed (viewBox menor)
+            const vbScale = coverageViewBox
+              ? parseFloat(coverageViewBox.split(' ')[2]) / 800
+              : 1;
+
+            return cityMarkers.map((marker: any, index: number) => {
             const isSelected = selectedCityMarker?.name === marker.name;
+            const hasCoverageActive = !!selectedCoverageEntityCNPJ &&
+              marker.entities.some((e: any) => e.CNPJ === selectedCoverageEntityCNPJ);
+
+            const baseR   = hasCoverageActive ? 2.5 : isSelected ? 6 : 4;
+            const scaledR = baseR * vbScale;
+            const scaledFont = `${11 * vbScale}px`;
+            const scaledY    = -12 * vbScale;
+
             return (
             <Marker key={`city-${index}`} coordinates={marker.coords}>
               <circle
-                r={isSelected ? 8 : 6}
-                fill={isSelected ? tColorSecondary : '#1e40af'}
-                stroke="#ffffff"
-                strokeWidth={isSelected ? 3 : 2}
-                style={{ cursor: 'pointer', transition: 'all 150ms' }}
+                r={scaledR}
+                fill={isSelected ? tColorSecondary : '#475569'}
+                stroke={isSelected && !hasCoverageActive ? '#ffffff' : 'none'}
+                strokeWidth={isSelected && !hasCoverageActive ? 1.5 * vbScale : 0}
+                opacity={hasCoverageActive ? 0.55 : 1}
+                style={{ cursor: 'pointer', transition: 'all 200ms' }}
                 onMouseEnter={(e: any) => {
                   if (selectedCityMarker) return;
                   const fom = marker.entities.reduce((acc: any, e: any) => acc + (e.VALOR_REPASSE || 0), 0);
@@ -287,11 +317,11 @@ export function OverviewMap({
               />
               <text
                 textAnchor="middle"
-                y={-12}
+                y={scaledY}
                 style={{
                   fontFamily: "system-ui",
                   fill: "#1e3a8a",
-                  fontSize: "11px",
+                  fontSize: scaledFont,
                   fontWeight: "bold",
                   pointerEvents: "none",
                   textShadow: "0px 1px 3px rgba(255,255,255,0.9), 0px 0px 2px rgba(255,255,255,1)"
@@ -301,7 +331,8 @@ export function OverviewMap({
               </text>
             </Marker>
             );
-          })}
+          });
+          })()}
         </ComposableMap>
         
         {mapTooltip && (
@@ -454,13 +485,16 @@ export function OverviewMap({
             )}
           </div>
         )}
-      </div>
 
-      {/* Panel persistente de seleção de abrangência */}
-      {selectedCityMarker && (
-        <div
-          className="fixed z-50 bg-slate-900 border border-blue-700 text-white p-4 rounded-xl shadow-2xl min-w-65 max-w-85"
-          style={{ top: cityPanelPos.y + 15, left: cityPanelPos.x + 15 }}
+        {/* Panel persistente — absolute dentro do mapa quando cobertura ativa */}
+        {selectedCityMarker && (
+          <div
+            className="z-50 bg-slate-900 border border-blue-700 text-white p-4 rounded-xl shadow-2xl min-w-65 max-w-85"
+            style={
+              selectedCoverageEntityCNPJ
+                ? { position: 'absolute', bottom: 16, right: 16 }
+                : { position: 'fixed', top: cityPanelPos.y + 15, left: cityPanelPos.x + 15 }
+            }
         >
           <div className="flex justify-between items-center mb-2 pb-2 border-b border-slate-700">
             <span className="font-bold text-base text-blue-300">{selectedCityMarker.label}</span>
@@ -512,7 +546,8 @@ export function OverviewMap({
             </span>
           </div>
         </div>
-      )}
+        )}
+      </div>
 
       <p className="text-xs text-slate-400 mt-4 text-center shrink-0">Clique em um estado para filtrar os demais gráficos e focar na região.</p>
     </>
