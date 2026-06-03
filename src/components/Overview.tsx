@@ -97,6 +97,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               coverageViewBox={state.coverageViewBox}
               handleCityMarkerClick={helpers.handleCityMarkerClick}
               handleCoverageToggle={helpers.handleCoverageToggle}
+              clearCityPanel={helpers.clearCityPanel}
             />
           </div>
 

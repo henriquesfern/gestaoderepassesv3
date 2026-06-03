@@ -73,6 +73,11 @@ export function useOverviewMetrics(
     setSelectedCoverageEntityCNPJ(cnpj);
   };
 
+  const clearCityPanel = () => {
+    setSelectedCityMarker(null);
+    setSelectedCoverageEntityCNPJ(null);
+  };
+
   const filteredData = useMemo(() => {
     return selecionados.filter(item => {
       const matchState = !selectedState || item.ESTADO === selectedState;
@@ -480,8 +485,8 @@ export function useOverviewMetrics(
 
     const bboxW = maxX - minX;
     const bboxH = maxY - minY;
-    const padX = bboxW * 0.25;
-    const padY = bboxH * 0.25;
+    const padX = bboxW * 3;
+    const padY = bboxH * 3;
 
     let vbX = minX - padX;
     let vbY = minY - padY;
@@ -526,7 +531,7 @@ export function useOverviewMetrics(
     },
     helpers: {
       clearFilters, getComponentsForDimension, getIndicatorsForComponent, getIndicatorDetails,
-      handleCityMarkerClick, handleCoverageToggle,
+      handleCityMarkerClick, handleCoverageToggle, clearCityPanel,
     }
   };
 }
