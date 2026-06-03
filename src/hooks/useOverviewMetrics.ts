@@ -449,6 +449,60 @@ export function useOverviewMetrics(
     [coverageFeatures]
   );
 
+  // Zoom via viewBox SVG: converte vértices do polígono para coordenadas SVG usando a
+  // projeção atual (estável, nível de estado) e enquadra o resultado com padding de 25%
+  const coverageViewBox = useMemo((): string | undefined => {
+    if (!coverageFeatureCollection || !mapProjection) return undefined;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    const processRing = (ring: number[][]) => {
+      ring.forEach(([lng, lat]) => {
+        const pt = (mapProjection as any)([lng, lat]);
+        if (pt) {
+          if (pt[0] < minX) minX = pt[0];
+          if (pt[1] < minY) minY = pt[1];
+          if (pt[0] > maxX) maxX = pt[0];
+          if (pt[1] > maxY) maxY = pt[1];
+        }
+      });
+    };
+
+    coverageFeatureCollection.features.forEach((f: any) => {
+      const g = f.geometry;
+      if (!g) return;
+      if (g.type === 'Polygon') processRing(g.coordinates[0]);
+      else if (g.type === 'MultiPolygon')
+        g.coordinates.forEach((poly: number[][][]) => processRing(poly[0]));
+    });
+
+    if (minX === Infinity) return undefined;
+
+    const bboxW = maxX - minX;
+    const bboxH = maxY - minY;
+    const padX = bboxW * 0.25;
+    const padY = bboxH * 0.25;
+
+    let vbX = minX - padX;
+    let vbY = minY - padY;
+    let vbW = bboxW + 2 * padX;
+    let vbH = bboxH + 2 * padY;
+
+    // Ajusta para preservar a proporção do SVG (800:500), evitando distorção
+    const svgAspect = 800 / 500;
+    if (vbW / vbH < svgAspect) {
+      const extra = vbH * svgAspect - vbW;
+      vbX -= extra / 2;
+      vbW += extra;
+    } else {
+      const extra = vbW / svgAspect - vbH;
+      vbY -= extra / 2;
+      vbH += extra;
+    }
+
+    return `${vbX} ${vbY} ${vbW} ${vbH}`;
+  }, [coverageFeatureCollection, mapProjection]);
+
   return {
     state: {
       selectedState, setSelectedState,
@@ -461,6 +515,7 @@ export function useOverviewMetrics(
       selectedCityMarker, cityPanelPos,
       selectedCoverageEntityCNPJ,
       abrangenciaGeoDataReady: abrangenciaGeoData !== null,
+      coverageViewBox,
     },
     metrics: {
       filteredData, kpis, regionData, stateData, stateBreakdownData, evolucaoData,

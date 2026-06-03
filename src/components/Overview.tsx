@@ -94,6 +94,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               coverageFeatures={metrics.coverageFeatures}
               coverageFeatureCollection={metrics.coverageFeatureCollection}
               abrangenciaGeoDataReady={state.abrangenciaGeoDataReady}
+              coverageViewBox={state.coverageViewBox}
               handleCityMarkerClick={helpers.handleCityMarkerClick}
               handleCoverageToggle={helpers.handleCoverageToggle}
             />
