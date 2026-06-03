@@ -1,5 +1,5 @@
 import type React from 'react';
-import { LayoutDashboard, TableProperties, LineChart, UserCheck, Lightbulb, History, Users, List, Sparkles } from 'lucide-react';
+import { LayoutDashboard, TableProperties, LineChart, UserCheck, Lightbulb, History, Users, List, Sparkles, Building2 } from 'lucide-react';
 
 export type TabId =
   | 'overview'
@@ -21,6 +21,7 @@ export type TabId =
   | 'insights_ec'
   | 'insights_infra'
   | 'insights_fiscal'
+  | 'acompanhamento_entidades'
   | 'ai_assistant';
 
 export interface MenuItem {
@@ -36,6 +37,8 @@ export const menuItems: MenuItem[] = [
   { id: 'current_directory', label: 'Diretório de Entidades', icon: List, depth: 1, description: 'Lista de entidades do ciclo corrente.' },
   { id: 'current_fiscal', label: 'Visão do Fiscal', icon: UserCheck, depth: 1, description: 'Acompanhamento fiscal do ciclo corrente.' },
   { id: 'current_financial', label: 'Painel Financeiro', icon: LineChart, depth: 1, description: 'Indicadores financeiros do ciclo corrente.' },
+
+  { id: 'acompanhamento_entidades', label: 'Acompanhamento de Entidades', icon: Building2, depth: 0, description: 'Cadastro central de entidades com dados da Receita Federal e histórico de repasses.' },
 
   { id: 'history', label: 'Histórico (2025)', icon: History, depth: 0, description: 'Resumo consolidado do histórico de 2025.' },
   { id: 'history_fomento', label: 'Fomento (2025)', icon: TableProperties, depth: 1, description: 'Visão histórica de fomento em 2025.' },
@@ -91,6 +94,7 @@ export function getPresentationFallbackTab() {
 
 export const sectionBreakAfter: TabId[] = [
   'current_financial',
+  'acompanhamento_entidades',
   'history_ec_geral',
   'insights_infra',
   // 'insights_fiscal', // Análise Fiscal - evolução do ciclo de repasses e carga por fiscal.
@@ -117,6 +121,7 @@ export const getHeaderTitle = (tab: TabId) => {
     case 'insights_ec': return 'Visão EC Geral';
     case 'insights_infra': return 'Avaliação Infra-BR';
     case 'insights_fiscal': return 'Análise Fiscal';
+    case 'acompanhamento_entidades': return 'Acompanhamento de Entidades';
     case 'ai_assistant': return 'IA - Consulta de Dados';
   }
 };
