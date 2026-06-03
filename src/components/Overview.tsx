@@ -30,7 +30,9 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
   const colorScaleStart = theme === 'fomento' ? '#DCE4E5' : theme === 'patrocinio' ? '#E6E2DC' : '#9EC6EA';
   const colorScaleEnd = tColorPrimary;
 
-  const { state, metrics, helpers } = useOverviewMetrics(sourceData, theme, showEntityCount, colorScaleStart, colorScaleEnd);
+  // enableCoverage só ativo na visão corrente Fomento 2026 (sem data prop customizado)
+  const enableCoverage = !data;
+  const { state, metrics, helpers } = useOverviewMetrics(sourceData, theme, showEntityCount, colorScaleStart, colorScaleEnd, enableCoverage);
 
   return (
     <div className="space-y-6 mt-4">
@@ -94,6 +96,7 @@ export function Overview({ data, theme = 'overview', showEntityCount = false }: 
               coverageFeatures={metrics.coverageFeatures}
               coverageFeatureCollection={metrics.coverageFeatureCollection}
               abrangenciaGeoDataReady={state.abrangenciaGeoDataReady}
+              enableCoverage={state.enableCoverage}
               coverageViewBox={state.coverageViewBox}
               handleCityMarkerClick={helpers.handleCityMarkerClick}
               handleCoverageToggle={helpers.handleCoverageToggle}

@@ -22,7 +22,8 @@ export function useOverviewMetrics(
   theme: string,
   showEntityCount: boolean,
   colorScaleStart: string,
-  colorScaleEnd: string
+  colorScaleEnd: string,
+  enableCoverage = false   // só ativo no ciclo corrente Fomento 2026
 ) {
   const { appData } = useData();
   const infraData = appData.infraBR;
@@ -59,13 +60,14 @@ export function useOverviewMetrics(
     setSelectedCityMarker(marker);
     setCityPanelPos({ x: clientX, y: clientY });
     setSelectedCoverageEntityCNPJ(null);
-    // Pré-carrega o GeoJSON ao abrir o panel para que o zoom esteja pronto ao clicar "Ver área"
-    if (!abrangenciaGeoData) {
+    // Pré-carrega o GeoJSON ao abrir o panel (só no ciclo corrente)
+    if (enableCoverage && !abrangenciaGeoData) {
       loadAbrangenciaGeoJson().then(setAbrangenciaGeoData);
     }
   };
 
   const handleCoverageToggle = (cnpj: string) => {
+    if (!enableCoverage) return; // desabilitado em visões históricas
     if (selectedCoverageEntityCNPJ === cnpj) {
       setSelectedCoverageEntityCNPJ(null);
       return;
@@ -434,7 +436,7 @@ export function useOverviewMetrics(
   };
 
   const coverageFeatures = useMemo(() => {
-    if (!selectedCoverageEntityCNPJ || !abrangenciaGeoData) return [];
+    if (!enableCoverage || !selectedCoverageEntityCNPJ || !abrangenciaGeoData) return [];
     const abr = getAbrangenciaByCNPJ(selectedCoverageEntityCNPJ);
     if (!abr || abr.municipios.length === 0) return [];
     const codigosSet = new Set(
@@ -457,7 +459,7 @@ export function useOverviewMetrics(
   // Zoom via viewBox SVG: converte vértices do polígono para coordenadas SVG usando a
   // projeção atual (estável, nível de estado) e enquadra o resultado com padding de 25%
   const coverageViewBox = useMemo((): string | undefined => {
-    if (!coverageFeatureCollection || !mapProjection) return undefined;
+    if (!enableCoverage || !coverageFeatureCollection || !mapProjection) return undefined;
 
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
@@ -521,6 +523,7 @@ export function useOverviewMetrics(
       selectedCoverageEntityCNPJ,
       abrangenciaGeoDataReady: abrangenciaGeoData !== null,
       coverageViewBox,
+      enableCoverage,
     },
     metrics: {
       filteredData, kpis, regionData, stateData, stateBreakdownData, evolucaoData,

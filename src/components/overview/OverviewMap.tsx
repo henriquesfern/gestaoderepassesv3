@@ -39,6 +39,7 @@ export function OverviewMap({
   coverageFeatureCollection,
   coverageViewBox,
   abrangenciaGeoDataReady,
+  enableCoverage,
   handleCityMarkerClick,
   handleCoverageToggle,
   clearCityPanel,
@@ -655,8 +656,8 @@ export function OverviewMap({
           </div>
           <div className="flex flex-col gap-3">
             {selectedCityMarker.entities.map((entity: any, i: number) => {
-              const abr = getAbrangenciaByCNPJ(entity.CNPJ);
-              const hasPolygon = abr && abr.municipios.some((m: any) => m.codigoIbge);
+              const abr = enableCoverage ? getAbrangenciaByCNPJ(entity.CNPJ) : null;
+              const hasPolygon = enableCoverage && abr && abr.municipios.some((m: any) => m.codigoIbge);
               const isActive = selectedCoverageEntityCNPJ === entity.CNPJ;
               return (
                 <div key={i} className="flex items-start gap-2">
