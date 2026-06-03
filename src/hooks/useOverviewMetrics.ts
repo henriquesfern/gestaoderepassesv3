@@ -366,7 +366,7 @@ export function useOverviewMetrics(
 
   const cityMarkers = useMemo(() => {
     if (!selectedState) return [];
-    const currentEntities = selecionados.filter(e => e.ESTADO === selectedState && (!e.tipoRepasse || e.tipoRepasse === 'Fomento'));
+    const currentEntities = selecionados.filter(e => e.ESTADO === selectedState);
     const markers: { name: string, label: string, coords: [number, number], entities: any[] }[] = [];
     
     currentEntities.forEach(entity => {
