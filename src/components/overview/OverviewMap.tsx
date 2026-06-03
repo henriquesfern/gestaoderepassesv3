@@ -168,6 +168,17 @@ export function OverviewMap({
           style={{ width: "100%", height: "100%" }}
           {...(activeViewBox ? { viewBox: activeViewBox } : {})}
         >
+          <defs>
+            <marker
+              id="cov-arrow"
+              markerWidth="6" markerHeight="6"
+              refX="5" refY="3"
+              orient="auto"
+              markerUnits="strokeWidth"
+            >
+              <path d="M0,0 L0,6 L6,3 z" fill="#34d399" fillOpacity="0.8" />
+            </marker>
+          </defs>
           <Geographies geography={geoData || geoUrl}>
             {({ geographies }) =>
               geographies.map(geo => {
@@ -202,7 +213,7 @@ export function OverviewMap({
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      fill={getStateColor(stateName)}
+                      fill={isSelected ? tColorSecondary : getStateColor(stateName)}
                       stroke="#ffffff"
                       strokeWidth={0.5}
                       style={{
@@ -303,8 +314,44 @@ export function OverviewMap({
               });
             }
 
+            // Seta sede → área de abrangência (só quando são municípios diferentes)
+            const sedeMarker = cityMarkers?.find((m: any) =>
+              m.entities.some((e: any) => e.CNPJ === selectedCoverageEntityCNPJ)
+            );
+            const arrows: Array<{x1:number,y1:number,x2:number,y2:number}> = [];
+            if (sedeMarker && mapProjection) {
+              const sp = (mapProjection as any)(sedeMarker.coords);
+              if (sp && isFinite(sp[0]) && isFinite(sp[1])) {
+                geoCentroids.forEach(c => {
+                  const cp = (mapProjection as any)(c.coords);
+                  if (cp && isFinite(cp[0]) && isFinite(cp[1])) {
+                    const dist = Math.hypot(cp[0] - sp[0], cp[1] - sp[1]);
+                    if (dist > 8) arrows.push({x1: sp[0], y1: sp[1], x2: cp[0], y2: cp[1]});
+                  }
+                });
+              }
+            }
+
             return (
             <>
+            {arrows.map((a, i) => {
+              const dx = a.x2 - a.x1;
+              const dy = a.y2 - a.y1;
+              const dist = Math.hypot(dx, dy);
+              if (dist < 1) return null;
+              // Ponto de controle: perpendicular ao segmento no ponto médio (30% da distância)
+              const midX = (a.x1 + a.x2) / 2 + (-dy / dist) * dist * 0.3;
+              const midY = (a.y1 + a.y2) / 2 + ( dx / dist) * dist * 0.3;
+              const d = `M ${a.x1} ${a.y1} Q ${midX} ${midY} ${a.x2} ${a.y2}`;
+              return (
+                <path key={`arrow-${i}`} d={d} fill="none"
+                  stroke="#34d399" strokeWidth={covStroke * 1.2}
+                  strokeOpacity={0.75} strokeLinecap="round"
+                  markerEnd="url(#cov-arrow)"
+                  style={{ pointerEvents: 'none' }}
+                />
+              );
+            })}
             <Geographies geography={coverageFeatureCollection}>
               {({ geographies }) =>
                 geographies.map((geo, i) => (
@@ -312,7 +359,7 @@ export function OverviewMap({
                     key={`cov-${i}`}
                     geography={geo}
                     fill={`${tColorSecondary}1A`}
-                    stroke="#f87171"
+                    stroke="#34d399"
                     strokeWidth={covStroke}
                     strokeDasharray={`${d1},${d2}`}
                     style={{
@@ -332,7 +379,7 @@ export function OverviewMap({
                   style={{
                     fontFamily: 'system-ui',
                     fontSize: `${labelSize}px`,
-                    fill: '#f87171',
+                    fill: '#34d399',
                     fontWeight: '500',
                     pointerEvents: 'none',
                   }}
@@ -413,7 +460,7 @@ export function OverviewMap({
                     y={scaledY}
                     style={{
                       fontFamily: "system-ui",
-                      fill: hasCoverageActive ? "#f87171" : "#686C64",
+                      fill: hasCoverageActive ? "#34d399" : "#686C64",
                       fontSize: scaledFont,
                       fontWeight: hasCoverageActive ? "500" : "normal",
                       pointerEvents: "none",
