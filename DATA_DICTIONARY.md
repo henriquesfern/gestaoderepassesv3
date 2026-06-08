@@ -32,6 +32,50 @@ Todos os arquivos (Fomento, Patrocínio, etc.) são "achatados" para este format
 - **Origem**: Registro de 2025.
 - **Campos Críticos**: `Tipo` e `TipoPublicacao` definem a `CATEGORIA`.
 
-## 3. Infra-BR
+## 3. Cadastro Central de Entidades (entidadesCadastro.ts)
+
+Arquivo gerado por `scripts/buildEntidadesCadastro.ts` e atualizado por `scripts/refreshEntidadesCadastro.ts`. Serve como fonte única de dados cadastrais de entidades, keyed por CNPJ.
+
+| Campo | Tipo | Origem | Descrição |
+| :--- | :--- | :--- | :--- |
+| `cnpj` | String (14 dígitos) | Todos os CSVs | Chave primária. CNPJ normalizado sem formatação. |
+| `razaoSocial` | String | Receita Federal | Nome oficial registrado. |
+| `municipio` | String | Receita Federal | Município sede (title case). |
+| `uf` | String | Receita Federal | Sigla do estado (2 letras). |
+| `codigoIbge` | String? | IBGE API | Código IBGE de 7 dígitos do município. |
+| `lat` | Number? | IBGE Malha | Latitude do centroide do município. |
+| `lng` | Number? | IBGE Malha | Longitude do centroide do município. |
+| `situacaoCadastral` | String | Receita Federal | `Ativa`, `Baixada`, `Suspensa`, `Inapta`, `Nula` ou `DESCONHECIDA`. |
+| `dataInicioAtividade` | String? | Receita Federal | Data de registro/fundação (formato `YYYY-MM-DD`). |
+| `atividadePrincipal` | String? | Receita Federal | Descrição do objeto social principal. |
+| `email` | String? | Receita Federal | E-mail registrado na RF (quando disponível). |
+| `telefone` | String? | Receita Federal | Telefone no formato `(DD) NNNNN-NNNN`. |
+| `sigla` | String? | CDEN.ts / Precursoras.ts | Sigla oficial da entidade. |
+| `fundacao` | String? | Precursoras.ts | Ano de fundação (entidades históricas). |
+| `isCDEN` | Boolean | CDEN.ts | `true` se entidade é do Conselho de Entidades Nacionais. |
+| `isPrecursora` | Boolean | Precursoras.ts | `true` se entidade é uma das 44 precursoras históricas. |
+| `fonteLocalizacao` | String | Script | `RF` (Receita Federal), `Gemini` (fallback IA) ou `Indeterminado`. |
+
+**Estado atual (08/06/2026):** 333 entidades; 16 com situação `Ativa`; 26 CDEN; 44 Precursoras.
+
+**Fontes de CNPJ coletadas:** fomento2026.csv, fomento2025.csv, patrocinio2025.csv, cden.ts, precursoras.ts.
+
+**Pendente:** integração dos 968 registros do ECGeral.ts (sem CNPJ) — ver Fase 4 no ROADMAP.md.
+
+## 4. Localização de Entidades (entidadesLocalizacao.ts)
+
+Arquivo parcialmente redundante com `entidadesCadastro.ts`. Mantido enquanto os adapters ainda o utilizam como fonte de `CIDADE` e `CIDADE_UF`. Será descontinuado após a Fase 5 do ROADMAP.md.
+
+| Campo | Tipo | Descrição |
+| :--- | :--- | :--- |
+| `cnpj` | String (14 dígitos) | Chave primária. |
+| `entidade` | String | Nome da entidade. |
+| `cidade` | String | Município sede. |
+| `uf` | String | Sigla do estado. |
+| `cidade_uf` | String | Formato `Cidade/UF`. |
+| `confianca` | String | `Alta` ou `Média`. |
+| `codigoIbge` | String? | Código IBGE (quando disponível). |
+
+## 5. Infra-BR
 - **Status**: Integrado.
 - **Uso**: Cruzamento com dados municipais para medir impacto infraestrutural.
