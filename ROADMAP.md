@@ -12,14 +12,20 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ### Fase 4 — ECGeral.ts: enriquecimento com CNPJ via Gemini + Receita Federal
 
-- **Status**: Em aberto. Aguardando decisão de priorização.
-- **Origem**: Sessão de 05/06/2026 ao definir o Acompanhamento de Entidades (PR #144). Fase adiada em 08/06/2026 por volume de esforço.
-- **Contexto**: O arquivo `src/data/ECGeral.ts` contém 968 registros históricos (622 ECs + 346 IES) sem campo CNPJ. Para integrá-los ao cadastro central `entidadesCadastro.ts`, cada entidade precisa ter seu CNPJ identificado. A abordagem aprovada é: Gemini infere o CNPJ a partir de `denominacao` + `origem (CREA)`, e a Receita Federal valida e enriquece com dados oficiais.
-- **Criticidade estimada**: Nível 3, pois a ingestão de CNPJs inferidos com acerto parcial pode criar dados incorretos no cadastro central. Validação manual dos resultados é obrigatória antes de incorporar.
-- **Estimativa de acerto automático**: 65-70%. O restante precisa de revisão manual.
-- **Impacto esperado**: Cadastro central passa a cobrir praticamente todas as entidades conhecidas pelo sistema.
-- **Script de referência**: `scripts/buildEntidadesCadastro.ts` e `scripts/refreshEntidadesCadastro.ts` são a base técnica reutilizável.
-- **Próxima ação sugerida**: Criar `scripts/enrichECGeral.ts` que processa lotes de ECGeral, gera um arquivo intermediário de correspondências para revisão manual antes de gravar no cadastro central.
+- **Status**: Em andamento — infraestrutura criada, execução completa pendente.
+- **Origem**: Sessão de 05/06/2026. Infraestrutura implementada em 08/06/2026 (PR #151).
+- **Contexto**: 965 registros do ECGeral.ts sem CNPJ. Processo em 3 fases com checkpoint e revisão estruturada.
+- **Criticidade estimada**: Nível 3. Validação manual obrigatória antes de incorporar ao cadastro.
+- **Estimativa de acerto automático**: 65-70% (Alta confiança); ~30-35% requer revisão manual.
+- **Infraestrutura criada**:
+  - `scripts/enrichECGeral.ts` — Fase A: Gemini + RF, checkpoint retomável, gera documento de revisão
+  - `scripts/importECGeralValidados.ts` — Fase C: importa entradas aprovadas para entidadesCadastro.ts
+  - `scripts/ecgeral-output/` — artefatos de revisão (checkpoint gitignored; candidatos e revisão versionados)
+- **Como executar**:
+  - Fase A: `npx tsx scripts/enrichECGeral.ts --batch=100` (repetir até completar 965)
+  - Revisão: abrir `scripts/ecgeral-output/ecgeral_revisao.md` e `ecgeral_candidatos.json`
+  - Fase C: `npx tsx scripts/importECGeralValidados.ts --apply`
+- **Próxima ação**: Executar Fase A em lotes quando houver tempo disponível (não bloqueia outras evoluções).
 
 ### Fase 5 — Adapters usando entidadesCadastro como fonte principal
 
