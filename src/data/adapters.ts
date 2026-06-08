@@ -1,7 +1,7 @@
 import { EntidadeCDEN, EntidadePrecursora, EntidadeSelecionada } from '../types';
 import { parseCurrency, parseNumberBR } from '../utils/formatters';
 import { getRegionByState } from './regions';
-import { getLocalizacaoByCNPJ } from './entidadesLocalizacao';
+import { getEntidadeByCNPJ } from './entidadesCadastro';
 import type { RawFomento2025Row, RawFomento2026Row, RawPatrocinio2025Row, GestaoFomento26Row } from './types';
 
 const toStr = (value: string | number | undefined | null): string => {
@@ -42,7 +42,7 @@ export const adaptFomento2025 = (
   else linhaSolicitada = 'Outros';
 
   const razaoSocial = String(getField('Razão Social') || row.Sigla || '');
-  const localizacao2025 = getLocalizacaoByCNPJ(row.CNPJ || '');
+  const cadastro2025 = getEntidadeByCNPJ(row.CNPJ || '');
 
   return {
     ENTIDADE: razaoSocial,
@@ -50,8 +50,8 @@ export const adaptFomento2025 = (
     OBJETIVO: linhaSolicitada,
     CATEGORIA: linhaSolicitada,
     ESTADO: row.Estado || row.ESTADO || '',
-    CIDADE: localizacao2025?.cidade,
-    CIDADE_UF: localizacao2025?.cidade_uf,
+    CIDADE: cadastro2025?.municipio,
+    CIDADE_UF: cadastro2025 ? `${cadastro2025.municipio}/${cadastro2025.uf}` : undefined,
 	/* NOTA: parseNumberBR(row['Classificação']) || 0, */
 	NOTA: parseNumberFlexible(row['Classificação']),
     VOTOS: 0,
@@ -94,7 +94,7 @@ export const adaptFomento2026 = (
   const newRow = newFomentoMap ? newFomentoMap.get(normalizedCNPJ) : null;
   const targetRow = newRow || row;
   const gestaoRow = gestao26Map ? gestao26Map.get(normalizedCNPJ) : null;
-  const localizacao2026 = getLocalizacaoByCNPJ(row.CNPJ || '');
+  const cadastro2026 = getEntidadeByCNPJ(row.CNPJ || '');
 
   return {
     ENTIDADE: row.ENTIDADE || '',
@@ -102,8 +102,8 @@ export const adaptFomento2026 = (
     OBJETIVO: row.OBJETIVO_ESTRATEGICO || row.OBJETIVO || '',
     CATEGORIA: row.OBJETIVO_ESTRATEGICO || row.CATEGORIA || row.OBJETIVO || '',
     ESTADO: row.ESTADO || row.SIGLA_UF || '',
-    CIDADE: localizacao2026?.cidade,
-    CIDADE_UF: localizacao2026?.cidade_uf,
+    CIDADE: cadastro2026?.municipio,
+    CIDADE_UF: cadastro2026 ? `${cadastro2026.municipio}/${cadastro2026.uf}` : undefined,
     /*NOTA: parseNumberBR(row['MÉDIA']) || 0,*/
 	NOTA: parseNumberFlexible(row['MÉDIA']),
     VOTOS: parseInt(String(row['VOTOS'] || 0), 10) || 0,
@@ -184,7 +184,7 @@ export const adaptPatrocinio2025 = (
 ): EntidadeSelecionada => {
   const isCDEN = cdenParsed.some(cden => cden.CNPJ === row.CNPJ);
   const isPrecursora = precursorasParsed.some(prec => prec.CNPJ === row.CNPJ);
-  const localizacaoPatr = getLocalizacaoByCNPJ(row.CNPJ || '');
+  const cadastroPatr = getEntidadeByCNPJ(row.CNPJ || '');
 
   const tipo = row['Tipo'] || '';
   const tipoPub = row['TipoPublicacao'] || '';
@@ -201,8 +201,8 @@ export const adaptPatrocinio2025 = (
     OBJETIVO: objetivoTruncated || categoria,
     CATEGORIA: categoria,
     ESTADO: row.Estado || '',
-    CIDADE: localizacaoPatr?.cidade,
-    CIDADE_UF: localizacaoPatr?.cidade_uf,
+    CIDADE: cadastroPatr?.municipio,
+    CIDADE_UF: cadastroPatr ? `${cadastroPatr.municipio}/${cadastroPatr.uf}` : undefined,
     /*NOTA: parseNumberBR(row['Pontuação']),*/
 	NOTA: parseNumberFlexible(row['Pontuação']),
     VOTOS: 0,
