@@ -21,11 +21,18 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
   - `scripts/enrichECGeral.ts` — Fase A: Gemini + RF, checkpoint retomável, gera documento de revisão
   - `scripts/importECGeralValidados.ts` — Fase C: importa entradas aprovadas para entidadesCadastro.ts
   - `scripts/ecgeral-output/` — artefatos de revisão (checkpoint gitignored; candidatos e revisão versionados)
+- **Scripts disponíveis**:
+  - `scripts/enrichECGeral.ts` — busca CNPJ via Gemini (fallback, não recomendado — baixa confiabilidade)
+  - `scripts/matchECGeralFromRF.py` ⭐ — **abordagem recomendada**: matching direto nos arquivos CSV da Receita Federal
+  - `scripts/importECGeralValidados.ts` — importa entradas aprovadas para entidadesCadastro.ts
+- **Pré-requisito**: arquivos CSV da RF em `DadosReceita/Empresas0` a `Empresas9` (baixar de https://dadosabertos.rfb.gov.br/CNPJ/)
+- **Cache**: após a primeira execução (~8 min), base RF filtrada salva em `scripts/ecgeral-output/rf_base_cache.json` para execuções instantâneas seguintes
 - **Como executar**:
-  - Fase A: `npx tsx scripts/enrichECGeral.ts --batch=100` (repetir até completar 965)
-  - Revisão: abrir `scripts/ecgeral-output/ecgeral_revisao.md` e `ecgeral_candidatos.json`
+  - Fase A: `python scripts/matchECGeralFromRF.py` (primeira vez ~8 min, depois instantâneo)
+  - Revisão: abrir `scripts/ecgeral-output/ecgeral_revisao.md` — Alta confiança pré-aprovada, Média/Baixa aguardam revisão manual
   - Fase C: `npx tsx scripts/importECGeralValidados.ts --apply`
-- **Próxima ação**: Executar Fase A em lotes quando houver tempo disponível (não bloqueia outras evoluções).
+- **Resultados do teste (10 entidades)**: 8 Alta + 2 Média + 0 Não encontrado — ~70% de acerto correto na Alta
+- **Próxima ação**: Executar `python scripts/matchECGeralFromRF.py` para processar todas as 965 entidades quando houver tempo disponível.
 
 ### Fase 5 — Adapters usando entidadesCadastro como fonte principal
 
