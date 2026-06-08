@@ -23,13 +23,11 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ### Fase 5 — Adapters usando entidadesCadastro como fonte principal
 
-- **Status**: Em aberto. Aguardando conclusão da Fase 4 ou decisão de execução antecipada.
-- **Origem**: Sessão de 05/06/2026. Fase adiada em 08/06/2026.
-- **Contexto**: Hoje os campos `CIDADE` e `CIDADE_UF` nas entidades vêm de `src/data/entidadesLocalizacao.ts` (299 entidades). Com o cadastro central `entidadesCadastro.ts` estável (333 entidades), os três adapters podem ler de uma única fonte, eliminando a redundância e futuras manutenções paralelas.
-- **Criticidade estimada**: Nível 2 para a troca de fonte nos adapters. Requer validação visual dos marcadores do mapa após a mudança.
-- **Arquivos a alterar**: `src/data/adapters.ts` — funções `adaptFomento2025`, `adaptFomento2026`, `adaptPatrocinio2025`. Substituir `getLocalizacaoByCNPJ()` por `getEntidadeByCNPJ()`.
-- **Resultado**: `entidadesLocalizacao.ts` pode ser descontinuado após validação.
-- **Próxima ação sugerida**: Executar a troca nos três adapters, validar marcadores no mapa para todos os ciclos (Fomento 2026, Fomento 2025, Patrocínio 2025) e sincronizar.
+- **Status**: Concluído. PR #150, 08/06/2026.
+- **Origem**: Sessão de 05/06/2026. Executado em 08/06/2026.
+- **Contexto**: Os campos `CIDADE` e `CIDADE_UF` nos três adapters passaram a ler de `entidadesCadastro.ts` (`getEntidadeByCNPJ()`) em vez de `entidadesLocalizacao.ts` (`getLocalizacaoByCNPJ()`). O cadastro central tem cobertura maior (333 vs 299 entidades) e é a fonte canônica de dados cadastrais.
+- **Resultado**: Redundância eliminada. `entidadesLocalizacao.ts` permanece no código por compatibilidade mas não é mais consumido pelos adapters. Pode ser removido em limpeza futura (baixa prioridade).
+- **Validação**: Marcadores do mapa validados para Fomento 2026, Fomento 2025 e Patrocínio 2025.
 
 ### Remoção da aba Análise Fiscal (temporária)
 
