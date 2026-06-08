@@ -53,6 +53,37 @@ Para reduzir trabalho manual e manter o fluxo consistente, o agente DEVE usar os
 - Depois de concluir merge na `main`, executar `flow:finalize-main` para limpar o estado local do changelog.
 - O arquivo local `CHANGELOG_PENDING.md` só deve permanecer com conteúdo enquanto existirem entregas ainda não sincronizadas.
 
+## Protocolo de Etapa Prévia ao Sincronismo (OBRIGATÓRIO)
+
+Antes de executar qualquer comando de sincronismo (`git checkout -b`, `git add`, `git commit`, `git push`, `gh pr create`, `gh pr merge`), o agente DEVE percorrer este checklist em ordem:
+
+### 1. Teste local (quando aplicável)
+
+Se o bloco atual alterar interface, dados visuais, navegação, abas, gráficos ou qualquer comportamento observável pelo usuário, o agente DEVE:
+
+- Informar ao usuário que as alterações estão prontas localmente.
+- Perguntar explicitamente se o usuário deseja testar em `http://localhost:4173/` antes do sync.
+- **Aguardar** que o usuário confirme que o teste foi feito — ou que não é necessário — antes de continuar.
+
+### 2. Conferência de sincronismo
+
+Somente após o passo 1: apresentar a conferência completa (branch, arquivos alterados, comandos pendentes, riscos residuais).
+
+### 3. Confirmação explícita de sync
+
+Aguardar que o usuário confirme o sincronismo **após** a conferência ser apresentada.
+
+### ⚠ Armadilha recorrente — ambiguidade de "sim"
+
+**"sim"** como resposta a perguntas como "quer avançar?", "pode implementar?" ou "quer executar a fase X?" **NÃO é confirmação de sincronismo.** Essa confirmação só é válida quando dada após a conferência ser apresentada.
+
+Se houver qualquer dúvida sobre o contexto do "sim", o agente DEVE perguntar explicitamente:
+> "Deseja sincronizar agora ou prefere testar no localhost primeiro?"
+
+Incidentes registrados desta falha: 03/06/2026, 08/06/2026.
+
+---
+
 ## Protocolo de Execução Assistida de Sincronismo
 
 Quando o bloco de trabalho estiver pronto para revisão, PR ou merge, o agente DEVE apresentar ao usuário uma conferência objetiva antes de executar o fluxo remoto completo.
