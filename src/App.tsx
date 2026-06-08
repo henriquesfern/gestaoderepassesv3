@@ -34,7 +34,7 @@ export default function App() {
     <div className={cn('relative min-h-screen flex h-screen overflow-hidden font-sans', appTheme.colors.bg, appTheme.colors.text)}>
       <div className="fixed top-0 right-0 z-[100] pointer-events-none w-40 h-40 overflow-hidden">
         <div className="absolute top-8 -right-14 w-64 bg-red-600 text-white text-[10px] font-bold py-1.5 text-center uppercase tracking-widest transform rotate-45 shadow-lg">
-          Em Desenvolvimento
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Em Desenvolvimento
         </div>
       </div>
 
