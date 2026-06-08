@@ -10,6 +10,46 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
 
 ## Em Aberto
 
+### Fase 4 — ECGeral.ts: enriquecimento com CNPJ via Gemini + Receita Federal
+
+- **Status**: Em aberto. Aguardando decisão de priorização.
+- **Origem**: Sessão de 05/06/2026 ao definir o Acompanhamento de Entidades (PR #144). Fase adiada em 08/06/2026 por volume de esforço.
+- **Contexto**: O arquivo `src/data/ECGeral.ts` contém 968 registros históricos (622 ECs + 346 IES) sem campo CNPJ. Para integrá-los ao cadastro central `entidadesCadastro.ts`, cada entidade precisa ter seu CNPJ identificado. A abordagem aprovada é: Gemini infere o CNPJ a partir de `denominacao` + `origem (CREA)`, e a Receita Federal valida e enriquece com dados oficiais.
+- **Criticidade estimada**: Nível 3, pois a ingestão de CNPJs inferidos com acerto parcial pode criar dados incorretos no cadastro central. Validação manual dos resultados é obrigatória antes de incorporar.
+- **Estimativa de acerto automático**: 65-70%. O restante precisa de revisão manual.
+- **Impacto esperado**: Cadastro central passa a cobrir praticamente todas as entidades conhecidas pelo sistema.
+- **Script de referência**: `scripts/buildEntidadesCadastro.ts` e `scripts/refreshEntidadesCadastro.ts` são a base técnica reutilizável.
+- **Próxima ação sugerida**: Criar `scripts/enrichECGeral.ts` que processa lotes de ECGeral, gera um arquivo intermediário de correspondências para revisão manual antes de gravar no cadastro central.
+
+### Fase 5 — Adapters usando entidadesCadastro como fonte principal
+
+- **Status**: Em aberto. Aguardando conclusão da Fase 4 ou decisão de execução antecipada.
+- **Origem**: Sessão de 05/06/2026. Fase adiada em 08/06/2026.
+- **Contexto**: Hoje os campos `CIDADE` e `CIDADE_UF` nas entidades vêm de `src/data/entidadesLocalizacao.ts` (299 entidades). Com o cadastro central `entidadesCadastro.ts` estável (333 entidades), os três adapters podem ler de uma única fonte, eliminando a redundância e futuras manutenções paralelas.
+- **Criticidade estimada**: Nível 2 para a troca de fonte nos adapters. Requer validação visual dos marcadores do mapa após a mudança.
+- **Arquivos a alterar**: `src/data/adapters.ts` — funções `adaptFomento2025`, `adaptFomento2026`, `adaptPatrocinio2025`. Substituir `getLocalizacaoByCNPJ()` por `getEntidadeByCNPJ()`.
+- **Resultado**: `entidadesLocalizacao.ts` pode ser descontinuado após validação.
+- **Próxima ação sugerida**: Executar a troca nos três adapters, validar marcadores no mapa para todos os ciclos (Fomento 2026, Fomento 2025, Patrocínio 2025) e sincronizar.
+
+### Remoção da aba Análise Fiscal (temporária)
+
+- **Status**: Em aberto. Aguardando decisão de Fernando sobre remoção.
+- **Origem**: Sessão de 03/06/2026. A aba foi criada como exploração visual e não agregou valor suficiente para o ciclo atual.
+- **Contexto**: A aba `insights_fiscal` no grupo "Insights e Análises" foi criada com três visualizações (Matriz de Portfólio, Radar Infra-BR, Heatmap de Objetivos). A avaliação concluiu que as visualizações não trouxeram informação diferenciada da já existente na "Visão do Fiscal".
+- **Criticidade estimada**: Nível 1 — remoção de componentes isolados sem impacto em fluxos existentes.
+- **Arquivos a remover quando decidir**:
+  - `src/components/InsightsFiscalView.tsx`
+  - `src/components/insights/InsightsFiscalMatrixCard.tsx`
+  - `src/components/insights/InsightsFiscalRadarCard.tsx`
+  - `src/components/insights/InsightsFiscalHeatmapCard.tsx`
+  - `src/components/insights/InsightsFiscalFunnelCard.tsx`
+  - `src/components/insights/InsightsFiscalWorkloadCard.tsx`
+  - `src/components/insights/InsightsFiscalProgressTable.tsx`
+  - Remover `insights_fiscal` de `src/app/navigation/tabs.ts`
+  - Remover export de `src/features/insights/index.ts`
+  - Remover import/route de `src/app/router/TabContent.tsx`
+- **Próxima ação sugerida**: Quando Fernando decidir remover, executar a limpeza em um único PR.
+
 ### Governanca e automacao dos dados vivos de entidades e projetos
 
 - **Status**: Em aberto.
