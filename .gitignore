@@ -11,3 +11,6 @@ coverage/
 .env*.local
 CHANGELOG_PENDING.md
 data-inputs/
+DadosReceita/
+scripts/__pycache__/
+__pycache__/

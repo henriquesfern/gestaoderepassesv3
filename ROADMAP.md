@@ -31,8 +31,17 @@ Este documento centraliza melhorias futuras, proximos passos, ideias em avaliaca
   - Fase A: `python scripts/matchECGeralFromRF.py` (primeira vez ~8 min, depois instantâneo)
   - Revisão: abrir `scripts/ecgeral-output/ecgeral_revisao.md` — Alta confiança pré-aprovada, Média/Baixa aguardam revisão manual
   - Fase C: `npx tsx scripts/importECGeralValidados.ts --apply`
-- **Resultados do teste (10 entidades)**: 8 Alta + 2 Média + 0 Não encontrado — ~70% de acerto correto na Alta
-- **Próxima ação**: Executar `python scripts/matchECGeralFromRF.py` para processar todas as 965 entidades quando houver tempo disponível.
+- **Resultados do processamento completo (965 entidades — 09/06/2026)**:
+  - Alta: 663 (68,7%) | Média: 270 (28,0%) | Baixa: 17 (1,8%) | Não encontrado: 15 (1,6%)
+  - Cobertura: 100% — todas as entidades tiveram ao menos um candidato
+- **Avaliação e decisão**: Após análise dos resultados em `ecgeral_candidatos.json`, constatou-se que muitos registros marcados como `"aprovado": true` (Alta confiança) apresentam discrepâncias entre `denominacao` (ECGeral) e `razao_social_rf` (Receita Federal) — o algoritmo de matching por tokens normalizados gera falsos positivos para entidades com nomes parcialmente similares mas natureza distinta.
+- **Status**: **Em pausa** — os artefatos foram gerados e versionados para referência futura. A abordagem de matching automático por nome não é suficientemente precisa para importação direta.
+- **Artefatos disponíveis** (em `scripts/ecgeral-output/`):
+  - `ecgeral_candidatos.json` — 965 entradas com CNPJ sugerido, confiança e flag `aprovado`
+  - `ecgeral_revisao.md` — documento de revisão organizado por confiança
+  - `rf_base_cache.json` — cache da base RF filtrada para reuso (gitignored, ~1GB)
+- **O que funcionou**: A infraestrutura de matching, cálculo de DV e validação RF está correta. O ponto fraco é o critério de confiança — tokens normalizados não distinguem entidades com natureza jurídica diferente mas nomes similares.
+- **Para quando retomar**: Considerar enriquecer o critério com: (1) comparação de natureza jurídica, (2) validação cruzada com CREA de origem vs UF da RF, (3) revisão manual assistida para as 663 Alta antes de importar.
 
 ### Fase 5 — Adapters usando entidadesCadastro como fonte principal
 
